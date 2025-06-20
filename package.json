@@ -1,0 +1,45 @@
+{
+  "name": "vat-processing-system",
+  "version": "1.0.0",
+  "description": "Monorepo for VAT processing system with FastAPI backend and React frontend",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && python run.py",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:frontend",
+    "build:frontend": "cd frontend && npm run build",
+    "test": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
+    "test:backend": "cd backend && python -m pytest tests/ -v",
+    "test:frontend": "cd frontend && npm test",
+    "install:backend": "cd backend && pip install -r requirements.txt",
+    "install:frontend": "cd frontend && npm install",
+    "install:all": "npm run install:backend && npm run install:frontend",
+    "clean": "rm -rf frontend/dist backend/__pycache__ backend/temp_uploads",
+    "setup": "npm run install:all"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^8.2.2",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "python": ">=3.11.0"
+  },
+  "keywords": [
+    "vat",
+    "processing",
+    "fastapi",
+    "react",
+    "vite",
+    "monorepo",
+    "typescript"
+  ],
+  "author": "",
+  "license": "MIT"
+}

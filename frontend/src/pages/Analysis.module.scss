@@ -1,0 +1,165 @@
+// Analysis Page Styles
+.analysisContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  height: 100%;
+}
+
+.pageTitle {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 2rem;
+  color: #001441;
+  margin-bottom: 1rem;
+}
+
+.insightsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.insightCard {
+  border-radius: 20px;
+  padding: 2rem;
+  height: 200px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  
+  &.comparative {
+    background: linear-gradient(135deg, #e8d5ff 0%, #f0e6ff 100%);
+  }
+  
+  &.visualTrends {
+    background: linear-gradient(135deg, #cce7ff 0%, #e6f3ff 100%);
+  }
+  
+  &.downloadTrends {
+    background: linear-gradient(135deg, #ccffcc 0%, #e6ffe6 100%);
+  }
+  
+  .cardIcon {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 48px;
+    height: 48px;
+    opacity: 0.7;
+  }
+  
+  .cardTitle {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: #001441;
+    margin-bottom: 0.5rem;
+  }
+  
+  .cardDescription {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    color: #40578c;
+    margin-bottom: 1.5rem;
+    line-height: 1.4;
+  }
+  
+  .cardButton {
+    align-self: flex-start;
+    border-radius: 25px;
+    padding: 0.75rem 1.5rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 0.875rem;
+    text-transform: none;
+    
+    &.comparative {
+      background-color: #8b5cf6;
+      color: white;
+      
+      &:hover {
+        background-color: #7c3aed;
+      }
+    }
+    
+    &.visualTrends {
+      background-color: #3b82f6;
+      color: white;
+      
+      &:hover {
+        background-color: #2563eb;
+      }
+    }
+    
+    &.downloadTrends {
+      background-color: #10b981;
+      color: white;
+      
+      &:hover {
+        background-color: #059669;
+      }
+    }
+  }
+}
+
+.customAnalysisSection {
+  background-color: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  
+  .sectionTitle {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    color: #001441;
+    margin-bottom: 1rem;
+  }
+  
+  .sectionDescription {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 400;
+    font-size: 1rem;
+    color: #40578c;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+  
+  .formContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 600px;
+  }
+  
+  .formField {
+    .MuiOutlinedInput-root {
+      border-radius: 12px;
+    }
+    
+    .MuiInputLabel-root {
+      font-family: 'Poppins', sans-serif;
+    }
+  }
+  
+  .submitButton {
+    align-self: flex-start;
+    background-color: #0131ff;
+    color: white;
+    border-radius: 25px;
+    padding: 1rem 2rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 1rem;
+    text-transform: none;
+    
+    &:hover {
+      background-color: #0127d9;
+    }
+  }
+} 

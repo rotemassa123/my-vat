@@ -1,0 +1,20 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
+}
+
+#root {
+  height: 100%;
+}
+
+/* Global styles */
+body {
+  background-color: #f5f5f5;
+} 

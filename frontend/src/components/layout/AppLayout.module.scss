@@ -1,0 +1,152 @@
+// App Layout Styles
+.appContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f3faff;
+}
+
+.header {
+  height: 120px;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  
+  .logo {
+    display: flex;
+    align-items: center;
+    
+    .logoText {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 2rem;
+      color: #0131ff;
+      
+      .highlight {
+        color: #001441;
+      }
+    }
+  }
+  
+  .searchBar {
+    flex: 1;
+    max-width: 620px;
+    margin: 0 2rem;
+    
+    .searchInput {
+      width: 100%;
+      background-color: #e5f2fb;
+      border-radius: 100px;
+      
+      .MuiOutlinedInput-root {
+        border-radius: 100px;
+        
+        &.Mui-focused .MuiOutlinedInput-notchedOutline {
+          border-color: #0131ff;
+        }
+      }
+    }
+  }
+  
+  .userProfile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    
+    .avatar {
+      width: 60px;
+      height: 60px;
+    }
+    
+    .userInfo {
+      display: flex;
+      flex-direction: column;
+      
+      .userName {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 18px;
+        color: #0131ff;
+      }
+      
+      .userEmail {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 400;
+        font-size: 14px;
+        color: #40578c;
+      }
+    }
+  }
+}
+
+.bodyContainer {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  padding-top: 20px;
+}
+
+.sidebar {
+  width: 295px;
+  background-color: #001441;
+  border-radius: 0 30px 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 0;
+  
+  .navigation {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .navItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.875rem 1.5rem;
+    border-radius: 50px;
+    color: #c2c2c2;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    &.active {
+      background-color: #0131ff;
+      color: white;
+    }
+    
+    .icon {
+      width: 24px;
+      height: 24px;
+    }
+    
+    .label {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+    }
+  }
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+} 
