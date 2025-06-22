@@ -1,10 +1,19 @@
 """
 Enhanced API models for VAT processing system with CRUD operations.
 """
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, TypeVar, Generic
 from datetime import datetime
 from pydantic import BaseModel, Field, EmailStr
 from enum import Enum
+
+# Generic type for API responses
+T = TypeVar('T')
+
+class ApiResponse(BaseModel, Generic[T]):
+    """Generic API response wrapper."""
+    data: T = Field(..., description="Response data")
+    message: Optional[str] = Field(None, description="Response message")
+    status: str = Field(default="success", description="Response status")
 
 
 class AccountType(str, Enum):
@@ -126,16 +135,39 @@ class InvoiceFilterRequest(BaseModel):
 class InvoiceResponse(BaseModel):
     """Response model for invoice operations."""
     id: str = Field(..., description="Invoice ID")
-    name: str = Field(..., description="File name")
-    source_id: str = Field(..., description="Source file ID")
-    size: int = Field(..., description="File size in bytes")
-    account_id: int = Field(..., description="Account ID")
-    last_executed_step: int = Field(..., description="Last processing step executed")
+    file_name: str = Field(..., description="File name")
+    file_size: int = Field(..., description="File size in bytes")
+    upload_date: str = Field(..., description="Upload date")
+    account_id: str = Field(..., description="Account ID")
     source: str = Field(..., description="Source of the file")
     content_type: Optional[str] = Field(None, description="MIME type of the file")
     status: Optional[str] = Field(None, description="File status")
-    reason: Optional[str] = Field(None, description="Reason for status")
-    created_at: datetime = Field(..., description="Creation timestamp")
+    
+    # VAT related fields
+    invoice_number: Optional[str] = Field(None, description="Invoice number")
+    supplier_name: Optional[str] = Field(None, description="Supplier name")
+    supplier_vat_number: Optional[str] = Field(None, description="Supplier VAT number")
+    invoice_date: Optional[str] = Field(None, description="Invoice date")
+    currency: Optional[str] = Field(None, description="Currency")
+    net_amount: Optional[float] = Field(None, description="Net amount")
+    vat_amount: Optional[float] = Field(None, description="VAT amount")
+    total_amount: Optional[float] = Field(None, description="Total amount")
+    vat_rate: Optional[float] = Field(None, description="VAT rate")
+    vat_scheme: Optional[str] = Field(None, description="VAT scheme")
+    
+    # Claim related fields
+    claimant: Optional[str] = Field(None, description="Claimant name")
+    submitted_date: Optional[str] = Field(None, description="Submission date")
+    claim_amount: Optional[float] = Field(None, description="Claim amount")
+    refund_amount: Optional[float] = Field(None, description="Refund amount")
+    
+    # Processing fields
+    processed_at: Optional[str] = Field(None, description="Processing timestamp")
+    error_message: Optional[str] = Field(None, description="Error message")
+    
+    # Metadata
+    created_at: str = Field(..., description="Creation timestamp")
+    updated_at: str = Field(..., description="Update timestamp")
 
 
 # Summary API Models
@@ -253,13 +285,13 @@ class LogoutRequest(BaseModel):
 # Paginated Response Models
 class PaginatedInvoiceResponse(BaseModel):
     """Paginated response for invoices."""
-    invoices: List[InvoiceResponse] = Field(..., description="List of invoices")
-    total_count: int = Field(..., description="Total number of invoices")
-    page_size: int = Field(..., description="Page size")
-    current_page: int = Field(..., description="Current page number")
-    total_pages: int = Field(..., description="Total number of pages")
+    items: List[InvoiceResponse] = Field(..., description="List of invoices")
+    page: int = Field(..., description="Current page number")
+    per_page: int = Field(..., description="Page size")
+    total: int = Field(..., description="Total number of invoices")
+    pages: int = Field(..., description="Total number of pages")
     has_next: bool = Field(..., description="Whether there's a next page")
-    has_previous: bool = Field(..., description="Whether there's a previous page")
+    has_prev: bool = Field(..., description="Whether there's a previous page")
 
 
 class PaginatedSummaryResponse(BaseModel):

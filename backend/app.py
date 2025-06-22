@@ -3,6 +3,7 @@ Main FastAPI application for Google Drive to Google Cloud Storage upload server.
 """
 import logging
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import storage
 
 from config import config
@@ -112,6 +113,20 @@ def create_app() -> FastAPI:
         title="Drive to Cloud Storage API", 
         description="Upload files from Google Drive to Google Cloud Storage with AI processing",
         version="2.0.0"
+    )
+    
+    # Add CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:3000",  # React dev server
+            "http://localhost:5173",  # Vite dev server
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:5173",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],  # Allow all HTTP methods
+        allow_headers=["*"],  # Allow all headers
     )
     
     # Include routers

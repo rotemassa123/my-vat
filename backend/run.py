@@ -7,7 +7,7 @@ import uvicorn
 
 if __name__ == "__main__":
     # Use PORT environment variable for Cloud Run compatibility
-    port = int(os.getenv("PORT", 8001))
+    port = int(os.getenv("PORT", 8000))
     host = os.getenv("HOST", "0.0.0.0")
     
     print(f"Starting server on {host}:{port}")
