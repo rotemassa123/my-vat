@@ -2,7 +2,7 @@
 Data models for the upload server - Google Drive to GCS.
 """
 from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, EmailStr
 
 
 class UploadRequest(BaseModel):
@@ -143,4 +143,35 @@ class FileAnalysisResult(BaseModel):
     tokens_used: int = Field(..., description="Tokens used for this analysis")
     cost_usd: float = Field(..., description="Estimated cost for this analysis")
     processing_time_seconds: float = Field(..., description="Processing time")
-    error_message: Optional[str] = Field(None, description="Error message if failed") 
+    error_message: Optional[str] = Field(None, description="Error message if failed")
+
+
+# Authentication Models
+class LoginRequest(BaseModel):
+    """Request model for email/password login."""
+    email: EmailStr
+    password: str
+
+
+class RegisterRequest(BaseModel):
+    """Request model for user registration."""
+    email: EmailStr
+    password: str
+    name: str
+    company_name: Optional[str] = None
+
+
+class AuthResponse(BaseModel):
+    """Response model for successful authentication."""
+    account_id: str
+    email: str
+    name: str
+    permissions: List[str]
+    auth_providers: List[str]
+    message: str = "Authentication successful"
+
+
+class GoogleAuthRequest(BaseModel):
+    """Request model for Google OAuth callback."""
+    code: str
+    state: Optional[str] = None 

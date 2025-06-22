@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 from beanie import Document, Indexed
 from pydantic import Field, EmailStr
+import bcrypt
 
 
 class Account(Document):
@@ -44,6 +45,7 @@ class Account(Document):
     )
     
     # Authentication info
+    password_hash: Optional[str] = Field(default=None, description="Hashed password for email/password auth")
     google_user_id: Optional[str] = Field(default=None, description="Google OAuth user ID")
     auth_providers: List[str] = Field(default_factory=list, description="Enabled auth providers")
     last_login: Optional[datetime] = Field(default=None, description="Last login timestamp")
@@ -60,6 +62,20 @@ class Account(Document):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     verified_at: Optional[datetime] = Field(default=None, description="Email verification timestamp")
+    
+    def set_password(self, password: str) -> None:
+        """Hash and set password."""
+        password_bytes = password.encode('utf-8')
+        salt = bcrypt.gensalt()
+        self.password_hash = bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+    
+    def verify_password(self, password: str) -> bool:
+        """Verify password against stored hash."""
+        if not self.password_hash:
+            return False
+        password_bytes = password.encode('utf-8')
+        hash_bytes = self.password_hash.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hash_bytes)
     
     class Settings:
         name = "accounts"

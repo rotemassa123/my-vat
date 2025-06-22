@@ -14,6 +14,7 @@ from BL.invoice_bl import invoice_bl
 from BL.summary_bl import summary_bl
 from BL.account_bl import account_bl
 from services.auth_service import auth_service
+from middleware.auth_middleware import get_current_account as auth_get_current_account
 from services.large_file_service import large_file_service
 
 logger = logging.getLogger(__name__)
@@ -28,42 +29,8 @@ security = HTTPBearer()
 mongo_service = None
 
 
-async def get_current_account() -> Account:
-    """Dependency to get current authenticated account - TEMPORARILY DISABLED FOR TESTING."""
-    # TODO: Re-enable authentication after testing
-    # For now, return a mock account to bypass authentication
-    from datetime import datetime, timezone
-    from bson import ObjectId
-    
-    mock_account = Account(
-        id=ObjectId("507f1f77bcf86cd799439011"),  # Fixed ObjectId for testing
-        email="test@example.com",
-        name="Test User",
-        account_type="company", 
-        status="active",
-        company_name="Test Company",
-        vat_number="GB123456789",
-        address={
-            "street": "123 Test Street",
-            "city": "London", 
-            "state": "England",
-            "postal_code": "SW1A 1AA",
-            "country": "UK"
-        },
-        vat_settings={
-            "default_currency": "GBP",
-            "vat_rate": 20.0,
-            "reclaim_threshold": 100.0,
-            "auto_process": False
-        },
-        permissions=["upload", "process", "view", "admin"],
-        monthly_upload_limit_mb=10000,
-        current_month_usage_mb=0,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc)
-    )
-    
-    return mock_account
+# Use real authentication instead of mock
+get_current_account = auth_get_current_account
 
 
 def check_permissions(account: Account, required_permissions: List[str]) -> bool:

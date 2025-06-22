@@ -58,6 +58,81 @@ class AuthService:
             logger.error(f"Failed to create Google OAuth URL: {e}")
             raise
     
+    async def register_with_email(self, email: str, password: str, name: str, company_name: Optional[str] = None) -> Dict[str, Any]:
+        """Register a new user with email/password."""
+        try:
+            # Check if user already exists
+            existing_account = await Account.find_one(Account.email == email)
+            if existing_account:
+                raise ValueError("Account with this email already exists")
+            
+            # Create new account
+            account = Account(
+                email=email,
+                name=name,
+                company_name=company_name,
+                auth_providers=["email"]
+            )
+            account.set_password(password)
+            await account.insert()
+            
+            logger.info(f"Created new account with email: {email}")
+            
+            # Create session
+            session_token = await self.create_session(
+                account.id,
+                provider="email"
+            )
+            
+            return {
+                "account": account,
+                "session_token": session_token,
+                "access_token": self.generate_jwt_token(account)
+            }
+            
+        except Exception as e:
+            logger.error(f"Email registration failed: {e}")
+            raise
+    
+    async def login_with_email(self, email: str, password: str) -> Dict[str, Any]:
+        """Login user with email/password."""
+        try:
+            # Find account by email
+            account = await Account.find_one(Account.email == email)
+            if not account:
+                raise ValueError("Invalid email or password")
+            
+            # Verify password
+            if not account.verify_password(password):
+                raise ValueError("Invalid email or password")
+            
+            # Check account status
+            if account.status != "active":
+                raise ValueError(f"Account is {account.status}")
+            
+            # Update last login
+            account.last_login = datetime.now(timezone.utc)
+            account.updated_at = datetime.now(timezone.utc)
+            await account.save()
+            
+            logger.info(f"User logged in with email: {email}")
+            
+            # Create session
+            session_token = await self.create_session(
+                account.id,
+                provider="email"
+            )
+            
+            return {
+                "account": account,
+                "session_token": session_token,
+                "access_token": self.generate_jwt_token(account)
+            }
+            
+        except Exception as e:
+            logger.error(f"Email login failed: {e}")
+            raise
+    
     async def handle_google_callback(self, code: str, state: str) -> Dict[str, Any]:
         """Handle Google OAuth2 callback and create/update account."""
         try:

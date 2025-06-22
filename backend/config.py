@@ -55,6 +55,13 @@ class Config:
     
     # Authentication settings
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "your-secret-key-change-in-production")
+    JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+    JWT_EXPIRES_HOURS = int(os.getenv("JWT_EXPIRES_HOURS", "24"))
+    
+    # Cookie settings
+    COOKIE_SECURE = os.getenv("COOKIE_SECURE", "false").lower() == "true"  # Set to true in production with HTTPS
+    COOKIE_SAMESITE = os.getenv("COOKIE_SAMESITE", "lax")  # lax, strict, none
+    COOKIE_DOMAIN = os.getenv("COOKIE_DOMAIN")  # Set for cross-subdomain cookies
     
     # Google OAuth2 settings
     GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")

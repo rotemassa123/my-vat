@@ -5,6 +5,7 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from google.cloud import storage
+from middleware.auth_middleware import AuthMiddleware
 
 from config import config
 from models import *
@@ -15,6 +16,7 @@ from routes import upload_router, health_router, process_router
 from routes.vat_routes import vat_router
 from routes.user_routes import router as user_router
 from routes.entity_routes import router as entity_router
+from routes.auth_routes import router as auth_router
 import routes.upload_routes as upload_routes_module
 import routes.health_routes as health_routes_module
 import routes.process_routes as process_routes_module
@@ -129,7 +131,22 @@ def create_app() -> FastAPI:
         allow_headers=["*"],  # Allow all headers
     )
     
+    # Add authentication middleware (optional - can be enabled per route instead)
+    # Commented out for now to avoid breaking existing functionality
+    # app.add_middleware(
+    #     AuthMiddleware,
+    #     exclude_paths=[
+    #         "/api/auth/",
+    #         "/api/health",
+    #         "/docs",
+    #         "/redoc", 
+    #         "/openapi.json",
+    #         "/"
+    #     ]
+    # )
+    
     # Include routers
+    app.include_router(auth_router, tags=["Authentication"])
     app.include_router(health_router, prefix="/api", tags=["Health"])
     app.include_router(upload_router, prefix="/api", tags=["Upload"])
     app.include_router(process_router, prefix="/api", tags=["AI Processing"])

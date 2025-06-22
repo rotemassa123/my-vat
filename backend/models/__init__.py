@@ -15,7 +15,12 @@ from .api_models import (
     FileAnalysisRequest,
     ProcessResult,
     ChatResponse,
-    FileAnalysisResult
+    FileAnalysisResult,
+    # Authentication Models
+    LoginRequest,
+    RegisterRequest,
+    AuthResponse,
+    GoogleAuthRequest
 )
 
 # MongoDB models (optional - import only if available)
@@ -59,6 +64,11 @@ try:
         'ProcessResult',
         'ChatResponse',
         'FileAnalysisResult',
+        # Authentication API models
+        'LoginRequest',
+        'RegisterRequest',
+        'AuthResponse',
+        'GoogleAuthRequest',
         # MongoDB models
         'Invoice',
         'UploadSession',
@@ -115,6 +125,11 @@ __all__ = [
     "ProcessResult",
     "ChatResponse",
     "FileAnalysisResult",
+    # Authentication API models
+    "LoginRequest",
+    "RegisterRequest",
+    "AuthResponse",
+    "GoogleAuthRequest",
     # MongoDB models
     "Invoice",
     "ProcessingJob",
