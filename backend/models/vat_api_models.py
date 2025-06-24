@@ -170,6 +170,31 @@ class InvoiceResponse(BaseModel):
     updated_at: str = Field(..., description="Update timestamp")
 
 
+class InvoiceReportingResponse(BaseModel):
+    """Enhanced invoice response model for VAT reporting with joined summary data."""
+    id: str = Field(..., description="Invoice ID")
+    file_name: str = Field(..., description="File name")
+    
+    # Core reporting columns
+    invoice_id: Optional[str] = Field(None, description="Invoice ID from summary content")
+    vat_scheme: Optional[str] = Field(None, description="VAT scheme (empty for now)")
+    submitted_date: Optional[str] = Field(None, description="Submitted date from invoice")
+    currency: Optional[str] = Field(None, description="Currency from summary")
+    claim_amount: Optional[Union[str, float]] = Field(None, description="VAT amount from summary")
+    status: str = Field(..., description="Status: 'rejected' if rejected, otherwise 'awaiting submission'")
+    refund_amount: Optional[Union[str, float]] = Field(None, description="Refund amount (empty for now)")
+    
+    # Additional useful fields
+    supplier: Optional[str] = Field(None, description="Supplier name from summary")
+    invoice_date: Optional[str] = Field(None, description="Invoice date from summary")
+    net_amount: Optional[Union[str, float]] = Field(None, description="Net amount from summary")
+    vat_rate: Optional[Union[str, int]] = Field(None, description="VAT rate from summary")
+    
+    # Metadata
+    created_at: str = Field(..., description="Invoice creation timestamp")
+    processing_status: Optional[str] = Field(None, description="Processing status from summary")
+
+
 # Summary API Models
 class SummaryCreateRequest(BaseModel):
     """Request model for creating a summary."""
@@ -180,7 +205,7 @@ class SummaryCreateRequest(BaseModel):
     tokens_used: int = Field(..., description="Tokens consumed")
     cost_usd: float = Field(..., description="Cost for this summary")
     is_invoice: bool = Field(..., description="Whether content was determined to be an invoice")
-    summary_content: str = Field(..., description="Raw response from OpenAI")
+    summary_content: Optional[Union[str, Dict[str, Any]]] = Field(None, description="Raw response from OpenAI - can be string or object")
     extracted_data: Optional[Dict[str, Any]] = Field(None, description="Parsed invoice data as JSON")
     processing_time_seconds: float = Field(..., description="Processing time")
     success: bool = Field(default=True, description="Whether processing was successful")
@@ -189,7 +214,7 @@ class SummaryCreateRequest(BaseModel):
 
 class SummaryUpdateRequest(BaseModel):
     """Request model for updating a summary."""
-    summary_content: Optional[str] = Field(None, description="Raw response from OpenAI")
+    summary_content: Optional[Union[str, Dict[str, Any]]] = Field(None, description="Raw response from OpenAI - can be string or object")
     extracted_data: Optional[Dict[str, Any]] = Field(None, description="Parsed invoice data as JSON")
     success: Optional[bool] = Field(None, description="Whether processing was successful")
     error_message: Optional[str] = Field(None, description="Error message if failed")
@@ -229,7 +254,7 @@ class SummaryResponse(BaseModel):
     tokens_used: int = Field(..., description="Tokens consumed")
     cost_usd: float = Field(..., description="Cost for this summary")
     is_invoice: bool = Field(..., description="Whether content was determined to be an invoice")
-    summary_content: str = Field(..., description="Raw response from OpenAI")
+    summary_content: Optional[Union[str, Dict[str, Any]]] = Field(None, description="Raw response from OpenAI - can be string or object")
     extracted_data: Optional[Dict[str, Any]] = Field(None, description="Parsed invoice data as JSON")
     processing_time_seconds: float = Field(..., description="Processing time")
     success: bool = Field(..., description="Whether processing was successful")
@@ -286,6 +311,17 @@ class LogoutRequest(BaseModel):
 class PaginatedInvoiceResponse(BaseModel):
     """Paginated response for invoices."""
     items: List[InvoiceResponse] = Field(..., description="List of invoices")
+    page: int = Field(..., description="Current page number")
+    per_page: int = Field(..., description="Page size")
+    total: int = Field(..., description="Total number of invoices")
+    pages: int = Field(..., description="Total number of pages")
+    has_next: bool = Field(..., description="Whether there's a next page")
+    has_prev: bool = Field(..., description="Whether there's a previous page")
+
+
+class PaginatedInvoiceReportingResponse(BaseModel):
+    """Paginated response for enhanced invoice reporting."""
+    items: List[InvoiceReportingResponse] = Field(..., description="List of invoices with reporting data")
     page: int = Field(..., description="Current page number")
     per_page: int = Field(..., description="Page size")
     total: int = Field(..., description="Total number of invoices")

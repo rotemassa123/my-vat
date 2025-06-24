@@ -2,7 +2,7 @@
 MongoDB document models using Beanie ODM for upload tracking and file operations.
 """
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from beanie import Document, Indexed
 from pydantic import Field
 
@@ -329,7 +329,7 @@ class Summary(Document):
     
     # Summary results
     is_invoice: bool = Field(..., description="Whether content was determined to be an invoice")
-    summary_content: str = Field(..., description="Raw response from OpenAI")
+    summary_content: Optional[Union[str, Dict[str, Any]]] = Field(None, description="Raw response from OpenAI - can be string or object")
     
     # Extracted invoice data (if applicable)
     extracted_data: Optional[Dict[str, Any]] = Field(default=None, description="Parsed invoice data as JSON")

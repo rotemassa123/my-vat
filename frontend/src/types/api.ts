@@ -15,45 +15,39 @@ export interface PaginatedResponse<T> {
   has_prev: boolean;
 }
 
-// Invoice related types
+// Invoice status enum matching backend
+export type InvoiceStatus = 
+  | 'processing'              // During discovery, upload, summarize, eligibility check
+  | 'failed'                  // Processing failed for some reason
+  | 'not_claimable'          // Determined to be not claimable
+  | 'claimable'              // Claimable but not yet submitted
+  | 'awaiting_claim_result'  // Claim submitted, waiting for result
+  | 'claim_accepted'         // Claim was accepted
+  | 'claim_rejected';        // Claim was rejected
+
+// Invoice related types - matches the API response structure
 export interface Invoice {
   id: string;
   file_name: string;
-  file_size: number;
-  upload_date: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed' | 'submitted' | 'approved' | 'rejected';
-  account_id: string;
-  
-  // VAT related fields
-  invoice_number?: string;
-  supplier_name?: string;
-  supplier_vat_number?: string;
-  invoice_date?: string;
-  currency?: string;
-  net_amount?: number;
-  vat_amount?: number;
-  total_amount?: number;
-  vat_rate?: number;
-  vat_scheme?: string;
-  
-  // Claim related fields
-  claimant?: string;
+  invoice_id?: string | null;
+  vat_scheme?: string | null;
   submitted_date?: string;
-  claim_amount?: number;
-  refund_amount?: number;
-  
-  // Processing fields
-  processed_at?: string;
-  error_message?: string;
-  
-  // Metadata
+  currency?: string | null;
+  claim_amount?: string | null;
+  status: InvoiceStatus;
+  refund_amount?: string | null;
+  supplier?: string | null;
+  invoice_date?: string | null;
+  net_amount?: string | null;
+  vat_rate?: string | null;
   created_at: string;
-  updated_at: string;
+  processing_status?: string;
+  reason?: string;           // Reason for failed/not_claimable status
 }
 
 export interface InvoiceFilters {
   status?: string[];
-  claimant?: string;
+  filename?: string;
   vat_scheme?: string;
   currency?: string;
   date_from?: string;

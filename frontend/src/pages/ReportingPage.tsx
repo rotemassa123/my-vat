@@ -12,6 +12,7 @@ import {
   Paper,
   CircularProgress,
   Alert,
+  Tooltip,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -19,12 +20,19 @@ import {
   Download as DownloadIcon,
   Refresh as RefreshIcon,
   Clear as ClearIcon,
+  HourglassTop as ProcessingIcon,
+  Error as ErrorIcon,
+  Cancel as NotClaimableIcon,
+  CheckCircle as ClaimableIcon,
+  Schedule as AwaitingIcon,
+  ThumbUp as AcceptedIcon,
+  ThumbDown as RejectedIcon,
 } from '@mui/icons-material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { format } from 'date-fns';
 import { useInfiniteInvoices } from '../hooks/useInvoices';
 import { InvoiceApiService } from '../lib/invoiceApi';
-import type { InvoiceQueryParams, Invoice } from '../types/api';
+import type { InvoiceQueryParams, InvoiceStatus } from '../types/api';
 import styles from './ReportingPage.module.scss';
 
 const ROW_HEIGHT = 60;
@@ -32,22 +40,65 @@ const ROW_HEIGHT = 60;
 interface FilterState {
   search: string;
   status: string[];
-  claimant: string;
+  filename: string;
   vat_scheme: string;
   currency: string;
   date_from: string;
   date_to: string;
 }
 
-const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pending', color: '#ff9800' },
-  { value: 'processing', label: 'Processing', color: '#2196f3' },
-  { value: 'completed', label: 'Completed', color: '#4caf50' },
-  { value: 'failed', label: 'Failed', color: '#f44336' },
-  { value: 'submitted', label: 'Submitted', color: '#9c27b0' },
-  { value: 'approved', label: 'Approved', color: '#4caf50' },
-  { value: 'rejected', label: 'Rejected', color: '#f44336' },
-];
+// Status configuration with beautiful styling
+const STATUS_CONFIG = {
+  processing: {
+    label: 'Processing',
+    color: '#2196f3',
+    backgroundColor: '#e3f2fd',
+    icon: ProcessingIcon,
+    description: 'File is being processed (discovery, upload, analysis)',
+  },
+  failed: {
+    label: 'Failed',
+    color: '#f44336',
+    backgroundColor: '#ffebee',
+    icon: ErrorIcon,
+    description: 'Processing failed - check reason for details',
+  },
+  not_claimable: {
+    label: 'Not Claimable',
+    color: '#ff9800',
+    backgroundColor: '#fff3e0',
+    icon: NotClaimableIcon,
+    description: 'Document determined to be not claimable',
+  },
+  claimable: {
+    label: 'Ready to Claim',
+    color: '#4caf50',
+    backgroundColor: '#e8f5e8',
+    icon: ClaimableIcon,
+    description: 'Document is claimable and ready for submission',
+  },
+  awaiting_claim_result: {
+    label: 'Awaiting Result',
+    color: '#9c27b0',
+    backgroundColor: '#f3e5f5',
+    icon: AwaitingIcon,
+    description: 'Claim submitted, waiting for result',
+  },
+  claim_accepted: {
+    label: 'Claim Accepted',
+    color: '#4caf50',
+    backgroundColor: '#e8f5e8',
+    icon: AcceptedIcon,
+    description: 'Claim was accepted and approved',
+  },
+  claim_rejected: {
+    label: 'Claim Rejected',
+    color: '#f44336',
+    backgroundColor: '#ffebee',
+    icon: RejectedIcon,
+    description: 'Claim was rejected',
+  },
+};
 
 const CURRENCY_OPTIONS = ['EUR', 'USD', 'GBP', 'CAD', 'AUD'];
 const VAT_SCHEMES = ['Standard', 'Reduced', 'Zero', 'Exempt'];
@@ -56,7 +107,7 @@ const ReportingPage: React.FC = () => {
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     status: [],
-    claimant: '',
+    filename: '',
     vat_scheme: '',
     currency: '',
     date_from: '',
@@ -152,7 +203,7 @@ const ReportingPage: React.FC = () => {
     setFilters({
       search: '',
       status: [],
-      claimant: '',
+      filename: '',
       vat_scheme: '',
       currency: '',
       date_from: '',
@@ -177,12 +228,21 @@ const ReportingPage: React.FC = () => {
     }
   }, [filters]);
 
-  const formatCurrency = useCallback((amount: number | undefined, currency: string | undefined) => {
+  const formatCurrency = useCallback((amount: string | null | undefined, currency: string | null | undefined) => {
     if (!amount || !currency) return '-';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency,
-    }).format(amount);
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount)) return '-';
+    
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+      }).format(numAmount);
+    } catch (error) {
+      // If currency formatting fails, show amount with currency symbol
+      console.warn('Currency formatting failed for:', currency, error);
+      return `${numAmount.toFixed(2)} ${currency}`;
+    }
   }, []);
 
   const formatDate = useCallback((dateString: string | undefined) => {
@@ -190,9 +250,64 @@ const ReportingPage: React.FC = () => {
     return format(new Date(dateString), 'MMM dd, yyyy');
   }, []);
 
-  const getStatusColor = useCallback((status: string) => {
-    const statusOption = STATUS_OPTIONS.find(opt => opt.value === status);
-    return statusOption?.color || '#666';
+  const renderStatusChip = useCallback((status: InvoiceStatus, reason?: string) => {
+    const config = STATUS_CONFIG[status];
+    if (!config) {
+      // Fallback: show the raw status as a basic chip
+      return (
+        <Chip
+          label={status || 'Unknown'}
+          size="small"
+          sx={{
+            backgroundColor: '#f5f5f5',
+            color: '#666',
+            border: '1px solid #ccc',
+          }}
+        />
+      );
+    }
+
+    const IconComponent = config.icon;
+    
+    const chip = (
+      <Chip
+        icon={<IconComponent sx={{ fontSize: '16px !important' }} />}
+        label={config.label}
+        size="small"
+        sx={{
+          backgroundColor: config.backgroundColor,
+          color: config.color,
+          border: `1px solid ${config.color}`,
+          fontWeight: 600,
+          '& .MuiChip-icon': {
+            color: config.color,
+          },
+        }}
+      />
+    );
+
+    // Add tooltip with description and reason if available
+    const tooltipTitle = (
+      <Box>
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          {config.label}
+        </Typography>
+        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+          {config.description}
+        </Typography>
+        {reason && (
+          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
+            Reason: {reason}
+          </Typography>
+        )}
+      </Box>
+    );
+
+    return (
+      <Tooltip title={tooltipTitle} arrow placement="top">
+        {chip}
+      </Tooltip>
+    );
   }, []);
 
   return (
@@ -256,16 +371,20 @@ const ReportingPage: React.FC = () => {
                 Status
               </Typography>
               <Box className={styles.statusChips}>
-                {STATUS_OPTIONS.map((status) => (
+                {Object.entries(STATUS_CONFIG).map(([value, config]) => (
                   <Chip
-                    key={status.value}
-                    label={status.label}
-                    onClick={() => handleStatusToggle(status.value)}
-                    variant={filters.status.includes(status.value) ? 'filled' : 'outlined'}
-                    style={{
-                      borderColor: status.color,
-                      backgroundColor: filters.status.includes(status.value) ? status.color : 'transparent',
-                      color: filters.status.includes(status.value) ? 'white' : status.color,
+                    key={value}
+                    label={config.label}
+                    onClick={() => handleStatusToggle(value)}
+                    variant={filters.status.includes(value) ? 'filled' : 'outlined'}
+                    icon={<config.icon sx={{ fontSize: '16px !important' }} />}
+                    sx={{
+                      borderColor: config.color,
+                      backgroundColor: filters.status.includes(value) ? config.color : 'transparent',
+                      color: filters.status.includes(value) ? 'white' : config.color,
+                      '& .MuiChip-icon': {
+                        color: filters.status.includes(value) ? 'white' : config.color,
+                      },
                     }}
                     size="small"
                   />
@@ -275,9 +394,9 @@ const ReportingPage: React.FC = () => {
 
             {/* Other Filters */}
             <TextField
-              label="Claimant"
-              value={filters.claimant}
-              onChange={(e) => handleFilterChange('claimant', e.target.value)}
+              label="Filename"
+              value={filters.filename}
+              onChange={(e) => handleFilterChange('filename', e.target.value)}
               size="small"
             />
 
@@ -345,9 +464,17 @@ const ReportingPage: React.FC = () => {
       <Paper className={styles.tableContainer}>
         {/* Table Header */}
         <Box className={styles.tableHeader}>
-          <Box className={styles.headerCell} onClick={() => handleSort('claimant')}>
-            Claimant
-            {sortBy === 'claimant' && (
+          <Box className={styles.headerCell} onClick={() => handleSort('file_name')}>
+            Filename
+            {sortBy === 'file_name' && (
+              <span className={styles.sortIndicator}>
+                {sortOrder === 'asc' ? '↑' : '↓'}
+              </span>
+            )}
+          </Box>
+          <Box className={styles.headerCell} onClick={() => handleSort('status')}>
+            Status
+            {sortBy === 'status' && (
               <span className={styles.sortIndicator}>
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </span>
@@ -380,14 +507,6 @@ const ReportingPage: React.FC = () => {
           <Box className={styles.headerCell} onClick={() => handleSort('claim_amount')}>
             Claim Amount
             {sortBy === 'claim_amount' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('status')}>
-            Status
-            {sortBy === 'status' && (
               <span className={styles.sortIndicator}>
                 {sortOrder === 'asc' ? '↑' : '↓'}
               </span>
@@ -454,7 +573,10 @@ const ReportingPage: React.FC = () => {
                     }}
                   >
                     <Box className={styles.cell}>
-                      {invoice.claimant || invoice.supplier_name || '-'}
+                      {invoice.file_name || '-'}
+                    </Box>
+                    <Box className={styles.cell}>
+                      {renderStatusChip(invoice.status, invoice.reason)}
                     </Box>
                     <Box className={styles.cell}>
                       {invoice.vat_scheme || '-'}
@@ -467,16 +589,6 @@ const ReportingPage: React.FC = () => {
                     </Box>
                     <Box className={styles.cell}>
                       {formatCurrency(invoice.claim_amount, invoice.currency)}
-                    </Box>
-                    <Box className={styles.cell}>
-                      <Chip
-                        label={invoice.status}
-                        size="small"
-                        style={{
-                          backgroundColor: getStatusColor(invoice.status),
-                          color: 'white',
-                        }}
-                      />
                     </Box>
                     <Box className={styles.cell}>
                       {formatCurrency(invoice.refund_amount, invoice.currency)}

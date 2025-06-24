@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional, Union
 from bson import ObjectId
 from beanie import PydanticObjectId
 
-from models.mongo_models import Invoice
+from models.mongo_models import Invoice, Summary
 from services.mongo_service import mongo_service
 
 logger = logging.getLogger(__name__)
@@ -234,6 +234,104 @@ class InvoiceBL:
             
         except Exception as e:
             logger.error(f"Failed to get invoices with filters: {e}")
+            raise
+
+    async def get_invoices_with_summaries(
+        self,
+        account_id: int,
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 100,
+        skip: int = 0,
+        sort_by: str = "created_at",
+        sort_order: int = -1
+    ) -> Dict[str, Any]:
+        """Get invoices enriched with summary data for reporting."""
+        try:
+            # Build query conditions
+            query_conditions = [Invoice.account_id == account_id]
+            
+            if filters:
+                # Status filter
+                if 'status' in filters and filters['status']:
+                    if filters['status'] == 'active':
+                        query_conditions.append(Invoice.status == None)
+                    else:
+                        query_conditions.append(Invoice.status == filters['status'])
+                
+                # Date range filter
+                if 'date_from' in filters and filters['date_from']:
+                    query_conditions.append(Invoice.created_at >= filters['date_from'])
+                
+                if 'date_to' in filters and filters['date_to']:
+                    query_conditions.append(Invoice.created_at <= filters['date_to'])
+                
+                # Source filter
+                if 'source' in filters and filters['source']:
+                    query_conditions.append(Invoice.source == filters['source'])
+                
+                # Size range filter
+                if 'min_size' in filters and filters['min_size']:
+                    query_conditions.append(Invoice.size >= filters['min_size'])
+                
+                if 'max_size' in filters and filters['max_size']:
+                    query_conditions.append(Invoice.size <= filters['max_size'])
+                
+                # Processing step filter
+                if 'step' in filters and filters['step'] is not None:
+                    query_conditions.append(Invoice.last_executed_step == filters['step'])
+                
+                # Content type filter
+                if 'content_type' in filters and filters['content_type']:
+                    query_conditions.append(Invoice.content_type.contains(filters['content_type']))
+                
+                # Name search
+                if 'name_contains' in filters and filters['name_contains']:
+                    query_conditions.append(Invoice.name.contains(filters['name_contains']))
+            
+            # Execute query with pagination and sorting
+            query = Invoice.find(*query_conditions)
+            
+            # Get total count for pagination
+            total_count = await query.count()
+            
+            # Apply sorting
+            if sort_order == 1:
+                query = query.sort(f"+{sort_by}")
+            else:
+                query = query.sort(f"-{sort_by}")
+            
+            # Apply pagination
+            invoices = await query.skip(skip).limit(limit).to_list()
+            
+            # Enrich invoices with summary data
+            enriched_invoices = []
+            for invoice in invoices:
+                # Find corresponding summary by file_id matching invoice._id
+                summary = await Summary.find_one(Summary.file_id == str(invoice.id))
+                
+                # Create enriched data structure
+                enriched_data = {
+                    "invoice": invoice,
+                    "summary": summary,
+                    # Extracted data from summary if available
+                    "extracted_data": summary.extracted_data if summary and summary.extracted_data else None
+                }
+                enriched_invoices.append(enriched_data)
+            
+            logger.debug(f"Found {len(invoices)} invoices with summaries for account {account_id}")
+            
+            return {
+                "invoices": enriched_invoices,
+                "total_count": total_count,
+                "page_size": limit,
+                "current_page": (skip // limit) + 1,
+                "total_pages": (total_count + limit - 1) // limit,
+                "has_next": skip + limit < total_count,
+                "has_previous": skip > 0
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get invoices with summaries: {e}")
             raise
     
     async def get_invoice_statistics(self, account_id: int) -> Dict[str, Any]:
