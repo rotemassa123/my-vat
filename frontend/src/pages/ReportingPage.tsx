@@ -8,18 +8,22 @@ import {
   Button,
   IconButton,
   InputAdornment,
-  Card,
   Paper,
   CircularProgress,
   Alert,
   Tooltip,
+  Snackbar,
+  Popover,
+  Divider,
+  Badge,
+  Checkbox,
+  Stack,
 } from '@mui/material';
 import {
   Search as SearchIcon,
   FilterList as FilterIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
-  Clear as ClearIcon,
   HourglassTop as ProcessingIcon,
   Error as ErrorIcon,
   Cancel as NotClaimableIcon,
@@ -116,7 +120,10 @@ const ReportingPage: React.FC = () => {
   
   const [sortBy, setSortBy] = useState<string>('submitted_date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-  const [showFilters, setShowFilters] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportSuccess, setExportSuccess] = useState(false);
+  const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLButtonElement | null>(null);
 
   // Build query params (excluding page since we use infinite scroll)
   const queryParams: Omit<InvoiceQueryParams, 'page'> = useMemo(() => ({
@@ -211,22 +218,105 @@ const ReportingPage: React.FC = () => {
     });
   }, []);
 
+  const getActiveFiltersText = useCallback(() => {
+    const activeFilters = [];
+    
+    if (filters.status.length > 0) {
+      activeFilters.push(`Status: ${filters.status.length} selected`);
+    }
+    if (filters.search) {
+      activeFilters.push(`Search: "${filters.search}"`);
+    }
+    if (filters.filename) {
+      activeFilters.push(`Filename: "${filters.filename}"`);
+    }
+    if (filters.vat_scheme) {
+      activeFilters.push(`VAT Scheme: ${filters.vat_scheme}`);
+    }
+    if (filters.currency) {
+      activeFilters.push(`Currency: ${filters.currency}`);
+    }
+    if (filters.date_from || filters.date_to) {
+      activeFilters.push('Date range');
+    }
+    
+    return activeFilters.length > 0 ? ` (filtered by: ${activeFilters.join(', ')})` : '';
+  }, [filters]);
+
+  const getActiveFiltersCount = useCallback(() => {
+    let count = 0;
+    if (filters.status.length > 0) count++;
+    if (filters.search) count++;
+    if (filters.filename) count++;
+    if (filters.vat_scheme) count++;
+    if (filters.currency) count++;
+    if (filters.date_from || filters.date_to) count++;
+    return count;
+  }, [filters]);
+
+  const handleFilterClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleFilterClose = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const isFilterOpen = Boolean(filterAnchorEl);
+
   const handleExport = useCallback(async () => {
+    setIsExporting(true);
+    setExportError(null);
+    
     try {
-      const blob = await InvoiceApiService.exportInvoices(filters);
+      // Build export params with current filters and sorting
+      const exportParams = {
+        ...filters,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+      };
+      
+      console.log('Exporting with filters:', exportParams);
+      
+      const blob = await InvoiceApiService.exportInvoices(exportParams);
+      
+      // Check if the response is actually a CSV (not an error response)
+      if (blob.type === 'application/json') {
+        // If we got JSON back, it's probably an error
+        const text = await blob.text();
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.detail || 'Export failed');
+      }
+      
+      // Create download
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `invoice-claims-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      
+      // Create filename with current filters info
+      const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
+      const statusFilter = filters.status.length > 0 ? `_${filters.status.join('-')}` : '';
+      const searchFilter = filters.search ? `_${filters.search.replace(/[^a-zA-Z0-9]/g, '')}` : '';
+      a.download = `invoice-claims${statusFilter}${searchFilter}_${timestamp}.csv`;
+      
       document.body.appendChild(a);
       a.click();
+      
+      // Cleanup
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      console.log('Export completed successfully');
+      setExportSuccess(true);
+      
     } catch (error) {
       console.error('Export failed:', error);
+      setExportError(error instanceof Error ? error.message : 'Export failed. Please try again.');
+    } finally {
+      setIsExporting(false);
     }
-  }, [filters]);
+  }, [filters, sortBy, sortOrder]);
 
   const formatCurrency = useCallback((amount: string | null | undefined, currency: string | null | undefined) => {
     if (!amount || !currency) return '-';
@@ -319,146 +409,472 @@ const ReportingPage: React.FC = () => {
             Invoice Claims Reporting
           </Typography>
           <Typography className={styles.subtitle}>
-            {totalCount > 0 ? `${totalCount} claims found` : isLoading ? 'Loading...' : 'No claims found'}
+            {totalCount > 0 
+              ? `${totalCount} claims found${getActiveFiltersText()}` 
+              : isLoading 
+                ? 'Loading...' 
+                : 'No claims found'
+            }
           </Typography>
         </Box>
         
         <Box className={styles.headerActions}>
-          <Button
-            variant="outlined"
-            startIcon={<FilterIcon />}
-            onClick={() => setShowFilters(!showFilters)}
-            className={styles.filterButton}
+          <Badge 
+            badgeContent={getActiveFiltersCount()} 
+            color="primary"
+            sx={{
+              '& .MuiBadge-badge': {
+                backgroundColor: '#1976d2',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '11px',
+                minWidth: '18px',
+                height: '18px',
+                borderRadius: '9px',
+              }
+            }}
           >
-            {showFilters ? 'Hide Filters' : 'Show Filters'}
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<DownloadIcon />}
-            onClick={handleExport}
-            disabled={isLoading || allInvoices.length === 0}
+            <Button
+              variant="outlined"
+              startIcon={<FilterIcon />}
+              onClick={handleFilterClick}
+              className={styles.filterButton}
+              sx={{
+                backgroundColor: isFilterOpen ? '#f0f8ff' : 'transparent',
+                borderColor: getActiveFiltersCount() > 0 ? '#1976d2' : '#e0e0e0',
+                color: getActiveFiltersCount() > 0 ? '#1976d2' : '#666',
+                fontWeight: getActiveFiltersCount() > 0 ? 600 : 400,
+                borderRadius: '8px',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  backgroundColor: '#f0f8ff',
+                  borderColor: '#1976d2',
+                  color: '#1976d2',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                }
+              }}
+            >
+              Filter
+            </Button>
+          </Badge>
+          <Tooltip 
+            title={
+              allInvoices.length === 0 
+                ? "No invoices to export" 
+                : `Export ${totalCount} invoice${totalCount !== 1 ? 's' : ''} ${filters.status.length > 0 ? `(filtered by: ${filters.status.join(', ')})` : ''}`
+            }
+            arrow
           >
-            Export CSV
-          </Button>
+            <span>
+              <Button
+                variant="outlined"
+                startIcon={isExporting ? <CircularProgress size={16} /> : <DownloadIcon />}
+                onClick={handleExport}
+                disabled={isLoading || allInvoices.length === 0 || isExporting}
+                sx={{
+                  minWidth: '120px', // Prevent button width changes during loading
+                }}
+              >
+                {isExporting ? 'Exporting...' : `Export CSV (${totalCount})`}
+              </Button>
+            </span>
+          </Tooltip>
           <IconButton onClick={() => refetch()}>
             <RefreshIcon />
           </IconButton>
         </Box>
       </Box>
 
-      {/* Filters */}
-      {showFilters && (
-        <Card className={styles.filtersCard}>
-          <Box className={styles.filtersGrid}>
-            {/* Search */}
-            <TextField
-              placeholder="Search invoices..."
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-              size="small"
-            />
+      {/* Export Error Alert */}
+      {exportError && (
+        <Alert 
+          severity="error" 
+          onClose={() => setExportError(null)}
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="body2">
+            <strong>Export Failed:</strong> {exportError}
+          </Typography>
+        </Alert>
+      )}
 
-            {/* Status Filter */}
-            <Box>
-              <Typography variant="body2" className={styles.filterLabel}>
-                Status
-              </Typography>
-              <Box className={styles.statusChips}>
-                {Object.entries(STATUS_CONFIG).map(([value, config]) => (
-                  <Chip
-                    key={value}
-                    label={config.label}
-                    onClick={() => handleStatusToggle(value)}
-                    variant={filters.status.includes(value) ? 'filled' : 'outlined'}
-                    icon={<config.icon sx={{ fontSize: '16px !important' }} />}
-                    sx={{
-                      borderColor: config.color,
-                      backgroundColor: filters.status.includes(value) ? config.color : 'transparent',
-                      color: filters.status.includes(value) ? 'white' : config.color,
-                      '& .MuiChip-icon': {
-                        color: filters.status.includes(value) ? 'white' : config.color,
+      {/* Filter Popup */}
+      <Popover
+        open={isFilterOpen}
+        anchorEl={filterAnchorEl}
+        onClose={handleFilterClose}
+        anchorOrigin={{
+          vertical: 'bottom',
+          horizontal: 'left',
+        }}
+        transformOrigin={{
+          vertical: 'top',
+          horizontal: 'left',
+        }}
+        PaperProps={{
+          sx: {
+            width: 480,
+            maxHeight: 500,
+            boxShadow: '0 12px 48px rgba(0,0,0,0.15)',
+            border: '1px solid #e0e0e0',
+            borderRadius: 3,
+            overflow: 'hidden',
+          }
+        }}
+      >
+                <Box sx={{ p: 2 }}>
+          {/* Header */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, px: 1 }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '16px', color: '#333' }}>
+              Filter by
+            </Typography>
+            <Button
+              variant="text"
+              onClick={handleClearFilters}
+              sx={{ 
+                color: '#666',
+                fontSize: '13px',
+                textTransform: 'none',
+                minWidth: 'auto',
+                padding: '4px 8px',
+                '&:hover': {
+                  backgroundColor: 'transparent',
+                  color: '#1976d2',
+                }
+              }}
+            >
+              Clear all
+            </Button>
+          </Box>
+
+          <Stack spacing={0}>
+            {/* Search Row */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              py: 2, 
+              px: 1,
+              borderBottom: '1px solid #f0f0f0',
+              '&:hover': {
+                backgroundColor: '#fafafa',
+              }
+            }}>
+              <Box sx={{ width: 100, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                  Search
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  placeholder="Search for a filename..."
+                  value={filters.search}
+                  onChange={(e) => handleFilterChange('search', e.target.value)}
+                  fullWidth
+                  size="small"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon sx={{ color: '#999', fontSize: 18 }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
                       },
-                    }}
-                    size="small"
-                  />
-                ))}
+                      '&.Mui-focused': {
+                        borderColor: '#1976d2',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+                      },
+                      '& fieldset': {
+                        border: 'none',
+                      }
+                    }
+                  }}
+                />
               </Box>
             </Box>
 
-            {/* Other Filters */}
-            <TextField
-              label="Filename"
-              value={filters.filename}
-              onChange={(e) => handleFilterChange('filename', e.target.value)}
-              size="small"
-            />
+            {/* Status Row */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'flex-start', 
+              py: 2, 
+              px: 1,
+              borderBottom: '1px solid #f0f0f0',
+              '&:hover': {
+                backgroundColor: '#fafafa',
+              }
+            }}>
+              <Box sx={{ width: 100, flexShrink: 0, pt: 0.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                  Status
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  {Object.entries(STATUS_CONFIG).map(([value, config]) => {
+                    const IconComponent = config.icon;
+                    const isSelected = filters.status.includes(value);
+                    return (
+                      <Chip
+                        key={value}
+                        label={config.label}
+                        icon={<IconComponent sx={{ fontSize: '14px !important' }} />}
+                        onClick={() => handleStatusToggle(value)}
+                        variant={isSelected ? 'filled' : 'outlined'}
+                        size="small"
+                        sx={{
+                          borderColor: config.color,
+                          backgroundColor: isSelected ? config.color : 'transparent',
+                          color: isSelected ? 'white' : config.color,
+                          fontSize: '12px',
+                          height: '28px',
+                          '& .MuiChip-icon': {
+                            color: isSelected ? 'white' : config.color,
+                          },
+                          '&:hover': {
+                            backgroundColor: isSelected ? config.color : config.backgroundColor,
+                            color: isSelected ? 'white' : config.color,
+                          }
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
+              </Box>
+            </Box>
 
-            <TextField
-              label="VAT Scheme"
-              select
-              value={filters.vat_scheme}
-              onChange={(e) => handleFilterChange('vat_scheme', e.target.value)}
-              size="small"
-            >
-              <MenuItem value="">All</MenuItem>
-              {VAT_SCHEMES.map((scheme) => (
-                <MenuItem key={scheme} value={scheme}>
-                  {scheme}
-                </MenuItem>
-              ))}
-            </TextField>
+            {/* Filename Row */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              py: 2, 
+              px: 1,
+              borderBottom: '1px solid #f0f0f0',
+              '&:hover': {
+                backgroundColor: '#fafafa',
+              }
+            }}>
+              <Box sx={{ width: 100, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                  Filename
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  placeholder="Filter by filename"
+                  value={filters.filename}
+                  onChange={(e) => handleFilterChange('filename', e.target.value)}
+                  fullWidth
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: '#1976d2',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+                      },
+                      '& fieldset': {
+                        border: 'none',
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
 
-            <TextField
-              label="Currency"
-              select
-              value={filters.currency}
-              onChange={(e) => handleFilterChange('currency', e.target.value)}
-              size="small"
-            >
-              <MenuItem value="">All</MenuItem>
-              {CURRENCY_OPTIONS.map((curr) => (
-                <MenuItem key={curr} value={curr}>
-                  {curr}
-                </MenuItem>
-              ))}
-            </TextField>
+            {/* VAT Scheme Row */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              py: 2, 
+              px: 1,
+              borderBottom: '1px solid #f0f0f0',
+              '&:hover': {
+                backgroundColor: '#fafafa',
+              }
+            }}>
+              <Box sx={{ width: 100, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                  VAT Scheme
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  select
+                  value={filters.vat_scheme}
+                  onChange={(e) => handleFilterChange('vat_scheme', e.target.value)}
+                  fullWidth
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: '#1976d2',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+                      },
+                      '& fieldset': {
+                        border: 'none',
+                      }
+                    }
+                  }}
+                >
+                  <MenuItem value="">All VAT Schemes</MenuItem>
+                  {VAT_SCHEMES.map((scheme) => (
+                    <MenuItem key={scheme} value={scheme}>
+                      {scheme}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </Box>
 
-            <TextField
-              label="Date From"
-              type="date"
-              value={filters.date_from}
-              onChange={(e) => handleFilterChange('date_from', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-            />
+            {/* Currency Row */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              py: 2, 
+              px: 1,
+              borderBottom: '1px solid #f0f0f0',
+              '&:hover': {
+                backgroundColor: '#fafafa',
+              }
+            }}>
+              <Box sx={{ width: 100, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                  Currency
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <TextField
+                  select
+                  value={filters.currency}
+                  onChange={(e) => handleFilterChange('currency', e.target.value)}
+                  fullWidth
+                  size="small"
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: '#1976d2',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+                      },
+                      '& fieldset': {
+                        border: 'none',
+                      }
+                    }
+                  }}
+                >
+                  <MenuItem value="">All Currencies</MenuItem>
+                  {CURRENCY_OPTIONS.map((curr) => (
+                    <MenuItem key={curr} value={curr}>
+                      {curr}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
+            </Box>
 
-            <TextField
-              label="Date To"
-              type="date"
-              value={filters.date_to}
-              onChange={(e) => handleFilterChange('date_to', e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              size="small"
-            />
-
-            <Button
-              variant="outlined"
-              startIcon={<ClearIcon />}
-              onClick={handleClearFilters}
-              size="small"
-            >
-              Clear All
-            </Button>
-          </Box>
-        </Card>
-      )}
+            {/* Date Range Row */}
+            <Box sx={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              py: 2, 
+              px: 1,
+              '&:hover': {
+                backgroundColor: '#fafafa',
+              }
+            }}>
+              <Box sx={{ width: 100, flexShrink: 0 }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
+                  Date Range
+                </Typography>
+              </Box>
+              <Box sx={{ flex: 1, display: 'flex', gap: 1 }}>
+                <TextField
+                  placeholder="From"
+                  type="date"
+                  value={filters.date_from}
+                  onChange={(e) => handleFilterChange('date_from', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  sx={{
+                    flex: 1,
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: '#1976d2',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+                      },
+                      '& fieldset': {
+                        border: 'none',
+                      }
+                    }
+                  }}
+                />
+                <TextField
+                  placeholder="To"
+                  type="date"
+                  value={filters.date_to}
+                  onChange={(e) => handleFilterChange('date_to', e.target.value)}
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  sx={{
+                    flex: 1,
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: 'white',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      '&:hover': {
+                        borderColor: '#d0d0d0',
+                      },
+                      '&.Mui-focused': {
+                        borderColor: '#1976d2',
+                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+                      },
+                      '& fieldset': {
+                        border: 'none',
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </Box>
+          </Stack>
+        </Box>
+      </Popover>
 
       {/* Table */}
       <Paper className={styles.tableContainer}>
@@ -619,6 +1035,23 @@ const ReportingPage: React.FC = () => {
           </Box>
         )}
       </Paper>
+      
+      {/* Success Snackbar */}
+      <Snackbar
+        open={exportSuccess}
+        autoHideDuration={4000}
+        onClose={() => setExportSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert 
+          onClose={() => setExportSuccess(false)} 
+          severity="success" 
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          CSV export completed successfully!
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

@@ -5,7 +5,7 @@ import logging
 import time
 from typing import Dict, List, Optional
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, status
+from fastapi import APIRouter, HTTPException, Depends, File, UploadFile, Form, status, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from models.vat_api_models import *
@@ -601,6 +601,179 @@ async def get_invoices(
         logger.error(f"Failed to get invoices with reporting data: {e}")
         logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Failed to get invoices with reporting data: {str(e)}")
+
+
+@vat_router.get(
+    "/invoices/export",
+    summary="📊 Export Invoices CSV",
+    description="Export filtered invoices to CSV format",
+    tags=["Invoice Management"]
+)
+async def export_invoices_csv(
+    status: Optional[List[str]] = Query(None),
+    date_from: Optional[str] = None,
+    date_to: Optional[str] = None,
+    source: Optional[str] = None,
+    min_size: Optional[int] = None,
+    max_size: Optional[int] = None,
+    step: Optional[int] = None,
+    content_type: Optional[str] = None,
+    name_contains: Optional[str] = None,
+    filename: Optional[str] = None,
+    vat_scheme: Optional[str] = None,
+    currency: Optional[str] = None,
+    search: Optional[str] = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+    current_account: Account = Depends(get_current_account)
+):
+    """Export filtered invoices to CSV format."""
+    try:
+        from fastapi.responses import StreamingResponse
+        import csv
+        import io
+        from datetime import datetime
+        
+        if not check_permissions(current_account, ["view"]):
+            raise HTTPException(status_code=403, detail="Insufficient permissions")
+
+        # Use the same filtering logic as the main invoices endpoint
+        account_id_int = 123  # Hardcoded for testing
+        
+        # Build filters dictionary (excluding status since we'll filter that client-side)
+        filters = {}
+        if date_from:
+            filters['date_from'] = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+        if date_to:
+            filters['date_to'] = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+        if source:
+            filters['source'] = source
+        if min_size:
+            filters['min_size'] = min_size
+        if max_size:
+            filters['max_size'] = max_size
+        if step is not None:
+            filters['step'] = step
+        if content_type:
+            filters['content_type'] = content_type
+        if name_contains:
+            filters['name_contains'] = name_contains
+        if filename:
+            filters['name_contains'] = filename  # Use filename as name search
+        if search:
+            filters['name_contains'] = search  # Use search as name search
+        
+        # Get all matching invoices (no pagination for export)
+        result = await invoice_bl.get_invoices_with_summaries(
+            account_id=account_id_int,
+            filters=filters,
+            limit=10000,  # Large number to get all results
+            skip=0,
+            sort_by=sort_by,
+            sort_order=-1 if sort_order == "desc" else 1
+        )
+        
+        # Create CSV content
+        output = io.StringIO()
+        writer = csv.writer(output)
+        
+        # Write CSV headers
+        headers = [
+            'File Name',
+            'Invoice ID', 
+            'Status',
+            'VAT Scheme',
+            'Submitted Date',
+            'Currency',
+            'Claim Amount',
+            'Refund Amount',
+            'Supplier',
+            'Invoice Date',
+            'Net Amount',
+            'VAT Rate',
+            'Created At',
+            'Processing Status'
+        ]
+        writer.writerow(headers)
+        
+        # Filter and write data rows
+        for enriched_invoice in result["invoices"]:
+            invoice = enriched_invoice["invoice"]
+            summary = enriched_invoice["summary"]
+            extracted_data = enriched_invoice["extracted_data"]
+            
+            # Use the same status logic as the main endpoint
+            current_status = determine_invoice_status(invoice, summary)
+            
+            # Apply status filter if specified
+            if status and current_status not in status:
+                continue
+            
+            # Extract data from summary if available
+            invoice_id_from_summary = None
+            currency = None
+            claim_amount = None
+            supplier = None
+            invoice_date = None
+            net_amount = None
+            vat_rate = None
+            
+            # Extract invoice ID from summary content
+            if summary and summary.summary_content:
+                invoice_id_from_summary = extract_invoice_id_from_summary(summary.summary_content)
+            
+            # Extract other data from summary
+            if extracted_data:
+                currency = normalize_currency_code(extracted_data.get("currency"))
+                claim_amount = str(extracted_data.get("vat_amount")) if extracted_data.get("vat_amount") else None
+                supplier = extracted_data.get("supplier")
+                invoice_date = extracted_data.get("date")
+                net_amount = str(extracted_data.get("net_amount")) if extracted_data.get("net_amount") else None
+                vat_rate = str(extracted_data.get("vat_rate")) if extracted_data.get("vat_rate") else None
+            
+            # Write row
+            row = [
+                invoice.name or '',
+                invoice_id_from_summary or '',
+                current_status or '',
+                '',  # VAT Scheme - empty for now
+                invoice.created_at.isoformat() if invoice.created_at else '',
+                currency or '',
+                claim_amount or '',
+                '',  # Refund Amount - empty for now
+                supplier or '',
+                invoice_date or '',
+                net_amount or '',
+                vat_rate or '',
+                invoice.created_at.isoformat() if invoice.created_at else '',
+                "processed" if summary and summary.success else "pending"
+            ]
+            writer.writerow(row)
+        
+        # Prepare response
+        output.seek(0)
+        csv_content = output.getvalue()
+        output.close()
+        
+        # Create filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"invoice_claims_{timestamp}.csv"
+        
+        # Return as streaming response
+        def iter_csv():
+            yield csv_content.encode('utf-8')
+        
+        return StreamingResponse(
+            iter_csv(),
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+    except Exception as e:
+        import traceback
+        logger.error(f"Failed to export invoices: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail=f"Failed to export invoices: {str(e)}")
 
 
 @vat_router.get(
