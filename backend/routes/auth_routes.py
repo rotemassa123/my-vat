@@ -146,7 +146,7 @@ async def google_callback(code: str, state: Optional[str] = None, response: Resp
         set_auth_cookie(response, session_token)
         
         # Redirect to frontend with success message
-        frontend_url = "http://localhost:3000"  # Configure this
+        frontend_url = "http://localhost:5176"  # Updated to match current frontend port
         redirect_url = f"{frontend_url}/dashboard?login=success"
         return RedirectResponse(url=redirect_url)
         
@@ -154,7 +154,7 @@ async def google_callback(code: str, state: Optional[str] = None, response: Resp
         logger.error(f"Google OAuth callback failed: {e}")
         
         # Redirect to frontend with error
-        frontend_url = "http://localhost:3000"
+        frontend_url = "http://localhost:5176"  # Updated to match current frontend port
         error_params = urlencode({"error": "google_auth_failed"})
         redirect_url = f"{frontend_url}/login?{error_params}"
         return RedirectResponse(url=redirect_url)

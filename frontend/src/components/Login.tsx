@@ -32,8 +32,24 @@ export default function Login({ onLogin, redirectTo = '/dashboard' }: LoginFormP
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Check for OAuth callback success/error on component mount
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const loginSuccess = urlParams.get('login');
+    const authError = urlParams.get('error');
+    
+    if (loginSuccess === 'success') {
+      // OAuth login was successful, redirect to dashboard
+      navigate(redirectTo);
+    } else if (authError) {
+      // OAuth login failed
+      setError('Google login failed. Please try again.');
+    }
+  }, [navigate, redirectTo]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -95,10 +111,19 @@ export default function Login({ onLogin, redirectTo = '/dashboard' }: LoginFormP
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Redirect to Google OAuth endpoint
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-    window.location.href = `${apiUrl}/api/auth/google`;
+  const handleGoogleLogin = async () => {
+    setGoogleLoading(true);
+    setError('');
+
+    try {
+      // Redirect to Google OAuth endpoint
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+      window.location.href = `${apiUrl}/api/auth/google`;
+    } catch (err) {
+      console.error('Google login error:', err);
+      setError('Failed to initiate Google login. Please try again.');
+      setGoogleLoading(false);
+    }
   };
 
   const handleForgotPassword = () => {
@@ -238,10 +263,11 @@ export default function Login({ onLogin, redirectTo = '/dashboard' }: LoginFormP
             <Button
               type="button"
               onClick={handleGoogleLogin}
+              disabled={googleLoading || loading}
               className={styles.googleButton}
-              startIcon={<GoogleIcon />}
+              startIcon={googleLoading ? null : <GoogleIcon />}
             >
-              Continue with Google
+              {googleLoading ? 'Redirecting to Google...' : 'Continue with Google'}
             </Button>
           </form>
         </Box>
