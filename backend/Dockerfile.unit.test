@@ -1,0 +1,10 @@
+FROM node:20.9.0-alpine as packages
+WORKDIR /src
+ARG NPM_TOKEN
+
+COPY .npmrc package.json ./
+RUN npm install
+COPY . ./
+
+EXPOSE 80
+CMD ["npm","run","test" ]

@@ -41,5 +41,8 @@
     "typescript"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@nestjs/cli": "^11.0.7"
+  }
 }

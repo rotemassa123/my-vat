@@ -1,0 +1,8 @@
+version: '2.3'
+services:
+  unit-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.unit.test
+      args:
+        - NPM_TOKEN=${GIT_ACCESS_TOKEN_B64}
