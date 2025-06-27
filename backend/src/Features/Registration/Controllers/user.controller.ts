@@ -5,178 +5,164 @@ import {
   Get,
   Param,
   Post,
-  Put,
   Query,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors,
   NotFoundException,
-  ConflictException,
+  BadRequestException,
 } from "@nestjs/common";
 import {
   CreateUserRequest,
   UpdateUserRequest,
 } from "../Requests/user.requests";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { UserModel } from "src/Common/API/REST/RestModels/user.models";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
-import { UserEntity } from "src/Common/Infrastructure/DB/Entities/user.entity";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
+import { IUserRepository, CreateUserData, UpdateUserData } from "src/Common/ApplicationCore/Services/IUserRepository";
 import {
-  ApiBody,
-  ApiConsumes,
-  ApiParam,
   ApiQuery,
   ApiTags,
 } from "@nestjs/swagger";
-import { UserIdDto } from "src/Common/API/REST/DTOs/DTOs";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
-import { UserGuard } from "src/Common/Infrastructure/guards/user.guard";
-import { InjectMapper } from "@automapper/nestjs";
-import { Mapper } from "@automapper/core";
+import { UserType } from "src/Common/consts/userType";
 
-@ApiTags("registration")
-@Controller("user")
-@UseGuards(AuthenticationGuard, UserGuard)
+interface UserResponse {
+  userId: number;
+  fullName: string;
+  userType: UserType;
+}
+
+@ApiTags("users")
+@Controller("users")
 export class UserController {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-    private passwordService: PasswordService,
-    @InjectMapper() private _mapper: Mapper
+    private mongoService: IUserRepository,
+    private passwordService: PasswordService
   ) {}
 
   @Get()
-  @ApiQuery({ name: "userId", required: true, type: String })
-  async getUserByUserId(@Query() query: UserIdDto): Promise<UserModel> {
-    logger.info(`get user [${query.userId}]`, UserController.name);
-    
-    const user = await this.userRepository.findOne({
-      where: { userId: Number(query.userId) },
-      relations: ["userType"],
-    });
+  @ApiQuery({ name: "userId", required: false, type: Number })
+  async getUsers(@Query("userId") userId?: string): Promise<UserResponse[]> {
+    try {
+      if (userId) {
+        const user = await this.mongoService.findUserById(Number(userId));
+        
+        if (!user) {
+          throw new NotFoundException(`User with ID ${userId} not found`);
+        }
 
-    if (!user) {
-      throw new NotFoundException(`User with ID ${query.userId} not found`);
+        return [{
+          userId: user.userId,
+          fullName: user.fullName,
+          userType: user.userType,
+        }];
+      }
+
+      // For now, return empty array since we don't have a findAll method
+      // TODO: Add findAllUsers method to IUserRepository
+      return [];
+    } catch (error) {
+      logger.error("Error fetching users", UserController.name, { error: error.message, userId });
+      throw error;
     }
-
-    return this._mapper.map(user, UserEntity, UserModel);
   }
 
   @Post()
-  async createUser(@Body() request: CreateUserRequest): Promise<string> {
-    logger.info(`create user [${request.fullName}]`, UserController.name);
-    
-    // Check if user already exists
-    const existingUser = await this.userRepository.findOneBy({
-      userId: request.userId,
-    });
+  async createUser(@Body() createUserRequest: CreateUserRequest): Promise<UserResponse> {
+    try {
+      // Check if user already exists
+      const existingUser = await this.mongoService.userExists(createUserRequest.userId);
+      if (existingUser) {
+        throw new BadRequestException(`User with ID ${createUserRequest.userId} already exists`);
+      }
 
-    if (existingUser) {
-      throw new ConflictException(
-        `User with ID ${request.userId} already exists`
-      );
+      // Hash password
+      const hashedPassword = await this.passwordService.hashPassword(createUserRequest.password);
+
+      // Create user data
+      const userData: CreateUserData = {
+        userId: createUserRequest.userId,
+        fullName: createUserRequest.fullName,
+        password: hashedPassword,
+        userType: createUserRequest.userType,
+        projects: [], // Initialize empty projects array
+      };
+
+      const user = await this.mongoService.createUser(userData);
+
+      return {
+        userId: user.userId,
+        fullName: user.fullName,
+        userType: user.userType,
+      };
+    } catch (error) {
+      logger.error("Error creating user", UserController.name, { error: error.message, userId: createUserRequest.userId });
+      throw error;
     }
+  }
 
-    // Hash password
-    const hashedPassword = await this.passwordService.hashPassword(
-      request.password
-    );
+  @Post(":userId")
+  async updateUser(
+    @Param("userId") userId: string,
+    @Body() updateUserRequest: UpdateUserRequest
+  ): Promise<UserResponse> {
+    try {
+      const userIdNum = Number(userId);
+      
+      // Check if user exists
+      const existingUser = await this.mongoService.findUserById(userIdNum);
+      if (!existingUser) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
 
-    // Create user entity
-    const userEntity = new UserEntity();
-    userEntity.userId = request.userId;
-    userEntity.fullName = request.fullName;
-    userEntity.password = hashedPassword;
-    // TODO: Handle userType mapping from enum to entity
-    userEntity.profileImageUrl = "/user.png";
+      // Prepare update data
+      const updateData: UpdateUserData = {
+        fullName: updateUserRequest.fullName,
+        userType: updateUserRequest.userType,
+      };
 
-    await this.userRepository.save(userEntity);
-    return userEntity.userId.toString();
+      // Hash password if provided
+      if (updateUserRequest.password) {
+        updateData.password = await this.passwordService.hashPassword(updateUserRequest.password);
+      }
+
+      const updated = await this.mongoService.updateUser(userIdNum, updateData);
+      
+      if (!updated) {
+        throw new BadRequestException(`Failed to update user with ID ${userId}`);
+      }
+
+      // Return updated user data
+      const updatedUser = await this.mongoService.findUserById(userIdNum);
+      return {
+        userId: updatedUser.userId,
+        fullName: updatedUser.fullName,
+        userType: updatedUser.userType,
+      };
+    } catch (error) {
+      logger.error("Error updating user", UserController.name, { error: error.message, userId });
+      throw error;
+    }
   }
 
   @Delete(":userId")
-  @ApiParam({ name: "userId", required: true, type: String })
-  async deleteUser(@Param() param: UserIdDto): Promise<void> {
-    logger.info(`delete user [${param.userId}]`, UserController.name);
-    
-    const result = await this.userRepository.delete({ userId: Number(param.userId) });
-
-    if (result.affected === 0) {
-      throw new NotFoundException(`User with ID ${param.userId} not found`);
-    }
-  }
-
-  @Put(":userId")
-  @ApiParam({ name: "userId", required: true, type: String })
-  async updateUser(
-    @Param() param: UserIdDto,
-    @Body() request: UpdateUserRequest
-  ): Promise<void> {
-    logger.info(`updating user [${param.userId}]`, UserController.name);
-    
-    const result = await this.userRepository.update(
-      { userId: Number(param.userId) }, 
-      {
-        fullName: request.fullName,
-        profileImageUrl: request.profileImageUrl,
-        // TODO: Handle userType mapping from enum to entity
+  async deleteUser(@Param("userId") userId: string): Promise<{ success: boolean }> {
+    try {
+      const userIdNum = Number(userId);
+      
+      // Check if user exists
+      const existingUser = await this.mongoService.findUserById(userIdNum);
+      if (!existingUser) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
       }
-    );
 
-    if (result.affected === 0) {
-      throw new NotFoundException(`User with ID ${param.userId} not found`);
+      const deleted = await this.mongoService.deleteUser(userIdNum);
+      
+      if (!deleted) {
+        throw new BadRequestException(`Failed to delete user with ID ${userId}`);
+      }
+
+      return { success: true };
+    } catch (error) {
+      logger.error("Error deleting user", UserController.name, { error: error.message, userId });
+      throw error;
     }
   }
 
-  @Post("profile-image")
-  @UseInterceptors(FileInterceptor("file"))
-  @ApiConsumes("multipart/form-data")
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        userId: { type: 'number' },
-        file: { type: 'string', format: 'binary' },
-      },
-    },
-  })
-  async uploadProfileImage(
-      @Body() body: { userId: number },
-      @UploadedFile() file: Express.Multer.File
-  ): Promise<{ profileImageUrl: string }> {
-    const { userId } = body;
-    logger.info(
-        `Uploading profile image for user [${userId}]`,
-        UserController.name
-    );
-
-    // TODO: Implement file upload logic here
-    // For now, return a placeholder
-    const profileImageUrl = "/default-profile.png";
-
-    // Update user's profile image URL
-    await this.userRepository.update(
-      { userId },
-      { profileImageUrl }
-    );
-
-    return { profileImageUrl };
-  }
-
-  @Delete("profile-image/:userId")
-  async deleteProfileImage(@Param("userId") userId: number): Promise<void> {
-    logger.info(
-      `Deleting profile image for user [${userId}]`,
-      UserController.name
-    );
-    
-    // Set profile image back to default
-    await this.userRepository.update(
-      { userId },
-      { profileImageUrl: "/user.png" }
-    );
-  }
 }

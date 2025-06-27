@@ -11,13 +11,18 @@ import {
 import { ApiTags } from "@nestjs/swagger";
 import { Response } from "express";
 import { JwtService } from "@nestjs/jwt";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
 import { SignInRequest } from "src/Features/Auth/Requests/auth.requests";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
-import { UserEntity } from "src/Common/Infrastructure/DB/Entities/user.entity";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
+import { IUserRepository } from "src/Common/ApplicationCore/Services/IUserRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
+import { UserType } from "src/Common/consts/userType";
+
+interface UserResponse {
+  userId: number;
+  fullName: string;
+  userType: UserType;
+}
 
 @ApiTags("auth")
 @Controller("auth")
@@ -25,20 +30,16 @@ export class AuthenticationController {
   constructor(
     private jwtService: JwtService,
     private passwordService: PasswordService,
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>
+    private userService: IUserRepository
   ) {}
 
   @Post("/signIn")
   async signIn(
     @Body() request: SignInRequest,
     @Res({ passthrough: true }) response: Response
-  ): Promise<UserEntity> {
-    // Get user from database
-    const user = await this.userRepository.findOne({
-      where: { userId: request.userId },
-      relations: ["userType"],
-    });
+  ): Promise<UserResponse> {
+    // Get user from database via user repository
+    const user = await this.userService.findUserById(request.userId);
 
     if (!user) {
       logger.warn("User not found during authentication attempt", AuthenticationController.name, { userId: request.userId });
@@ -58,9 +59,10 @@ export class AuthenticationController {
 
     // Create JWT payload (without password)
     const payload = {
-      ...user,
+      userId: user.userId,
+      fullName: user.fullName,
+      userType: user.userType,
     };
-    delete payload.password;
 
     // Generate token
     const token = await this.jwtService.signAsync(payload);
@@ -74,24 +76,25 @@ export class AuthenticationController {
       path: "/",
     });
 
-    return user;
+    return {
+      userId: user.userId,
+      fullName: user.fullName,
+      userType: user.userType,
+    };
   }
 
   @UseGuards(AuthenticationGuard)
   @Get("/me")
   async getGuardProtected(
     @Req() request: Request
-  ): Promise<Omit<UserEntity, "password" | "projects">> {
+  ): Promise<UserResponse> {
     const jwt = request["jwt"];
 
-    const user: Omit<UserEntity, "password" | "projects"> = {
+    return {
       fullName: jwt.fullName,
       userId: jwt.userId,
-      profileImageUrl: jwt.profileImageUrl,
       userType: jwt.userType,
     };
-
-    return user;
   }
 
   @Post("/logout")
