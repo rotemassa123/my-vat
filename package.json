@@ -1,25 +1,36 @@
 {
-  "name": "vat-processing-system",
+  "name": "my-vat",
   "version": "1.0.0",
-  "description": "Monorepo for VAT processing system with FastAPI backend and React frontend",
+  "description": "VAT Processing Monorepo - NestJS TypeScript backend with React frontend",
   "private": true,
   "workspaces": [
+    "backend",
     "frontend"
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "dev:backend": "cd backend && python run.py",
+    "dev:backend": "cd backend && npm run start:dev",
     "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:frontend",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
     "build:frontend": "cd frontend && npm run build",
     "test": "concurrently \"npm run test:backend\" \"npm run test:frontend\"",
-    "test:backend": "cd backend && python -m pytest tests/ -v",
+    "test:backend": "cd backend && npm test",
     "test:frontend": "cd frontend && npm test",
-    "install:backend": "cd backend && pip install -r requirements.txt",
+    "lint": "npm run lint:backend && npm run lint:frontend",
+    "lint:backend": "cd backend && npm run lint",
+    "lint:frontend": "cd frontend && npm run lint",
+    "lint:fix": "npm run lint:fix:backend && npm run lint:fix:frontend",
+    "lint:fix:backend": "cd backend && npm run lint:fix",
+    "lint:fix:frontend": "cd frontend && npm run lint:fix",
+    "install:backend": "cd backend && npm install",
     "install:frontend": "cd frontend && npm install",
     "install:all": "npm run install:backend && npm run install:frontend",
-    "clean": "rm -rf frontend/dist backend/__pycache__ backend/temp_uploads",
-    "setup": "npm run install:all"
+    "clean": "rm -rf frontend/dist backend/dist backend/node_modules/.cache",
+    "setup": "npm run install:all",
+    "start": "npm run start:backend",
+    "start:backend": "cd backend && npm start",
+    "start:frontend": "cd frontend && npm run preview"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.21",
@@ -29,16 +40,18 @@
   },
   "engines": {
     "node": ">=18.0.0",
-    "python": ">=3.11.0"
+    "npm": ">=8.0.0"
   },
   "keywords": [
     "vat",
     "processing",
-    "fastapi",
+    "nestjs",
+    "typescript",
+    "mongodb",
+    "mongoose",
     "react",
     "vite",
-    "monorepo",
-    "typescript"
+    "monorepo"
   ],
   "author": "",
   "license": "MIT",

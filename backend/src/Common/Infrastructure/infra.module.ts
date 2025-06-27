@@ -8,8 +8,7 @@ import { MongooseConfigService } from "src/Common/Infrastructure/Config/mongoose
 import { User, UserSchema } from "src/Common/Infrastructure/DB/schemas/user.schema";
 import { Project, ProjectSchema } from "src/Common/Infrastructure/DB/schemas/project.schema";
 import { Stage, StageSchema } from "src/Common/Infrastructure/DB/schemas/stage.schema";
-import { Step, StepSchema } from "src/Common/Infrastructure/DB/schemas/step.schema";
-import { DatabaseInitializerService } from "src/Common/DB/DatabaseInitializerService";
+import { Step, StepSchema } from "src/Common/Infrastructure/DB/schemas/step.schema";  
 import { IUserRepository } from "src/Common/ApplicationCore/Services/IUserRepository";
 import { UserMongoRepository } from "src/Common/Infrastructure/Services/UserMongoService";
 import { IGCSService } from "src/Common/ApplicationCore/Services/IGCSService";
@@ -31,8 +30,7 @@ import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
     JwtModule.registerAsync(jwtModuleOptionsFactory),
   ],
   providers: [
-    InfraAutomapperRegistration, 
-    DatabaseInitializerService,
+    InfraAutomapperRegistration,
     { provide: IUserRepository, useClass: UserMongoRepository },
     { provide: IGCSService, useClass: GCSService },
   ],

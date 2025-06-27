@@ -32,7 +32,7 @@ interface UserResponse {
 @Controller("users")
 export class UserController {
   constructor(
-    private mongoService: IUserRepository,
+    private userService: IUserRepository,
     private passwordService: PasswordService
   ) {}
 
@@ -41,7 +41,7 @@ export class UserController {
   async getUsers(@Query("userId") userId?: string): Promise<UserResponse[]> {
     try {
       if (userId) {
-        const user = await this.mongoService.findUserById(Number(userId));
+        const user = await this.userService.findUserById(Number(userId));
         
         if (!user) {
           throw new NotFoundException(`User with ID ${userId} not found`);
@@ -67,7 +67,7 @@ export class UserController {
   async createUser(@Body() createUserRequest: CreateUserRequest): Promise<UserResponse> {
     try {
       // Check if user already exists
-      const existingUser = await this.mongoService.userExists(createUserRequest.userId);
+      const existingUser = await this.userService.userExists(createUserRequest.userId);
       if (existingUser) {
         throw new BadRequestException(`User with ID ${createUserRequest.userId} already exists`);
       }
@@ -84,7 +84,7 @@ export class UserController {
         projects: [], // Initialize empty projects array
       };
 
-      const user = await this.mongoService.createUser(userData);
+      const user = await this.userService.createUser(userData);
 
       return {
         userId: user.userId,
@@ -106,7 +106,7 @@ export class UserController {
       const userIdNum = Number(userId);
       
       // Check if user exists
-      const existingUser = await this.mongoService.findUserById(userIdNum);
+      const existingUser = await this.userService.findUserById(userIdNum);
       if (!existingUser) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
@@ -122,14 +122,14 @@ export class UserController {
         updateData.password = await this.passwordService.hashPassword(updateUserRequest.password);
       }
 
-      const updated = await this.mongoService.updateUser(userIdNum, updateData);
+      const updated = await this.userService.updateUser(userIdNum, updateData);
       
       if (!updated) {
         throw new BadRequestException(`Failed to update user with ID ${userId}`);
       }
 
       // Return updated user data
-      const updatedUser = await this.mongoService.findUserById(userIdNum);
+      const updatedUser = await this.userService.findUserById(userIdNum);
       return {
         userId: updatedUser.userId,
         fullName: updatedUser.fullName,
@@ -147,12 +147,12 @@ export class UserController {
       const userIdNum = Number(userId);
       
       // Check if user exists
-      const existingUser = await this.mongoService.findUserById(userIdNum);
+      const existingUser = await this.userService.findUserById(userIdNum);
       if (!existingUser) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
 
-      const deleted = await this.mongoService.deleteUser(userIdNum);
+      const deleted = await this.userService.deleteUser(userIdNum);
       
       if (!deleted) {
         throw new BadRequestException(`Failed to delete user with ID ${userId}`);

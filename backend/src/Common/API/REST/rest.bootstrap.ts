@@ -9,8 +9,7 @@ export async function InitializeRestApi(app: INestApplication) {
   app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
-    .setTitle('SmartEstate')
-    .setDescription('התחדשות עירונית - עושים את זה נכון')
+    .setTitle('myvat')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
