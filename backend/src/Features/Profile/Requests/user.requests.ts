@@ -22,12 +22,22 @@ export class CreateUserRequest {
   @ApiProperty()
   @AutoMap()
   @IsString()
+  public email: string;
+
+  @ApiProperty()
+  @AutoMap()
+  @IsString()
   public password: string;
 
   @ApiProperty({ enum: UserType })
   @AutoMap()
   @IsEnum(UserType)
   public userType: UserType;
+
+  @ApiProperty()
+  @AutoMap()
+  @IsString()
+  public accountId: string;
 }
 
 export class UpdateUserRequest {

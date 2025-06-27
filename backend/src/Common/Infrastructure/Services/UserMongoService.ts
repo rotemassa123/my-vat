@@ -15,9 +15,18 @@ export class UserMongoRepository implements IUserRepository {
     return {
       userId: doc.userId,
       fullName: doc.fullName,
+      email: doc.email,
       password: doc.password,
       userType: doc.userType,
-      projects: doc.projects || [],
+      accountId: doc.accountId.toString(),
+      status: doc.status,
+      last_login: doc.last_login,
+      permissions: doc.permissions,
+      verified_at: doc.verified_at,
+      profile_image_url: doc.profile_image_url,
+      phone: doc.phone,
+      department: doc.department,
+      role: doc.role,
     };
   }
 

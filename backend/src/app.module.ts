@@ -3,7 +3,7 @@ import { AutomapperModule } from '@automapper/nestjs';
 import { Module } from '@nestjs/common';
 import { ApiModule } from './Common/API/api.module';
 import { InfraModule } from './Common/Infrastructure/infra.module';
-import { RegistrationModule } from "./Features/Registration/registration.module";
+import { ProfileModule } from "./Features/Profile/profile.module";
 import { AuthModule } from "src/Features/Auth/auth.module";
 
 @Module({
@@ -11,7 +11,7 @@ import { AuthModule } from "src/Features/Auth/auth.module";
     ApiModule,
     InfraModule,
     AuthModule,
-    RegistrationModule,
+    ProfileModule,
     AutomapperModule.forRoot({
       strategyInitializer: classes()
     })

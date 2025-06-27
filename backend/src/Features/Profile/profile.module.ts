@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
-import { RegistrationInfraModule } from "./registrationInfra.module";
-import { UserController } from "src/Features/Registration/Controllers/user.controller";
+import { ProfileInfraModule } from "./profileInfra.module";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
+import { UserController } from './Controllers/user.controller';
 
 @Module({
     imports: [
-        RegistrationInfraModule,
+        ProfileInfraModule,
     ],
     controllers: [UserController],
     providers: [PasswordService]
 })
-export class RegistrationModule {}
+export class ProfileModule {}

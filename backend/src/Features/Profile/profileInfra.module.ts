@@ -8,4 +8,4 @@ import { PasswordService } from "src/Common/ApplicationCore/Features/password.se
   ],
   exports: [PasswordService],
 })
-export class RegistrationInfraModule {}
+export class ProfileInfraModule {}

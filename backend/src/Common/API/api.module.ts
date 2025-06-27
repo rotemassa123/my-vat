@@ -1,6 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod} from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ApiAutomapperRegistration } from './api.automapper';
 import RestApiLoadConfiguration, { ValidateApiConfig } from './api.settings';
 import { HealthCheckMiddleware } from './REST/middleware/healthcheck.middleware';
 
@@ -11,7 +10,7 @@ import { HealthCheckMiddleware } from './REST/middleware/healthcheck.middleware'
       validate: ValidateApiConfig
     })
   ],
-  providers: [ApiAutomapperRegistration]
+  providers: []
 })
 
 export class ApiModule implements NestModule {

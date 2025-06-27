@@ -79,9 +79,12 @@ export class UserController {
       const userData: CreateUserData = {
         userId: createUserRequest.userId,
         fullName: createUserRequest.fullName,
+        email: createUserRequest.email,
         password: hashedPassword,
         userType: createUserRequest.userType,
-        projects: [], // Initialize empty projects array
+        accountId: createUserRequest.accountId,
+        status: 'active',
+        permissions: ['view'],
       };
 
       const user = await this.userService.createUser(userData);

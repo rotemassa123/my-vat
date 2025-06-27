@@ -1,16 +1,18 @@
 import { Global, Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { MongooseModule } from "@nestjs/mongoose";
-import { InfraAutomapperRegistration } from "./infra.automapper";
 import { JwtModule } from "@nestjs/jwt";
 import { jwtModuleOptionsFactory } from "src/Common/Infrastructure/Config/Jwt.config";
 import { MongooseConfigService } from "src/Common/Infrastructure/Config/mongoose.config";
+import { Account, AccountSchema } from "src/Common/Infrastructure/DB/schemas/account.schema";
 import { User, UserSchema } from "src/Common/Infrastructure/DB/schemas/user.schema";
-import { Project, ProjectSchema } from "src/Common/Infrastructure/DB/schemas/project.schema";
-import { Stage, StageSchema } from "src/Common/Infrastructure/DB/schemas/stage.schema";
-import { Step, StepSchema } from "src/Common/Infrastructure/DB/schemas/step.schema";  
+import { Entity, EntitySchema } from "src/Common/Infrastructure/DB/schemas/entity.schema";
 import { IUserRepository } from "src/Common/ApplicationCore/Services/IUserRepository";
 import { UserMongoRepository } from "src/Common/Infrastructure/Services/UserMongoService";
+import { IAccountRepository } from "src/Common/ApplicationCore/Services/IAccountRepository";
+import { AccountMongoRepository } from "src/Common/Infrastructure/Services/AccountMongoService";
+import { IEntityRepository } from "src/Common/ApplicationCore/Services/IEntityRepository";
+import { EntityMongoRepository } from "src/Common/Infrastructure/Services/EntityMongoService";
 import { IGCSService } from "src/Common/ApplicationCore/Services/IGCSService";
 import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
 
@@ -22,18 +24,18 @@ import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
       useClass: MongooseConfigService,
     }),
     MongooseModule.forFeature([
+      { name: Account.name, schema: AccountSchema },
       { name: User.name, schema: UserSchema },
-      { name: Project.name, schema: ProjectSchema },
-      { name: Stage.name, schema: StageSchema },
-      { name: Step.name, schema: StepSchema },
+      { name: Entity.name, schema: EntitySchema },
     ]),
     JwtModule.registerAsync(jwtModuleOptionsFactory),
   ],
   providers: [
-    InfraAutomapperRegistration,
     { provide: IUserRepository, useClass: UserMongoRepository },
+    { provide: IAccountRepository, useClass: AccountMongoRepository },
+    { provide: IEntityRepository, useClass: EntityMongoRepository },
     { provide: IGCSService, useClass: GCSService },
   ],
-  exports: [MongooseModule, JwtModule, IUserRepository, IGCSService],
+  exports: [MongooseModule, JwtModule, IUserRepository, IAccountRepository, IEntityRepository, IGCSService],
 })
 export class InfraModule {}
