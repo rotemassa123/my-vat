@@ -55,6 +55,12 @@ export class EntityController {
   @Post()
   async createEntity(@Body() createEntityRequest: CreateEntityRequest): Promise<CreateEntityResponse> {
     try {
+      // Validate that the account exists
+      const accountExists = await this.entityService.accountExists(createEntityRequest.accountId);
+      if (!accountExists) {
+        throw new BadRequestException(`Account with ID ${createEntityRequest.accountId} does not exist`);
+      }
+
       const entity = await this.entityService.createEntity(createEntityRequest);
       if (!entity._id) {
         throw new BadRequestException('Failed to create entity - no ID returned');

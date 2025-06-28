@@ -68,6 +68,12 @@ export class UserController {
         throw new BadRequestException(`User with ID ${createUserRequest.userId} already exists`);
       }
 
+      // Validate that the account exists
+      const accountExists = await this.userService.accountExists(createUserRequest.accountId);
+      if (!accountExists) {
+        throw new BadRequestException(`Account with ID ${createUserRequest.accountId} does not exist`);
+      }
+
       // Hash password
       const hashedPassword = await this.passwordService.hashPassword(createUserRequest.password);
 
