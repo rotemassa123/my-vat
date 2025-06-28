@@ -5,34 +5,23 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Query,
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import {
-  CreateUserRequest,
-  UpdateUserRequest,
-} from "../Requests/user.requests";
-import { logger } from "src/Common/Infrastructure/Config/Logger";
+import { ApiTags, ApiQuery, ApiParam } from "@nestjs/swagger";
+import { CreateUserRequest, UpdateUserRequest } from "../Requests/profile.requests";
+import { UserResponse, CreateUserResponse } from "../Responses/profile.responses";
+import { IProfileRepository, CreateUserData, UpdateUserData } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
-import { IUserRepository, CreateUserData, UpdateUserData } from "src/Common/ApplicationCore/Services/IUserRepository";
-import {
-  ApiQuery,
-  ApiTags,
-} from "@nestjs/swagger";
-import { UserType } from "src/Common/consts/userType";
-
-interface UserResponse {
-  userId: number;
-  fullName: string;
-  userType: UserType;
-}
+import { logger } from "src/Common/Infrastructure/Config/Logger";
 
 @ApiTags("users")
 @Controller("users")
 export class UserController {
   constructor(
-    private userService: IUserRepository,
+    private userService: IProfileRepository,
     private passwordService: PasswordService
   ) {}
 
@@ -42,29 +31,36 @@ export class UserController {
     try {
       if (userId) {
         const user = await this.userService.findUserById(Number(userId));
-        
         if (!user) {
           throw new NotFoundException(`User with ID ${userId} not found`);
         }
-
-        return [{
-          userId: user.userId,
-          fullName: user.fullName,
-          userType: user.userType,
-        }];
+        return [user as UserResponse];
       }
 
-      // For now, return empty array since we don't have a findAll method
-      // TODO: Add findAllUsers method to IUserRepository
-      return [];
+      throw new BadRequestException("'userId' query parameter is required");
     } catch (error) {
       logger.error("Error fetching users", UserController.name, { error: error.message, userId });
       throw error;
     }
   }
 
+  @Get(":id")
+  @ApiParam({ name: "id", type: String })
+  async getUserById(@Param("id") id: string): Promise<UserResponse> {
+    try {
+      const user = await this.userService.findUserById(Number(id));
+      if (!user) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+      return user as UserResponse;
+    } catch (error) {
+      logger.error("Error fetching user by ID", UserController.name, { error: error.message, id });
+      throw error;
+    }
+  }
+
   @Post()
-  async createUser(@Body() createUserRequest: CreateUserRequest): Promise<UserResponse> {
+  async createUser(@Body() createUserRequest: CreateUserRequest): Promise<CreateUserResponse> {
     try {
       // Check if user already exists
       const existingUser = await this.userService.userExists(createUserRequest.userId);
@@ -75,97 +71,94 @@ export class UserController {
       // Hash password
       const hashedPassword = await this.passwordService.hashPassword(createUserRequest.password);
 
-      // Create user data
       const userData: CreateUserData = {
         userId: createUserRequest.userId,
         fullName: createUserRequest.fullName,
         email: createUserRequest.email,
-        password: hashedPassword,
+        hashedPassword: hashedPassword,
         userType: createUserRequest.userType,
         accountId: createUserRequest.accountId,
-        status: 'active',
-        permissions: ['view'],
+        phone: createUserRequest.phone,
+        profile_image_url: createUserRequest.profile_image_url,
       };
 
       const user = await this.userService.createUser(userData);
-
-      return {
-        userId: user.userId,
-        fullName: user.fullName,
-        userType: user.userType,
-      };
+      if (!user._id) {
+        throw new BadRequestException('Failed to create user - no ID returned');
+      }
+      return { _id: user._id };
     } catch (error) {
-      logger.error("Error creating user", UserController.name, { error: error.message, userId: createUserRequest.userId });
+      logger.error("Error creating user", UserController.name, { 
+        error: error.message, 
+        userId: createUserRequest.userId 
+      });
       throw error;
     }
   }
 
-  @Post(":userId")
+  @Put(":id")
+  @ApiParam({ name: "id", type: String })
   async updateUser(
-    @Param("userId") userId: string,
+    @Param("id") id: string,
     @Body() updateUserRequest: UpdateUserRequest
   ): Promise<UserResponse> {
     try {
-      const userIdNum = Number(userId);
+      const userIdNum = Number(id);
       
       // Check if user exists
       const existingUser = await this.userService.findUserById(userIdNum);
       if (!existingUser) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      // Prepare update data
       const updateData: UpdateUserData = {
         fullName: updateUserRequest.fullName,
+        email: updateUserRequest.email,
         userType: updateUserRequest.userType,
+        status: updateUserRequest.status,
+        phone: updateUserRequest.phone,
+        profile_image_url: updateUserRequest.profile_image_url,
       };
 
       // Hash password if provided
       if (updateUserRequest.password) {
-        updateData.password = await this.passwordService.hashPassword(updateUserRequest.password);
+        updateData.hashedPassword = await this.passwordService.hashPassword(updateUserRequest.password);
       }
 
       const updated = await this.userService.updateUser(userIdNum, updateData);
-      
       if (!updated) {
-        throw new BadRequestException(`Failed to update user with ID ${userId}`);
+        throw new BadRequestException(`Failed to update user with ID ${id}`);
       }
 
-      // Return updated user data
       const updatedUser = await this.userService.findUserById(userIdNum);
-      return {
-        userId: updatedUser.userId,
-        fullName: updatedUser.fullName,
-        userType: updatedUser.userType,
-      };
+      return updatedUser as UserResponse;
     } catch (error) {
-      logger.error("Error updating user", UserController.name, { error: error.message, userId });
+      logger.error("Error updating user", UserController.name, { error: error.message, id });
       throw error;
     }
   }
 
-  @Delete(":userId")
-  async deleteUser(@Param("userId") userId: string): Promise<{ success: boolean }> {
+  @Delete(":id")
+  @ApiParam({ name: "id", type: String })
+  async deleteUser(@Param("id") id: string): Promise<{ success: boolean }> {
     try {
-      const userIdNum = Number(userId);
+      const userIdNum = Number(id);
       
       // Check if user exists
       const existingUser = await this.userService.findUserById(userIdNum);
       if (!existingUser) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(`User with ID ${id} not found`);
       }
 
       const deleted = await this.userService.deleteUser(userIdNum);
-      
       if (!deleted) {
-        throw new BadRequestException(`Failed to delete user with ID ${userId}`);
+        throw new BadRequestException(`Failed to delete user with ID ${id}`);
       }
 
       return { success: true };
     } catch (error) {
-      logger.error("Error deleting user", UserController.name, { error: error.message, userId });
+      logger.error("Error deleting user", UserController.name, { error: error.message, id });
       throw error;
     }
   }
-
 }

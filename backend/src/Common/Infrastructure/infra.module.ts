@@ -5,16 +5,12 @@ import { JwtModule } from "@nestjs/jwt";
 import { jwtModuleOptionsFactory } from "src/Common/Infrastructure/Config/Jwt.config";
 import { MongooseConfigService } from "src/Common/Infrastructure/Config/mongoose.config";
 import { Account, AccountSchema } from "src/Common/Infrastructure/DB/schemas/account.schema";
-import { User, UserSchema } from "src/Common/Infrastructure/DB/schemas/user.schema";
 import { Entity, EntitySchema } from "src/Common/Infrastructure/DB/schemas/entity.schema";
-import { IUserRepository } from "src/Common/ApplicationCore/Services/IUserRepository";
-import { UserMongoRepository } from "src/Common/Infrastructure/Services/UserMongoService";
-import { IAccountRepository } from "src/Common/ApplicationCore/Services/IAccountRepository";
-import { AccountMongoRepository } from "src/Common/Infrastructure/Services/AccountMongoService";
-import { IEntityRepository } from "src/Common/ApplicationCore/Services/IEntityRepository";
-import { EntityMongoRepository } from "src/Common/Infrastructure/Services/EntityMongoService";
+import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
+import { ProfileMongoService } from "src/Common/Infrastructure/Services/profile-mongo-service";
 import { IGCSService } from "src/Common/ApplicationCore/Services/IGCSService";
 import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
+import { User, UserSchema } from "./DB/schemas/user.schema";
 
 @Global()
 @Module({
@@ -31,11 +27,10 @@ import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
     JwtModule.registerAsync(jwtModuleOptionsFactory),
   ],
   providers: [
-    { provide: IUserRepository, useClass: UserMongoRepository },
-    { provide: IAccountRepository, useClass: AccountMongoRepository },
-    { provide: IEntityRepository, useClass: EntityMongoRepository },
+    ProfileMongoService,
+    { provide: IProfileRepository, useExisting: ProfileMongoService },
     { provide: IGCSService, useClass: GCSService },
   ],
-  exports: [MongooseModule, JwtModule, IUserRepository, IAccountRepository, IEntityRepository, IGCSService],
+  exports: [MongooseModule, JwtModule, IProfileRepository, IGCSService],
 })
 export class InfraModule {}

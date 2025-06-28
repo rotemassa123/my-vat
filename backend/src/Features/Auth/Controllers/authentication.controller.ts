@@ -14,7 +14,7 @@ import { JwtService } from "@nestjs/jwt";
 import { SignInRequest } from "src/Features/Auth/Requests/auth.requests";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
-import { IUserRepository } from "src/Common/ApplicationCore/Services/IUserRepository";
+import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { UserType } from "src/Common/consts/userType";
 
@@ -30,7 +30,7 @@ export class AuthenticationController {
   constructor(
     private jwtService: JwtService,
     private passwordService: PasswordService,
-    private userService: IUserRepository
+    private userService: IProfileRepository
   ) {}
 
   @Post("/signIn")
@@ -49,7 +49,7 @@ export class AuthenticationController {
     // Check password
     const isCorrectPassword = await this.passwordService.comparePassword(
       request.password,
-      user.password
+      user.hashedPassword
     );
 
     if (!isCorrectPassword) {
