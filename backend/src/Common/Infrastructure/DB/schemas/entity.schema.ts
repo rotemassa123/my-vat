@@ -27,20 +27,14 @@ export class Entity {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ enum: ['company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], required: true })
-  entity_type: string;
-
-  @Prop()
-  legal_name?: string;
+  @Prop({ enum: ['company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], required: false })
+  entity_type?: string;
 
   @Prop()
   registration_number?: string;
 
   @Prop()
   incorporation_date?: Date;
-
-  @Prop()
-  incorporation_country?: string;
 
   @Prop({ type: Object })
   address?: EntityAddress;
@@ -51,9 +45,6 @@ export class Entity {
   @Prop()
   email?: string;
 
-  @Prop()
-  website?: string;
-
   @Prop({ type: Object })
   vat_settings?: EntityVatSettings;
 
@@ -62,18 +53,6 @@ export class Entity {
 
   @Prop()
   description?: string;
-
-  @Prop({ type: [String], default: [] })
-  business_activities: string[];
-
-  @Prop()
-  parent_entity_id?: Types.ObjectId;
-
-  @Prop({ default: false })
-  is_vat_registered: boolean;
-
-  @Prop()
-  vat_registration_date?: Date;
 }
 
 export const EntitySchema = SchemaFactory.createForClass(Entity); 

@@ -23,9 +23,6 @@ export class Account {
   @Prop({ required: true, unique: true })
   email: string;
 
-  @Prop({ required: true })
-  name: string;
-
   @Prop({ enum: ['individual', 'business'], default: 'individual' })
   account_type: string;
 
@@ -56,29 +53,8 @@ export class Account {
   @Prop({ type: Object })
   vat_settings: VatSettings;
 
-  @Prop({ required: true })
-  password_hash: string;
-
-  @Prop()
-  google_user_id?: string;
-
-  @Prop({ type: [String], default: ['email'] })
-  auth_providers: string[];
-
   @Prop()
   last_login?: Date;
-
-  @Prop({ default: 10000 })
-  monthly_upload_limit_mb: number;
-
-  @Prop({ default: 0 })
-  current_month_usage_mb: number;
-
-  @Prop({ type: [String], default: ['upload', 'process', 'view'] })
-  permissions: string[];
-
-  @Prop()
-  verified_at?: Date;
 }
 
 export const AccountSchema = SchemaFactory.createForClass(Account); 

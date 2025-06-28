@@ -16,7 +16,7 @@ export class User {
   email: string;
 
   @Prop({ required: true })
-  password: string;
+  hashedPassword: string;
 
   @Prop({ required: true, enum: UserType })
   userType: UserType;
@@ -30,23 +30,11 @@ export class User {
   @Prop()
   last_login?: Date;
 
-  @Prop({ type: [String], default: [] })
-  permissions: string[];
-
-  @Prop()
-  verified_at?: Date;
-
   @Prop()
   profile_image_url?: string;
 
   @Prop()
   phone?: string;
-
-  @Prop()
-  department?: string;
-
-  @Prop()
-  role?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User); 
