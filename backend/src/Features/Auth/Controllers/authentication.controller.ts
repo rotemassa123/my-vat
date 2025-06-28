@@ -22,6 +22,7 @@ interface UserResponse {
   userId: number;
   fullName: string;
   userType: UserType;
+  accountId: string;
 }
 
 @ApiTags("auth")
@@ -62,6 +63,7 @@ export class AuthenticationController {
       userId: user.userId,
       fullName: user.fullName,
       userType: user.userType,
+      accountId: user.accountId,
     };
 
     // Generate token
@@ -80,6 +82,7 @@ export class AuthenticationController {
       userId: user.userId,
       fullName: user.fullName,
       userType: user.userType,
+      accountId: user.accountId,
     };
   }
 
@@ -94,6 +97,7 @@ export class AuthenticationController {
       fullName: jwt.fullName,
       userId: jwt.userId,
       userType: jwt.userType,
+      accountId: jwt.accountId,
     };
   }
 
