@@ -18,7 +18,13 @@ export async function InitializeRestApi(app: INestApplication) {
   app.use(httpContext.middleware);
   app.use(cookieParser());
   
-  app.enableCors({ origin: [`http://localhost:3000`] , credentials:true });
+  app.enableCors({ 
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+    ], 
+    credentials: true 
+  });
 
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
