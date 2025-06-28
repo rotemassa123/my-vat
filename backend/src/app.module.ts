@@ -5,6 +5,7 @@ import { ApiModule } from './Common/API/api.module';
 import { InfraModule } from './Common/Infrastructure/infra.module';
 import { ProfileModule } from "./Features/Profile/profile.module";
 import { AuthModule } from "src/Features/Auth/auth.module";
+import { InvoiceModule } from "./Features/Invoice/invoice.module";
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { AuthModule } from "src/Features/Auth/auth.module";
     InfraModule,
     AuthModule,
     ProfileModule,
+    InvoiceModule,
     AutomapperModule.forRoot({
       strategyInitializer: classes()
     })
