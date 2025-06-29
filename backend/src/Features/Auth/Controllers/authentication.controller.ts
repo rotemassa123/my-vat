@@ -19,7 +19,7 @@ import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { UserType } from "src/Common/consts/userType";
 
 interface UserResponse {
-  userId: number;
+  _id: string;
   fullName: string;
   userType: UserType;
   accountId: string;
@@ -40,10 +40,10 @@ export class AuthenticationController {
     @Res({ passthrough: true }) response: Response
   ): Promise<UserResponse> {
     // Get user from database via user repository
-    const user = await this.userService.findUserById(request.userId);
+    const user = await this.userService.findUserByEmail(request.email);
 
     if (!user) {
-      logger.warn("User not found during authentication attempt", AuthenticationController.name, { userId: request.userId });
+      logger.warn("User not found during authentication attempt", AuthenticationController.name, { email: request.email });
       throw new UnauthorizedException("Invalid credentials");
     }
 
@@ -54,13 +54,13 @@ export class AuthenticationController {
     );
 
     if (!isCorrectPassword) {
-      logger.warn("Failed authentication attempt", AuthenticationController.name, { userId: request.userId });
+      logger.warn("Failed authentication attempt", AuthenticationController.name, { email: request.email });
       throw new UnauthorizedException("Invalid credentials");
     }
 
     // Create JWT payload (without password)
     const payload = {
-      userId: user.userId,
+      _id: user._id,
       fullName: user.fullName,
       userType: user.userType,
       accountId: user.accountId,
@@ -79,7 +79,7 @@ export class AuthenticationController {
     });
 
     return {
-      userId: user.userId,
+      _id: user._id!,
       fullName: user.fullName,
       userType: user.userType,
       accountId: user.accountId,
@@ -95,7 +95,7 @@ export class AuthenticationController {
 
     return {
       fullName: jwt.fullName,
-      userId: jwt.userId,
+      _id: jwt._id,
       userType: jwt.userType,
       accountId: jwt.accountId,
     };

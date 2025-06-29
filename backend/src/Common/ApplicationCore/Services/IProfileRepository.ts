@@ -82,7 +82,6 @@ export interface UpdateAccountData {
 // ==================== USER TYPES ====================
 export interface UserData {
   _id?: string;
-  userId: number;
   fullName: string;
   email: string;
   hashedPassword: string;
@@ -97,7 +96,6 @@ export interface UserData {
 }
 
 export interface CreateUserData {
-  userId: number;
   fullName: string;
   email: string;
   hashedPassword: string;
@@ -208,11 +206,13 @@ export abstract class IProfileRepository {
   abstract accountExists(accountId: string): Promise<boolean>;
 
   // User methods
-  abstract findUserById(userId: number): Promise<UserData | null>;
+  abstract findUserById(userId: string): Promise<UserData | null>;
+  abstract findUserByEmail(email: string): Promise<UserData | null>;
   abstract createUser(userData: CreateUserData): Promise<UserData>;
-  abstract updateUser(userId: number, updateData: UpdateUserData): Promise<boolean>;
-  abstract deleteUser(userId: number): Promise<boolean>;
-  abstract userExists(userId: number): Promise<boolean>;
+  abstract updateUser(userId: string, updateData: UpdateUserData): Promise<boolean>;
+  abstract deleteUser(userId: string): Promise<boolean>;
+  abstract userExists(userId: string): Promise<boolean>;
+  abstract userExistsByEmail(email: string): Promise<boolean>;
 
   // Entity methods
   abstract findEntityById(entityId: string): Promise<EntityData | null>;

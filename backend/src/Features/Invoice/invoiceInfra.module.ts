@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { MongooseModule } from "@nestjs/mongoose";
+import { InfraModule } from "src/Common/Infrastructure/infra.module";
 import { IInvoiceRepository } from "src/Common/ApplicationCore/Services/IInvoiceRepository";
 import { InvoiceMongoService } from "src/Common/Infrastructure/Services/invoice-mongo-service";
 import { Invoice, InvoiceSchema } from "src/Common/Infrastructure/DB/schemas/invoice.schema";
@@ -7,6 +8,7 @@ import { Summary, SummarySchema } from "src/Common/Infrastructure/DB/schemas/sum
 
 @Module({
   imports: [
+    InfraModule,
     MongooseModule.forFeature([
       { name: Invoice.name, schema: InvoiceSchema },
       { name: Summary.name, schema: SummarySchema }
@@ -18,6 +20,6 @@ import { Summary, SummarySchema } from "src/Common/Infrastructure/DB/schemas/sum
       useClass: InvoiceMongoService,
     },
   ],
-  exports: [IInvoiceRepository, MongooseModule],
+  exports: [IInvoiceRepository, InfraModule],
 })
 export class InvoiceInfraModule {} 

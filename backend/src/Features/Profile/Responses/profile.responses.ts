@@ -71,7 +71,6 @@ export interface CreateEntityResponse {
 // User Responses
 export interface UserResponse {
   _id: string;
-  userId: number;
   fullName: string;
   email: string;
   userType: UserType;

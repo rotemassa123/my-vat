@@ -258,13 +258,6 @@ export class UpdateEntityRequest {
 // User Requests
 export class CreateUserRequest {
   @ApiProperty()
-  @IsNumber()
-  @Validate(IsNineDigitUserId, {
-    message: "userId must be exactly 9 digits long",
-  })
-  userId: number;
-
-  @ApiProperty()
   @IsString()
   fullName: string;
 

@@ -26,11 +26,11 @@ export class UserController {
   ) {}
 
   @Get()
-  @ApiQuery({ name: "userId", required: false, type: Number })
+  @ApiQuery({ name: "userId", required: false, type: String })
   async getUsers(@Query("userId") userId?: string): Promise<UserResponse[]> {
     try {
       if (userId) {
-        const user = await this.userService.findUserById(Number(userId));
+        const user = await this.userService.findUserById(userId);
         if (!user) {
           throw new NotFoundException(`User with ID ${userId} not found`);
         }
@@ -48,7 +48,7 @@ export class UserController {
   @ApiParam({ name: "id", type: String })
   async getUserById(@Param("id") id: string): Promise<UserResponse> {
     try {
-      const user = await this.userService.findUserById(Number(id));
+      const user = await this.userService.findUserById(id);
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
@@ -62,10 +62,10 @@ export class UserController {
   @Post()
   async createUser(@Body() createUserRequest: CreateUserRequest): Promise<CreateUserResponse> {
     try {
-      // Check if user already exists
-      const existingUser = await this.userService.userExists(createUserRequest.userId);
+      // Check if user already exists by email
+      const existingUser = await this.userService.userExistsByEmail(createUserRequest.email);
       if (existingUser) {
-        throw new BadRequestException(`User with ID ${createUserRequest.userId} already exists`);
+        throw new BadRequestException(`User with email ${createUserRequest.email} already exists`);
       }
 
       // Validate that the account exists
@@ -78,7 +78,6 @@ export class UserController {
       const hashedPassword = await this.passwordService.hashPassword(createUserRequest.password);
 
       const userData: CreateUserData = {
-        userId: createUserRequest.userId,
         fullName: createUserRequest.fullName,
         email: createUserRequest.email,
         hashedPassword: hashedPassword,
@@ -96,7 +95,7 @@ export class UserController {
     } catch (error) {
       logger.error("Error creating user", UserController.name, { 
         error: error.message, 
-        userId: createUserRequest.userId 
+        email: createUserRequest.email 
       });
       throw error;
     }
@@ -109,10 +108,8 @@ export class UserController {
     @Body() updateUserRequest: UpdateUserRequest
   ): Promise<UserResponse> {
     try {
-      const userIdNum = Number(id);
-      
       // Check if user exists
-      const existingUser = await this.userService.findUserById(userIdNum);
+      const existingUser = await this.userService.findUserById(id);
       if (!existingUser) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
@@ -131,12 +128,12 @@ export class UserController {
         updateData.hashedPassword = await this.passwordService.hashPassword(updateUserRequest.password);
       }
 
-      const updated = await this.userService.updateUser(userIdNum, updateData);
+      const updated = await this.userService.updateUser(id, updateData);
       if (!updated) {
         throw new BadRequestException(`Failed to update user with ID ${id}`);
       }
 
-      const updatedUser = await this.userService.findUserById(userIdNum);
+      const updatedUser = await this.userService.findUserById(id);
       return updatedUser as UserResponse;
     } catch (error) {
       logger.error("Error updating user", UserController.name, { error: error.message, id });
@@ -148,15 +145,13 @@ export class UserController {
   @ApiParam({ name: "id", type: String })
   async deleteUser(@Param("id") id: string): Promise<{ success: boolean }> {
     try {
-      const userIdNum = Number(id);
-      
       // Check if user exists
-      const existingUser = await this.userService.findUserById(userIdNum);
+      const existingUser = await this.userService.findUserById(id);
       if (!existingUser) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
-      const deleted = await this.userService.deleteUser(userIdNum);
+      const deleted = await this.userService.deleteUser(id);
       if (!deleted) {
         throw new BadRequestException(`Failed to delete user with ID ${id}`);
       }

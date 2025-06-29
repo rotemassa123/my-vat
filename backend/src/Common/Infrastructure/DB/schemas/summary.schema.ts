@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
 
 export type SummaryDocument = HydratedDocument<Summary>;
 
@@ -21,10 +21,10 @@ export class Summary {
   created_at: Date;
 
   // Additional fields that might be present in summary documents
-  @Prop()
+  @Prop({ type: MongooseSchema.Types.Mixed })
   analysis_result?: any;
 
-  @Prop()
+  @Prop({ type: MongooseSchema.Types.Mixed })
   extracted_data?: any;
 
   @Prop()

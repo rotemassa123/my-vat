@@ -5,8 +5,8 @@ import {IsNumber, IsString} from "class-validator";
 export class SignInRequest {
     @ApiProperty()
     @AutoMap()
-    @IsNumber()
-    public userId: number;
+    @IsString()
+    public email: string;
 
     @ApiProperty()
     @AutoMap()

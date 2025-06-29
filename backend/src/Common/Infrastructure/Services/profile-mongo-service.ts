@@ -94,7 +94,6 @@ export class ProfileMongoService implements IProfileRepository {
   private mapDocumentToUserData(doc: UserDocument): UserData {
     return {
       _id: doc._id.toString(),
-      userId: doc.userId,
       fullName: doc.fullName,
       email: doc.email,
       hashedPassword: doc.hashedPassword,
@@ -109,29 +108,42 @@ export class ProfileMongoService implements IProfileRepository {
     };
   }
 
-  async findUserById(userId: number): Promise<UserData | null> {
-    const doc = await this.userModel.findOne({ userId }).exec();
+  async findUserById(userId: string): Promise<UserData | null> {
+    const doc = await this.userModel.findById(userId).exec();
+    return doc ? this.mapDocumentToUserData(doc) : null;
+  }
+
+  async findUserByEmail(email: string): Promise<UserData | null> {
+    const doc = await this.userModel.findOne({ email }).exec();
     return doc ? this.mapDocumentToUserData(doc) : null;
   }
 
   async createUser(userData: CreateUserData): Promise<UserData> {
-    const user = new this.userModel(userData);
+    const user = new this.userModel({
+      ...userData,
+      status: 'pending', // Default status for new users
+    });
     const savedDoc = await user.save();
     return this.mapDocumentToUserData(savedDoc);
   }
 
-  async updateUser(userId: number, updateData: UpdateUserData): Promise<boolean> {
-    const result = await this.userModel.updateOne({ userId }, updateData).exec();
+  async updateUser(userId: string, updateData: UpdateUserData): Promise<boolean> {
+    const result = await this.userModel.updateOne({ _id: userId }, updateData).exec();
     return result.modifiedCount > 0;
   }
 
-  async deleteUser(userId: number): Promise<boolean> {
-    const result = await this.userModel.deleteOne({ userId }).exec();
+  async deleteUser(userId: string): Promise<boolean> {
+    const result = await this.userModel.deleteOne({ _id: userId }).exec();
     return result.deletedCount > 0;
   }
 
-  async userExists(userId: number): Promise<boolean> {
-    const user = await this.userModel.findOne({ userId }).exec();
+  async userExists(userId: string): Promise<boolean> {
+    const user = await this.userModel.findById(userId).exec();
+    return !!user;
+  }
+
+  async userExistsByEmail(email: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ email }).exec();
     return !!user;
   }
 
