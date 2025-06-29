@@ -1,6 +1,6 @@
 import {AutoMap} from "@automapper/classes";
 import {ApiProperty} from "@nestjs/swagger";
-import {IsNumber, IsString} from "class-validator";
+import {IsString} from "class-validator";
 
 export class SignInRequest {
     @ApiProperty({ example: 'john@example.com' })

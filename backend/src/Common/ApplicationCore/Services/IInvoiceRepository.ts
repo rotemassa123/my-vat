@@ -71,6 +71,52 @@ export interface SummaryFilters {
   created_at_to?: Date;
 }
 
+export interface CombinedInvoiceData {
+  _id: string;
+  account_id: number;
+  name: string;
+  source_id: string;
+  size: number;
+  last_executed_step: number;
+  source: string;
+  status: string;
+  reason?: string | null;
+  claim_amount?: number | null;
+  claim_submitted_at?: Date | null;
+  claim_result_received_at?: Date | null;
+  status_updated_at: Date;
+  created_at: Date;
+  
+  // Summary fields (spread from summary)
+  analysis_result?: any;
+  confidence_score?: number;
+  processing_status?: string;
+  vat_amount?: number;
+  total_amount?: number;
+  currency?: string;
+  vendor_name?: string;
+  invoice_date?: Date;
+  invoice_number?: string;
+}
+
+export interface CombinedInvoiceFilters extends InvoiceFilters {
+  vendor_name?: string;           // Claimant
+  claim_submitted_at_from?: Date; // Submitted date from
+  claim_submitted_at_to?: Date;   // Submitted date to
+  currency?: string;             // Currency
+  invoice_date_from?: Date;      // Invoice date from
+  invoice_date_to?: Date;        // Invoice date to
+  // Note: status is inherited from InvoiceFilters
+}
+
+export interface PaginatedCombinedResult {
+  data: CombinedInvoiceData[];
+  total: number;
+  limit: number;
+  skip: number;
+  count: number;
+}
+
 // ==================== INVOICE REPOSITORY INTERFACE ====================
 export abstract class IInvoiceRepository {
   // Invoice methods
@@ -83,4 +129,7 @@ export abstract class IInvoiceRepository {
   abstract findSummaryById(id: string): Promise<SummaryData | null>;
   abstract findSummaryByFileId(fileId: string): Promise<SummaryData | null>;
   abstract countSummaries(filters: SummaryFilters): Promise<number>;
+
+  // Combined methods
+  abstract findCombinedInvoices(filters: CombinedInvoiceFilters, limit?: number, skip?: number): Promise<PaginatedCombinedResult>;
 } 

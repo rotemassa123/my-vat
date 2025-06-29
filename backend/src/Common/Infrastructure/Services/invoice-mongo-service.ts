@@ -8,7 +8,10 @@ import {
   InvoiceData,
   InvoiceFilters,
   SummaryData,
-  SummaryFilters
+  SummaryFilters,
+  CombinedInvoiceData,
+  CombinedInvoiceFilters,
+  PaginatedCombinedResult
 } from "src/Common/ApplicationCore/Services/IInvoiceRepository";
 
 // MongoDB schemas
@@ -240,5 +243,142 @@ export class InvoiceMongoService implements IInvoiceRepository {
   async countSummaries(filters: SummaryFilters): Promise<number> {
     const query = this.buildSummaryQuery(filters);
     return await this.summaryModel.countDocuments(query).exec();
+  }
+
+  private buildCombinedQuery(filters: CombinedInvoiceFilters): any[] {
+    const pipeline: any[] = [];
+
+    // Start with invoice filters
+    const invoiceMatch: any = {};
+    
+    if (filters.account_id !== undefined) {
+      invoiceMatch.account_id = filters.account_id;
+    }
+    if (filters.status) {
+      invoiceMatch.status = filters.status;
+    }
+
+    if (filters.claim_submitted_at_from || filters.claim_submitted_at_to) {
+      invoiceMatch.claim_submitted_at = {};
+      if (filters.claim_submitted_at_from) {
+        invoiceMatch.claim_submitted_at.$gte = filters.claim_submitted_at_from;
+      }
+      if (filters.claim_submitted_at_to) {
+        invoiceMatch.claim_submitted_at.$lte = filters.claim_submitted_at_to;
+      }
+    }
+
+    // Add invoice match stage if we have filters
+    if (Object.keys(invoiceMatch).length > 0) {
+      pipeline.push({ $match: invoiceMatch });
+    }
+
+    // Left join with summaries collection
+    pipeline.push({
+      $lookup: {
+        from: 'summaries',
+        localField: 'source_id',
+        foreignField: 'file_id',
+        as: 'summary'
+      }
+    });
+
+    // Unwind summary (will keep invoices without summaries due to preserveNullAndEmptyArrays)
+    pipeline.push({
+      $unwind: {
+        path: '$summary',
+        preserveNullAndEmptyArrays: true
+      }
+    });
+
+    const summaryMatch: any = {};
+    
+    if (filters.vendor_name) {
+      summaryMatch['summary.vendor_name'] = { $regex: filters.vendor_name, $options: 'i' };
+    }
+    if (filters.currency) {
+      summaryMatch['summary.currency'] = filters.currency;
+    }
+    if (filters.invoice_date_from || filters.invoice_date_to) {
+      summaryMatch['summary.invoice_date'] = {};
+      if (filters.invoice_date_from) {
+        summaryMatch['summary.invoice_date'].$gte = filters.invoice_date_from;
+      }
+      if (filters.invoice_date_to) {
+        summaryMatch['summary.invoice_date'].$lte = filters.invoice_date_to;
+      }
+    }
+
+    // Add summary match stage if we have filters
+    if (Object.keys(summaryMatch).length > 0) {
+      pipeline.push({ $match: summaryMatch });
+    }
+
+    return pipeline;
+  }
+
+  private mapCombinedDocument(doc: any): CombinedInvoiceData {
+    const summary = doc.summary || {};
+    
+    return {
+      // Invoice fields
+      _id: doc._id.toString(),
+      account_id: doc.account_id,
+      name: doc.name,
+      source_id: doc.source_id,
+      size: doc.size,
+      last_executed_step: doc.last_executed_step,
+      source: doc.source,
+      status: doc.status,
+      reason: doc.reason,
+      claim_amount: doc.claim_amount,
+      claim_submitted_at: doc.claim_submitted_at,
+      claim_result_received_at: doc.claim_result_received_at,
+      status_updated_at: doc.status_updated_at,
+      created_at: doc.created_at,
+      
+      // Summary fields (spread from summary)
+      analysis_result: summary.analysis_result,
+      confidence_score: summary.confidence_score,
+      processing_status: summary.processing_status,
+      vat_amount: summary.vat_amount,
+      total_amount: summary.total_amount,
+      currency: summary.currency,
+      vendor_name: summary.vendor_name,
+      invoice_date: summary.invoice_date,
+      invoice_number: summary.invoice_number,
+    };
+  }
+
+  async findCombinedInvoices(
+    filters: CombinedInvoiceFilters, 
+    limit = 50, 
+    skip = 0
+  ): Promise<PaginatedCombinedResult> {
+    const pipeline = this.buildCombinedQuery(filters);
+    
+    // Get total count
+    const countPipeline = [...pipeline, { $count: "total" }];
+    const countResult = await this.invoiceModel.aggregate(countPipeline).exec();
+    const total = countResult.length > 0 ? countResult[0].total : 0;
+    
+    // Get paginated data
+    const dataPipeline = [
+      ...pipeline,
+      { $sort: { created_at: -1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ];
+    
+    const docs = await this.invoiceModel.aggregate(dataPipeline).exec();
+    const data = docs.map(doc => this.mapCombinedDocument(doc));
+    
+    return {
+      data,
+      total,
+      limit,
+      skip,
+      count: data.length
+    };
   }
 } 

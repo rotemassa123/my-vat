@@ -217,4 +217,59 @@ export class SummaryPaginationRequest {
   @IsNumber()
   @Min(0)
   skip?: number = 0;
+}
+
+// ==================== COMBINED REQUESTS ====================
+
+export class CombinedInvoiceFilterRequest extends InvoiceFilterRequest {
+  // Pagination properties
+  @ApiProperty({ required: false, description: 'Number of items to return', default: 50 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(1000)
+  limit?: number = 50;
+
+  @ApiProperty({ required: false, description: 'Number of items to skip', default: 0 })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  skip?: number = 0;
+
+  // Essential filters only
+  @ApiProperty({ required: false, description: 'Filter by claimant/vendor name', example: 'Acme Corp' })
+  @IsOptional()
+  @IsString()
+  vendor_name?: string;
+
+  @ApiProperty({ required: false, description: 'Submitted date from (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
+  claim_submitted_at_from?: Date;
+
+  @ApiProperty({ required: false, description: 'Submitted date to (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
+  claim_submitted_at_to?: Date;
+
+  @ApiProperty({ required: false, description: 'Filter by currency code', example: 'USD' })
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @ApiProperty({ required: false, description: 'Invoice date from (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
+  invoice_date_from?: Date;
+
+  @ApiProperty({ required: false, description: 'Invoice date to (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  @Transform(({ value }) => value ? new Date(value) : undefined)
+  invoice_date_to?: Date;
 } 

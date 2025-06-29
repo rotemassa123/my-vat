@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsNumber, IsDateString, Validate } from "class-validator";
+import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsDateString } from "class-validator";
 import { UserType } from "src/Common/consts/userType";
-import { IsNineDigitUserId } from "src/Common/API/REST/DTOs/DTOs";
 
 // Account Requests
 export class CreateAccountRequest {
