@@ -5,39 +5,39 @@ import { Type, Transform } from "class-transformer";
 // ==================== INVOICE FILTER REQUESTS ====================
 
 export class InvoiceFilterRequest {
-  @ApiProperty({ required: false, description: 'Filter by account ID' })
+  @ApiProperty({ required: false, description: 'Filter by account ID', example: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   account_id?: number;
 
-  @ApiProperty({ required: false, description: 'Filter by source ID (exact match)' })
+  @ApiProperty({ required: false, description: 'Filter by source ID (exact match)', example: 'invoice_001' })
   @IsOptional()
   @IsString()
   source_id?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by source type' })
+  @ApiProperty({ required: false, description: 'Filter by source type', example: 'upload' })
   @IsOptional()
   @IsString()
   source?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by processing status' })
+  @ApiProperty({ required: false, description: 'Filter by processing status', example: 'completed' })
   @IsOptional()
   @IsString()
   status?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by content type (MIME type)' })
+  @ApiProperty({ required: false, description: 'Filter by content type (MIME type)', example: 'application/pdf' })
   @IsOptional()
   @IsString()
   content_type?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by execution step' })
+  @ApiProperty({ required: false, description: 'Filter by execution step', example: 3 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   last_executed_step?: number;
 
-  @ApiProperty({ required: false, description: 'Filter by file name (contains)' })
+  @ApiProperty({ required: false, description: 'Filter by file name (contains)', example: 'invoice' })
   @IsOptional()
   @IsString()
   name_contains?: string;
@@ -101,34 +101,34 @@ export class InvoicePaginationRequest {
 // ==================== SUMMARY FILTER REQUESTS ====================
 
 export class SummaryFilterRequest {
-  @ApiProperty({ required: false, description: 'Filter by account ID' })
+  @ApiProperty({ required: false, description: 'Filter by account ID', example: 1 })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   account_id?: number;
 
-  @ApiProperty({ required: false, description: 'Filter by file ID (exact match)' })
+  @ApiProperty({ required: false, description: 'Filter by file ID (exact match)', example: 'file_12345' })
   @IsOptional()
   @IsString()
   file_id?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by invoice classification' })
+  @ApiProperty({ required: false, description: 'Filter by invoice classification', example: true })
   @IsOptional()
   @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   is_invoice?: boolean;
 
-  @ApiProperty({ required: false, description: 'Filter by processing status' })
+  @ApiProperty({ required: false, description: 'Filter by processing status', example: 'completed' })
   @IsOptional()
   @IsString()
   processing_status?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by currency code' })
+  @ApiProperty({ required: false, description: 'Filter by currency code', example: 'USD' })
   @IsOptional()
   @IsString()
   currency?: string;
 
-  @ApiProperty({ required: false, description: 'Filter by vendor name (contains)' })
+  @ApiProperty({ required: false, description: 'Filter by vendor name (contains)', example: 'Acme Corp' })
   @IsOptional()
   @IsString()
   vendor_name_contains?: string;

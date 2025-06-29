@@ -1,5 +1,5 @@
 export enum UserType {
-    admin,
-    member,
-    guest
+    admin = 'admin',
+    member = 'member',
+    guest = 'guest'
 }

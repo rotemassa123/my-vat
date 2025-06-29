@@ -3,12 +3,12 @@ import {ApiProperty} from "@nestjs/swagger";
 import {IsNumber, IsString} from "class-validator";
 
 export class SignInRequest {
-    @ApiProperty()
+    @ApiProperty({ example: 'john@example.com' })
     @AutoMap()
     @IsString()
     public email: string;
 
-    @ApiProperty()
+    @ApiProperty({ example: 'password123' })
     @AutoMap()
     @IsString()
     public password: string;

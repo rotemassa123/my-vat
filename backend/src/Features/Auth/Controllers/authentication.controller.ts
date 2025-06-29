@@ -34,7 +34,7 @@ export class AuthenticationController {
     private userService: IProfileRepository
   ) {}
 
-  @Post("/signIn")
+  @Post("/login")
   async signIn(
     @Body() request: SignInRequest,
     @Res({ passthrough: true }) response: Response
