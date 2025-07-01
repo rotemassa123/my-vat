@@ -253,30 +253,12 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private buildCombinedQuery(filters: CombinedInvoiceFilters): any[] {
     const pipeline: any[] = [];
 
-    // Start with invoice filters
-    const invoiceMatch: any = {};
-    
-    if (filters.account_id !== undefined) {
-      invoiceMatch.account_id = filters.account_id;
-    }
-    if (filters.status) {
-      invoiceMatch.status = filters.status;
-    }
-
-    if (filters.claim_submitted_at_from || filters.claim_submitted_at_to) {
-      invoiceMatch.claim_submitted_at = {};
-      if (filters.claim_submitted_at_from) {
-        invoiceMatch.claim_submitted_at.$gte = filters.claim_submitted_at_from;
-      }
-      if (filters.claim_submitted_at_to) {
-        invoiceMatch.claim_submitted_at.$lte = filters.claim_submitted_at_to;
-      }
-    }
-
-    // Add invoice match stage if we have filters
-    if (Object.keys(invoiceMatch).length > 0) {
-      pipeline.push({ $match: invoiceMatch });
-    }
+    // Filter by account_id only
+    pipeline.push({ 
+      $match: { 
+        account_id: filters.account_id 
+      } 
+    });
 
     // Left join with summaries collection
     pipeline.push({
@@ -295,29 +277,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
         preserveNullAndEmptyArrays: true
       }
     });
-
-    const summaryMatch: any = {};
-    
-    if (filters.vendor_name) {
-      summaryMatch['summary.vendor_name'] = { $regex: filters.vendor_name, $options: 'i' };
-    }
-    if (filters.currency) {
-      summaryMatch['summary.currency'] = filters.currency;
-    }
-    if (filters.invoice_date_from || filters.invoice_date_to) {
-      summaryMatch['summary.invoice_date'] = {};
-      if (filters.invoice_date_from) {
-        summaryMatch['summary.invoice_date'].$gte = filters.invoice_date_from;
-      }
-      if (filters.invoice_date_to) {
-        summaryMatch['summary.invoice_date'].$lte = filters.invoice_date_to;
-      }
-    }
-
-    // Add summary match stage if we have filters
-    if (Object.keys(summaryMatch).length > 0) {
-      pipeline.push({ $match: summaryMatch });
-    }
 
     return pipeline;
   }

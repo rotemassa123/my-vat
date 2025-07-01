@@ -19,26 +19,17 @@ export class InvoiceController {
   @Get("combined")
   @ApiOperation({ 
     summary: 'Get combined invoices with summary data', 
-    description: 'Retrieve invoices joined with their summary data with essential filters: claimant, submitted date, currency, status, and invoice date.' 
+    description: 'Retrieve invoices joined with their summary data filtered by account ID only.' 
   })
   @ApiQuery({ name: 'account_id', required: true, type: Number, description: 'Account ID to filter invoices' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-5000)', example: 50 })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip for pagination', example: 0 })
-  // Essential filters
-  @ApiQuery({ name: 'vendor_name', required: false, type: String, description: 'Filter by claimant/vendor name' })
-  @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by invoice status' })
-  @ApiQuery({ name: 'claim_submitted_at_from', required: false, type: String, description: 'Submitted date from (ISO string)' })
-  @ApiQuery({ name: 'claim_submitted_at_to', required: false, type: String, description: 'Submitted date to (ISO string)' })
-  @ApiQuery({ name: 'currency', required: false, type: String, description: 'Filter by currency' })
-  @ApiQuery({ name: 'invoice_date_from', required: false, type: String, description: 'Invoice date from (ISO string)' })
-  @ApiQuery({ name: 'invoice_date_to', required: false, type: String, description: 'Invoice date to (ISO string)' })
   async getCombinedInvoices(@Query() request: CombinedInvoiceFilterRequest): Promise<CombinedInvoiceListResponse> {
     try {
       logger.info("Fetching combined invoices with summary data", InvoiceController.name, { 
         accountId: request.account_id,
         limit: request.limit,
-        skip: request.skip,
-        hasFilters: Object.keys(request).length > 3 // more than just account_id, limit, skip
+        skip: request.skip
       });
 
       const result = await this.invoiceService.findCombinedInvoices(

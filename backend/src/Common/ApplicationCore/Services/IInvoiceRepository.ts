@@ -106,14 +106,8 @@ export interface CombinedInvoiceData {
   invoice_number?: string;
 }
 
-export interface CombinedInvoiceFilters extends InvoiceFilters {
-  vendor_name?: string;           // Claimant
-  claim_submitted_at_from?: Date; // Submitted date from
-  claim_submitted_at_to?: Date;   // Submitted date to
-  currency?: string;             // Currency
-  invoice_date_from?: Date;      // Invoice date from
-  invoice_date_to?: Date;        // Invoice date to
-  // Note: status is inherited from InvoiceFilters
+export interface CombinedInvoiceFilters {
+  account_id: number;             // Account ID filter (required)
 }
 
 export interface PaginatedCombinedResult {
