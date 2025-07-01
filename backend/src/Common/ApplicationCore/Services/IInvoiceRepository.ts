@@ -34,11 +34,18 @@ export interface InvoiceFilters {
 }
 
 // ==================== SUMMARY TYPES ====================
+import { SummaryContent } from "../../Infrastructure/DB/schemas/summary.schema";
+
 export interface SummaryData {
   _id?: string;
   account_id: number;
   file_id: string;
+  file_name: string;
   is_invoice: boolean;
+  summary_content: SummaryContent;
+  processing_time_seconds?: number;
+  success: boolean;
+  error_message?: string | null;
   created_at?: Date;
   analysis_result?: any;
   extracted_data?: any;

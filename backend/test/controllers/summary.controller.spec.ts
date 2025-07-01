@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { SummaryController } from '../../src/Features/Invoice/Controllers/summary.controller';
 import { IInvoiceRepository } from '../../src/Common/ApplicationCore/Services/IInvoiceRepository';
 import { SummaryFilterRequest, SummaryPaginationRequest } from '../../src/Features/Invoice/Requests/invoice.requests';
+import { SummaryContent } from '../../src/Common/Infrastructure/DB/schemas/summary.schema';
 
 describe('SummaryController', () => {
   let controller: SummaryController;
@@ -12,7 +13,22 @@ describe('SummaryController', () => {
     _id: '507f1f77bcf86cd799439012',
     account_id: 123,
     file_id: 'file-id-123',
+    file_name: 'test-invoice.pdf',
     is_invoice: true,
+    summary_content: {
+      country: 'Germany',
+      supplier: 'Test Company',
+      date: '2024-12-15',
+      id: 'INV-2024-001',
+      description: 'Professional services',
+      net_amount: '100.00',
+      vat_amount: '20.50',
+      vat_rate: '19%',
+      currency: 'EUR'
+    },
+    processing_time_seconds: 2.5,
+    success: true,
+    error_message: null,
     created_at: new Date('2025-01-01T09:00:00Z'),
     analysis_result: { confidence: 0.95, classification: 'invoice' },
     extracted_data: { vendor: 'Test Company', amount: 120.50 },

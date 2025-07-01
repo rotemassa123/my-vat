@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { SummaryContent } from "../../../Common/Infrastructure/DB/schemas/summary.schema";
 
 // ==================== INVOICE RESPONSES ====================
 
@@ -74,8 +75,23 @@ export class SummaryResponse {
   @ApiProperty({ description: 'Reference to the original file ID' })
   file_id: string;
 
+  @ApiProperty({ description: 'Original file name' })
+  file_name: string;
+
   @ApiProperty({ description: 'Whether the file was classified as an invoice' })
   is_invoice: boolean;
+
+  @ApiProperty({ description: 'Structured summary content from AI processing' })
+  summary_content: SummaryContent;
+
+  @ApiProperty({ description: 'Time taken to process in seconds', nullable: true })
+  processing_time_seconds?: number;
+
+  @ApiProperty({ description: 'Whether processing was successful' })
+  success: boolean;
+
+  @ApiProperty({ description: 'Error message if processing failed', nullable: true })
+  error_message?: string | null;
 
   @ApiProperty({ description: 'Summary creation timestamp' })
   created_at: Date;
