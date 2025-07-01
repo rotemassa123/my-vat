@@ -79,6 +79,7 @@ export interface SummaryFilters {
 }
 
 export interface CombinedInvoiceData {
+  // Core invoice fields
   _id: string;
   account_id: number;
   name: string;
@@ -94,16 +95,27 @@ export interface CombinedInvoiceData {
   status_updated_at: Date;
   created_at: Date;
   
-  // Summary fields (spread from summary)
-  analysis_result?: any;
+  // Summary metadata fields
+  is_invoice?: boolean;
+  processing_time_seconds?: number;
+  success?: boolean;
+  error_message?: string | null;
   confidence_score?: number;
-  processing_status?: string;
-  vat_amount?: number;
-  total_amount?: number;
-  currency?: string;
-  vendor_name?: string;
-  invoice_date?: Date;
+  
+  // Flattened summary content fields (extracted data)
+  country?: string;
+  supplier?: string;
+  invoice_date?: string;
   invoice_number?: string;
+  description?: string;
+  net_amount?: string;
+  vat_amount?: string;
+  vat_rate?: string;
+  currency?: string;
+  
+  // Computed fields
+  vendor_name?: string;
+  total_amount?: number;
 }
 
 export interface CombinedInvoiceFilters {

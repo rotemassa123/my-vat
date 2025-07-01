@@ -141,7 +141,7 @@ export class SummaryListResponse {
 }
 
 export class CombinedInvoiceResponse {
-  // Invoice fields
+  // Core invoice fields
   @ApiProperty({ description: 'Unique invoice ID' })
   _id: string;
 
@@ -184,32 +184,56 @@ export class CombinedInvoiceResponse {
   @ApiProperty({ description: 'Invoice creation timestamp' })
   created_at: Date;
 
-  @ApiProperty({ description: 'Raw analysis result from AI processing', nullable: true })
-  analysis_result?: any;  
+  // Summary metadata fields
+  @ApiProperty({ description: 'Whether the file was classified as an invoice', nullable: true })
+  is_invoice?: boolean;
+
+  @ApiProperty({ description: 'Time taken to process in seconds', nullable: true })
+  processing_time_seconds?: number;
+
+  @ApiProperty({ description: 'Whether processing was successful', nullable: true })
+  success?: boolean;
+
+  @ApiProperty({ description: 'Error message if processing failed', nullable: true })
+  error_message?: string | null;
 
   @ApiProperty({ description: 'AI confidence score (0-1)', nullable: true })
   confidence_score?: number;
 
-  @ApiProperty({ description: 'AI processing status', nullable: true })
-  processing_status?: string;
+  // Flattened summary content fields (extracted data)
+  @ApiProperty({ description: 'Country from invoice', nullable: true })
+  country?: string;
 
-  @ApiProperty({ description: 'Extracted VAT amount', nullable: true })
-  vat_amount?: number;
+  @ApiProperty({ description: 'Supplier name from invoice', nullable: true })
+  supplier?: string;
 
-  @ApiProperty({ description: 'Total invoice amount', nullable: true })
-  total_amount?: number;
+  @ApiProperty({ description: 'Invoice date from document', nullable: true })
+  invoice_date?: string;
+
+  @ApiProperty({ description: 'Invoice number from document', nullable: true })
+  invoice_number?: string;
+
+  @ApiProperty({ description: 'Invoice description', nullable: true })
+  description?: string;
+
+  @ApiProperty({ description: 'Net amount from invoice', nullable: true })
+  net_amount?: string;
+
+  @ApiProperty({ description: 'VAT amount from invoice', nullable: true })
+  vat_amount?: string;
+
+  @ApiProperty({ description: 'VAT rate from invoice', nullable: true })
+  vat_rate?: string;
 
   @ApiProperty({ description: 'Currency code', nullable: true })
   currency?: string;
 
-  @ApiProperty({ description: 'Vendor/supplier name', nullable: true })
+  // Computed fields
+  @ApiProperty({ description: 'Vendor/supplier name (computed)', nullable: true })
   vendor_name?: string;
 
-  @ApiProperty({ description: 'Invoice date from document', nullable: true })
-  invoice_date?: Date;
-
-  @ApiProperty({ description: 'Invoice number from document', nullable: true })
-  invoice_number?: string;
+  @ApiProperty({ description: 'Total invoice amount (computed)', nullable: true })
+  total_amount?: number;
 }
 
 export class CombinedInvoiceListResponse {

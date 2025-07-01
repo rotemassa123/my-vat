@@ -25,24 +25,45 @@ export type InvoiceStatus =
   | 'claim_accepted'         // Claim was accepted
   | 'claim_rejected';        // Claim was rejected
 
-// Invoice related types - matches the API response structure
+// Invoice related types - matches the CombinedInvoiceResponse structure from backend
 export interface Invoice {
-  id: string;
-  file_name: string;
-  invoice_id?: string | null;
-  vat_scheme?: string | null;
-  submitted_date?: string;
-  currency?: string | null;
-  claim_amount?: string | null;
+  // Core invoice fields
+  _id: string;
+  account_id: number;
+  name: string;
+  source_id: string;
+  size: number;
+  last_executed_step: number;
+  source: string;
   status: InvoiceStatus;
-  refund_amount?: string | null;
-  supplier?: string | null;
-  invoice_date?: string | null;
-  net_amount?: string | null;
-  vat_rate?: string | null;
+  reason?: string | null;
+  claim_amount?: number | null;
+  claim_submitted_at?: string | null;
+  claim_result_received_at?: string | null;
+  status_updated_at: string;
   created_at: string;
-  processing_status?: string;
-  reason?: string;           // Reason for failed/not_claimable status
+  
+  // Summary metadata fields
+  is_invoice?: boolean;
+  processing_time_seconds?: number;
+  success?: boolean;
+  error_message?: string | null;
+  confidence_score?: number;
+  
+  // Flattened summary content fields (extracted data)
+  country?: string;
+  supplier?: string;
+  invoice_date?: string;
+  invoice_number?: string;
+  description?: string;
+  net_amount?: string;
+  vat_amount?: string;
+  vat_rate?: string;
+  currency?: string;
+  
+  // Computed fields
+  vendor_name?: string;
+  total_amount?: number;
 }
 
 export interface InvoiceFilters {
@@ -70,7 +91,7 @@ export interface Summary {
   invoice_id: string;
   content: string;
   confidence_score: number;
-  extracted_fields: Record<string, any>;
+  extracted_fields: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }

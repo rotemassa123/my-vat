@@ -7,12 +7,14 @@ interface BulkLoadOptions {
   batchSize?: number;
   maxInvoices?: number;
   autoStart?: boolean;
+  account_id?: number; // Required for combined endpoint
 }
 
 export const useBulkInvoiceLoader = ({
   batchSize = 2000,
   maxInvoices = 10000,
-  autoStart = true
+  autoStart = true,
+  account_id = 1 // Default account_id, should be passed from context/auth
 }: BulkLoadOptions = {}) => {
   const {
     isLoading,
@@ -56,11 +58,10 @@ export const useBulkInvoiceLoader = ({
         const currentBatchSize = Math.min(batchSize, remaining);
         
         // Fetch batch
-        const response = await InvoiceApiService.getInvoices({
+        const response = await InvoiceApiService.getCombinedInvoices({
+          account_id,
           limit: currentBatchSize,
           skip: (page - 1) * currentBatchSize,
-          sort_by: 'created_at',
-          sort_order: 'desc'
         });
         
         const batchInvoices = response.data;
@@ -118,7 +119,7 @@ export const useBulkInvoiceLoader = ({
       loadingRef.current = false;
       abortControllerRef.current = null;
     }
-  }, [batchSize, maxInvoices, setLoading, setLoadingProgress, setError, addInvoices]);
+  }, [batchSize, maxInvoices, setLoading, setLoadingProgress, setError, addInvoices, account_id]);
 
   const cancelLoading = useCallback(() => {
     if (abortControllerRef.current) {

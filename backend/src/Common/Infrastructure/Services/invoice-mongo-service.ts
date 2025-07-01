@@ -250,80 +250,76 @@ export class InvoiceMongoService implements IInvoiceRepository {
     return await this.summaryModel.countDocuments(query).exec();
   }
 
-  private buildCombinedQuery(filters: CombinedInvoiceFilters): any[] {
-    const pipeline: any[] = [];
-
-    // Filter by account_id only
-    pipeline.push({ 
-      $match: { 
-        account_id: filters.account_id 
-      } 
-    });
-
-    // Left join with summaries collection
-    pipeline.push({
-      $lookup: {
-        from: 'summaries',
-        localField: 'source_id',
-        foreignField: 'file_id',
-        as: 'summary'
-      }
-    });
-
-    // Unwind summary (will keep invoices without summaries due to preserveNullAndEmptyArrays)
-    pipeline.push({
-      $unwind: {
-        path: '$summary',
-        preserveNullAndEmptyArrays: true
-      }
-    });
-
-    return pipeline;
-  }
-
-  private mapCombinedDocument(doc: any): CombinedInvoiceData {
-    const summary = doc.summary || {};
-    
-    return {
-      // Invoice fields
-      _id: doc._id.toString(),
-      account_id: doc.account_id,
-      name: doc.name,
-      source_id: doc.source_id,
-      size: doc.size,
-      last_executed_step: doc.last_executed_step,
-      source: doc.source,
-      status: doc.status,
-      reason: doc.reason,
-      claim_amount: doc.claim_amount,
-      claim_submitted_at: doc.claim_submitted_at,
-      claim_result_received_at: doc.claim_result_received_at,
-      status_updated_at: doc.status_updated_at,
-      created_at: doc.created_at,
-      
-      // Summary fields (spread from summary)
-      analysis_result: summary.analysis_result,
-      confidence_score: summary.confidence_score,
-      processing_status: summary.processing_status,
-      vat_amount: summary.vat_amount,
-      total_amount: summary.total_amount,
-      currency: summary.currency,
-      vendor_name: summary.vendor_name,
-      invoice_date: summary.invoice_date,
-      invoice_number: summary.invoice_number,
-    };
-  }
-
   async findCombinedInvoices(
     filters: CombinedInvoiceFilters, 
     limit = 50, 
     skip = 0
   ): Promise<PaginatedCombinedResult> {
-    const pipeline = this.buildCombinedQuery(filters);
+    
+    // Build aggregation pipeline
+    const pipeline: any[] = [
+      // Filter by account_id
+      { 
+        $match: { 
+          account_id: filters.account_id 
+        } 
+      },
+      // Convert ObjectId to string for joining
+      { 
+        $addFields: { 
+          _id_str: { $toString: "$_id" } 
+        } 
+      },
+      // Join with summaries using correct fields
+      {
+        $lookup: {
+          from: 'summaries',
+          localField: '_id_str',
+          foreignField: 'file_id',
+          as: 'summaries'
+        }
+      },
+      // Unwind summaries
+      { $unwind: '$summaries' },
+      // Replace root with merged content
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              '$summaries.summary_content',
+              {
+                _id: '$_id',
+                name: '$name',
+                source_id: '$source_id',
+                size: '$size',
+                last_executed_step: '$last_executed_step',
+                source: '$source',
+                account_id: '$account_id',
+                content_type: '$content_type',
+                status: '$status',
+                reason: '$reason',
+                claim_amount: '$claim_amount',
+                claim_submitted_at: '$claim_submitted_at',
+                claim_result_received_at: '$claim_result_received_at',
+                status_updated_at: '$status_updated_at',
+                created_at: '$created_at',
+                is_invoice: '$summaries.is_invoice'
+              }
+            ]
+          }
+        }
+      }
+    ];
     
     // Get total count
-    const countPipeline = [...pipeline, { $count: "total" }];
-    const countResult = await this.invoiceModel.aggregate(countPipeline).exec();
+    const countPipeline = [
+      ...pipeline,
+      { $count: "total" }
+    ];
+    const countResult = await this.invoiceModel.aggregate(countPipeline, { 
+      maxTimeMS: 60000, 
+      allowDiskUse: true 
+    }).exec();
     const total = countResult.length > 0 ? countResult[0].total : 0;
     
     // Get paginated data
@@ -334,8 +330,13 @@ export class InvoiceMongoService implements IInvoiceRepository {
       { $limit: limit }
     ];
     
-    const docs = await this.invoiceModel.aggregate(dataPipeline).exec();
-    const data = docs.map(doc => this.mapCombinedDocument(doc));
+    const docs = await this.invoiceModel.aggregate(dataPipeline, { 
+      maxTimeMS: 60000, 
+      allowDiskUse: true 
+    }).exec();
+    
+    // Map to CombinedInvoiceData format
+    const data = docs.map(doc => this.mapAggregationResult(doc));
     
     return {
       data,
@@ -343,6 +344,47 @@ export class InvoiceMongoService implements IInvoiceRepository {
       limit,
       skip,
       count: data.length
+    };
+  }
+  
+  private mapAggregationResult(doc: any): CombinedInvoiceData {
+    return {
+      // The aggregation result should already be flattened
+      // Just ensure we have the required structure
+      _id: doc._id?.toString() || '',
+      account_id: doc.account_id || 0,
+      name: doc.name || '',
+      source_id: doc.source_id || '',
+      size: doc.size || 0,
+      last_executed_step: doc.last_executed_step || 0,
+      source: doc.source || '',
+      status: doc.status || '',
+      reason: doc.reason,
+      claim_amount: doc.claim_amount,
+      claim_submitted_at: doc.claim_submitted_at,
+      claim_result_received_at: doc.claim_result_received_at,
+      status_updated_at: doc.status_updated_at,
+      created_at: doc.created_at,
+      
+      // Summary fields from the merged content
+      is_invoice: doc.is_invoice,
+      processing_time_seconds: doc.processing_time_seconds,
+      success: doc.success,
+      error_message: doc.error_message,
+      confidence_score: doc.confidence_score,
+      
+      // Content fields (should be flattened by the aggregation)
+      country: doc.country,
+      supplier: doc.supplier,
+      invoice_date: doc.invoice_date,
+      invoice_number: doc.invoice_number,
+      description: doc.description,
+      net_amount: doc.net_amount,
+      vat_amount: doc.vat_amount,
+      vat_rate: doc.vat_rate,
+      currency: doc.currency,
+      vendor_name: doc.vendor_name,
+      total_amount: doc.total_amount,
     };
   }
 } 

@@ -40,7 +40,7 @@ export class InvoiceController {
 
       const response: CombinedInvoiceListResponse = {
         data: result.data.map(invoice => ({
-          // Invoice fields
+          // Core invoice fields
           _id: invoice._id,
           account_id: invoice.account_id,
           name: invoice.name,
@@ -56,16 +56,27 @@ export class InvoiceController {
           status_updated_at: invoice.status_updated_at,
           created_at: invoice.created_at,
           
-          // Summary fields (spread from summary)
-          analysis_result: invoice.analysis_result,
+          // Summary metadata fields
+          is_invoice: invoice.is_invoice,
+          processing_time_seconds: invoice.processing_time_seconds,
+          success: invoice.success,
+          error_message: invoice.error_message,
           confidence_score: invoice.confidence_score,
-          processing_status: invoice.processing_status,
-          vat_amount: invoice.vat_amount,
-          total_amount: invoice.total_amount,
-          currency: invoice.currency,
-          vendor_name: invoice.vendor_name,
+          
+          // Flattened summary content fields (extracted data)
+          country: invoice.country,
+          supplier: invoice.supplier,
           invoice_date: invoice.invoice_date,
           invoice_number: invoice.invoice_number,
+          description: invoice.description,
+          net_amount: invoice.net_amount,
+          vat_amount: invoice.vat_amount,
+          vat_rate: invoice.vat_rate,
+          currency: invoice.currency,
+          
+          // Computed fields
+          vendor_name: invoice.vendor_name,
+          total_amount: invoice.total_amount,
         })),
         metadata: {
           total: result.total,
