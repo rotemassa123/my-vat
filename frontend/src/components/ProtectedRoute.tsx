@@ -2,16 +2,26 @@ import React from 'react';
 import { Navigate } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../hooks/useAuth';
+import { useBulkInvoiceLoader } from '../hooks/useBulkInvoiceLoader';
+import InvoiceLoadingScreen from './InvoiceLoadingScreen';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const {
+    isLoading: invoicesLoading,
+    loadingProgress,
+    error: invoiceError,
+    totalLoaded,
+    resetAndReload,
+    cancelLoading
+  } = useBulkInvoiceLoader();
 
   // Show loading spinner while checking authentication
-  if (loading) {
+  if (authLoading) {
     return (
       <Box
         sx={{
@@ -35,6 +45,20 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <Navigate to="/login" replace />;
   }
 
-  // Render protected content if authenticated
+  // Show invoice loading screen while invoices are being loaded
+  if (invoicesLoading || (loadingProgress < 100 && totalLoaded === 0)) {
+    return (
+      <InvoiceLoadingScreen
+        isLoading={invoicesLoading}
+        progress={loadingProgress}
+        totalLoaded={totalLoaded}
+        error={invoiceError}
+        onRetry={resetAndReload}
+        onCancel={invoicesLoading ? cancelLoading : undefined}
+      />
+    );
+  }
+
+  // Render protected content if authenticated and invoices are loaded
   return <>{children}</>;
 } 

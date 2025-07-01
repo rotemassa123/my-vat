@@ -37,7 +37,7 @@ export class SummaryController {
   @ApiQuery({ name: 'invoice_date_to', required: false, type: String, description: 'Invoice date to (ISO)' })
   @ApiQuery({ name: 'created_at_from', required: false, type: String, description: 'Created after date (ISO)' })
   @ApiQuery({ name: 'created_at_to', required: false, type: String, description: 'Created before date (ISO)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-1000)', example: 50 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-5000)', example: 50 })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip', example: 0 })
   async getSummaries(
     @Query() filters: SummaryFilterRequest,

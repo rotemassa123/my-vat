@@ -6,13 +6,13 @@ export interface ApiResponse<T> {
 }
 
 export interface PaginatedResponse<T> {
-  items: T[];
-  page: number;
-  per_page: number;
-  total: number;
-  pages: number;
-  has_next: boolean;
-  has_prev: boolean;
+  data: T[];
+  metadata: {
+    total: number;
+    limit: number;
+    skip: number;
+    count: number;
+  };
 }
 
 // Invoice status enum matching backend
@@ -58,8 +58,8 @@ export interface InvoiceFilters {
 }
 
 export interface InvoiceQueryParams extends InvoiceFilters {
-  page?: number;
-  per_page?: number;
+  limit?: number;
+  skip?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }

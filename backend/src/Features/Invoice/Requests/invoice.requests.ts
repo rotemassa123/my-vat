@@ -87,7 +87,7 @@ export class InvoicePaginationRequest {
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  @Max(1000)
+  @Max(5000)
   limit?: number = 50;
 
   @ApiProperty({ required: false, description: 'Number of items to skip', default: 0 })
@@ -208,7 +208,7 @@ export class SummaryPaginationRequest {
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  @Max(1000)
+  @Max(5000)
   limit?: number = 50;
 
   @ApiProperty({ required: false, description: 'Number of items to skip', default: 0 })
@@ -228,7 +228,7 @@ export class CombinedInvoiceFilterRequest extends InvoiceFilterRequest {
   @Type(() => Number)
   @IsNumber()
   @Min(1)
-  @Max(1000)
+  @Max(5000)
   limit?: number = 50;
 
   @ApiProperty({ required: false, description: 'Number of items to skip', default: 0 })

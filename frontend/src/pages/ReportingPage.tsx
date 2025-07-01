@@ -34,7 +34,7 @@ import {
 } from '@mui/icons-material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { format } from 'date-fns';
-import { useInfiniteInvoices } from '../hooks/useInvoices';
+import { useInvoiceStore } from '../lib/invoiceStore';
 import { InvoiceApiService } from '../lib/invoiceApi';
 import type { InvoiceQueryParams, InvoiceStatus } from '../types/api';
 import styles from './ReportingPage.module.scss';
@@ -125,31 +125,34 @@ const ReportingPage: React.FC = () => {
   const [exportSuccess, setExportSuccess] = useState(false);
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLButtonElement | null>(null);
 
-  // Build query params (excluding page since we use infinite scroll)
-  const queryParams: Omit<InvoiceQueryParams, 'page'> = useMemo(() => ({
-    ...filters,
-    sort_by: sortBy,
-    sort_order: sortOrder,
-  }), [filters, sortBy, sortOrder]);
+  // Get data from Zustand store (all invoices are already in memory)
+  const {
+    filteredInvoices,
+    isLoading,
+    error,
+    setFilters: setStoreFilters,
+    setSearchTerm,
+    setSorting,
+    getTotalCount
+  } = useInvoiceStore();
 
-  // Fetch data with infinite scroll
-  const { 
-    data, 
-    isLoading, 
-    error, 
-    fetchNextPage, 
-    hasNextPage, 
-    isFetchingNextPage,
-    refetch 
-  } = useInfiniteInvoices(queryParams);
+  // Apply filters to store when local filters change
+  useEffect(() => {
+    setStoreFilters({
+      status: filters.status.length > 0 ? filters.status : undefined,
+      filename: filters.filename || undefined,
+      vat_scheme: filters.vat_scheme || undefined,
+      currency: filters.currency || undefined,
+      date_from: filters.date_from || undefined,
+      date_to: filters.date_to || undefined,
+    });
+    setSearchTerm(filters.search);
+    setSorting(sortBy, sortOrder);
+  }, [filters, sortBy, sortOrder, setStoreFilters, setSearchTerm, setSorting]);
 
-  // Flatten all pages into a single array for virtualization
-  const allInvoices = useMemo(() => {
-    return data?.pages?.flatMap((page: any) => page.items) || [];
-  }, [data]);
-
-  // Total count from first page
-  const totalCount = data?.pages?.[0]?.total || 0;
+  // All invoices are already filtered by the store
+  const allInvoices = filteredInvoices;
+  const totalCount = getTotalCount();
 
   // Virtual scrolling setup
   const parentRef = React.useRef<HTMLDivElement>(null);
@@ -161,27 +164,7 @@ const ReportingPage: React.FC = () => {
     overscan: 10,
   });
 
-  // Load more data when scrolling near the end
-  useEffect(() => {
-    const [lastItem] = [...virtualizer.getVirtualItems()].reverse();
-    
-    if (!lastItem) return;
-    
-    // Load more when we're within 5 items of the end
-    if (
-      lastItem.index >= allInvoices.length - 5 &&
-      hasNextPage &&
-      !isFetchingNextPage
-    ) {
-      fetchNextPage();
-    }
-  }, [
-    hasNextPage,
-    fetchNextPage,
-    allInvoices.length,
-    isFetchingNextPage,
-    virtualizer.getVirtualItems(),
-  ]);
+  // No need for infinite scroll - all data is already in memory
 
   // Event handlers
   const handleFilterChange = useCallback((key: keyof FilterState, value: any) => {
@@ -480,7 +463,7 @@ const ReportingPage: React.FC = () => {
               </Button>
             </span>
           </Tooltip>
-          <IconButton onClick={() => refetch()}>
+          <IconButton onClick={() => window.location.reload()}>
             <RefreshIcon />
           </IconButton>
         </Box>
@@ -941,7 +924,7 @@ const ReportingPage: React.FC = () => {
         {/* Table Body */}
         {error && (
           <Alert severity="error" className={styles.errorAlert}>
-            Failed to load invoice data: {error.message}
+            Failed to load invoice data: {error}
           </Alert>
         )}
 
@@ -1013,24 +996,7 @@ const ReportingPage: React.FC = () => {
                 );
               })}
               
-              {/* Loading indicator at the bottom when fetching more */}
-              {isFetchingNextPage && (
-                <Box
-                  style={{
-                    position: 'absolute',
-                    top: `${virtualizer.getTotalSize()}px`,
-                    left: 0,
-                    width: '100%',
-                    height: '60px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <CircularProgress size={24} />
-                  <Typography style={{ marginLeft: '8px' }}>Loading more...</Typography>
-                </Box>
-              )}
+              {/* No need for loading indicator - all data is in memory */}
             </Box>
           </Box>
         )}

@@ -22,7 +22,7 @@ export class InvoiceController {
     description: 'Retrieve invoices joined with their summary data with essential filters: claimant, submitted date, currency, status, and invoice date.' 
   })
   @ApiQuery({ name: 'account_id', required: true, type: Number, description: 'Account ID to filter invoices' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-1000)', example: 50 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-5000)', example: 50 })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip for pagination', example: 0 })
   // Essential filters
   @ApiQuery({ name: 'vendor_name', required: false, type: String, description: 'Filter by claimant/vendor name' })
@@ -118,7 +118,7 @@ export class InvoiceController {
   @ApiQuery({ name: 'created_at_to', required: false, type: String, description: 'Created before date (ISO)' })
   @ApiQuery({ name: 'status_updated_at_from', required: false, type: String, description: 'Status updated after date (ISO)' })
   @ApiQuery({ name: 'status_updated_at_to', required: false, type: String, description: 'Status updated before date (ISO)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-1000)', example: 50 })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-5000)', example: 50 })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip', example: 0 })
   async getInvoices(
     @Query() filters: InvoiceFilterRequest,
