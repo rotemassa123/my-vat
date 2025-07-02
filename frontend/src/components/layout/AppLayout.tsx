@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, Link, Outlet } from 'react-router-dom';
 import {
   Box,
   TextField,
@@ -15,10 +15,6 @@ import {
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import styles from './AppLayout.module.scss';
-
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
 
 const navigationItems = [
   {
@@ -43,7 +39,7 @@ const navigationItems = [
   },
 ];
 
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout() {
   const location = useLocation();
 
   return (
@@ -126,7 +122,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         <Box className={styles.mainContent}>
           {/* Content Area */}
           <Box className={styles.content}>
-            {children}
+            <Outlet />
           </Box>
         </Box>
       </Box>

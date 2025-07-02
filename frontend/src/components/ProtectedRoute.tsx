@@ -1,15 +1,11 @@
 import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/auth/useAuth';
 import { useBulkInvoiceLoader } from '../hooks/useBulkInvoiceLoader';
 
-interface ProtectedRouteProps {
-  children: React.ReactNode;
-}
-
-export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isAuthenticated, loading: authLoading } = useAuth();
+export default function ProtectedRoute() {
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const {
     isLoading: invoicesLoading,
     totalLoaded
@@ -90,5 +86,5 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   // Render protected content if authenticated and invoices are loaded
-  return <>{children}</>;
+  return <Outlet />;
 } 
