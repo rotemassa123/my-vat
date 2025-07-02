@@ -85,4 +85,11 @@ export interface UserResponse {
 
 export interface CreateUserResponse {
   _id: string;
+}
+
+// Combined Profile Response
+export interface CombinedProfileResponse {
+  user: UserResponse;
+  account: AccountResponse;
+  entities: EntityResponse[];
 } 
