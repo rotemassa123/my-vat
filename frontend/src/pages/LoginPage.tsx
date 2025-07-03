@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -17,29 +17,37 @@ import {
 } from '@mui/icons-material';
 import { useLogin } from '../hooks/auth/useLogin';
 import { useAuthStore } from '../store/authStore';
+import { type LoginCredentials } from '../lib/authApi';
 import styles from '../components/Login.module.scss';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuthStore();
-  const {
-    form,
-    handleSubmit,
-    handleChange,
-    resetForm,
-    isLoading,
-    isError,
-    error,
-  } = useLogin();
+  const { login, isLoading, error, isSuccess } = useLogin();
 
-  const [showPassword, setShowPassword] = React.useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState<LoginCredentials>({ 
+    email: '', 
+    password: '' 
+  });
 
-  // Redirect if already authenticated
+  // Form handlers
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    login(form);
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Redirect if already authenticated or login successful
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated || isSuccess) {
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isSuccess, navigate]);
 
   // Handle OAuth callback success/error
   useEffect(() => {
@@ -85,7 +93,7 @@ export default function LoginPage() {
         </Box>
 
         {/* Error Message */}
-        {isError && error && (
+        {error && (
           <Alert severity="error" className={styles.errorMessage}>
             {error.message || 'Login failed. Please try again.'}
           </Alert>

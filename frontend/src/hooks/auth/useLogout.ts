@@ -1,38 +1,40 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { useProfileStore } from '../../store/profileStore';
 import { authApi } from '../../lib/authApi';
 
 export const useLogout = () => {
-  const queryClient = useQueryClient();
-  const { logout: logoutStore } = useAuthStore();
+  const navigate = useNavigate();
+  const { logout: logoutAuth } = useAuthStore();
+  const { clearProfile } = useProfileStore();
 
-  // Logout mutation
-  const { mutateAsync, isPending } = useMutation({
+  const logoutMutation = useMutation({
     mutationFn: authApi.logout,
-    onSuccess: () => {
-      logoutStore();
-      // Clear all cached queries
-      queryClient.clear();
+    onSettled: () => {
+      // Always clear local state and redirect, even if API call fails
+      logoutAuth();
+      clearProfile();
+      
+      // Clear any additional storage if needed
+      sessionStorage.removeItem('auth-storage');
+      sessionStorage.removeItem('profile-storage');
+      
+      navigate('/login');
     },
     onError: (error) => {
-      // Even if logout fails, clear local state
-      console.error('Logout error:', error);
-      logoutStore();
-      queryClient.clear();
+      console.error('Logout API call failed:', error);
+      // Don't throw error - we still want to clear local state
     },
   });
 
-  const handleLogout = async () => {
-    try {
-      await mutateAsync();
-    } catch (error) {
-      // Error is handled in onError callback
-      console.error('Logout failed:', error);
-    }
+  const logout = () => {
+    logoutMutation.mutate();
   };
 
   return {
-    logout: handleLogout,
-    isLoading: isPending,
+    logout,
+    isLoading: logoutMutation.isPending,
+    error: logoutMutation.error,
   };
 }; 

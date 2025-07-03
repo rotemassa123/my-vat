@@ -1,40 +1,32 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-export interface User {
-  account_id: string;
-  email: string;
-  name: string;
-  permissions: string[];
-  auth_providers: string[];
-}
-
 interface AuthStore {
-  user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  token: string | null;
   
   // Actions
-  setUser: (user: User | null) => void;
+  setAuthenticated: (isAuthenticated: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setToken: (token: string | null) => void;
   clearAuth: () => void;
-  login: (user: User) => void;
+  login: (token?: string) => void;
   logout: () => void;
 }
 
 export const useAuthStore = create(
   persist<AuthStore>(
-    (set, get) => ({
-      user: null,
+    (set) => ({
       isAuthenticated: false,
       loading: false,
       error: null,
+      token: null,
 
-      setUser: (user) => set({ 
-        user, 
-        isAuthenticated: !!user,
+      setAuthenticated: (isAuthenticated) => set({ 
+        isAuthenticated,
         error: null 
       }),
       
@@ -42,25 +34,27 @@ export const useAuthStore = create(
       
       setError: (error) => set({ error }),
       
+      setToken: (token) => set({ token }),
+      
       clearAuth: () => set({ 
-        user: null, 
         isAuthenticated: false, 
         loading: false, 
-        error: null 
+        error: null,
+        token: null,
       }),
       
-      login: (user) => set({ 
-        user, 
+      login: (token) => set({ 
         isAuthenticated: true, 
         loading: false, 
-        error: null 
+        error: null,
+        token: token || null,
       }),
       
       logout: () => set({ 
-        user: null, 
         isAuthenticated: false, 
         loading: false, 
-        error: null 
+        error: null,
+        token: null,
       }),
     }),
     {

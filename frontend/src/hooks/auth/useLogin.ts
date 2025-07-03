@@ -1,63 +1,58 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
-import { authApi, type LoginCredentials } from '../../lib/authApi';
-import { type User } from '../../store/authStore';
+import { useProfileStore } from '../../store/profileStore';
+import { authApi, type LoginCredentials, type AuthResponse } from '../../lib/authApi';
+import { profileApi } from '../../lib/profileApi';
 
 export const useLogin = () => {
-  const queryClient = useQueryClient();
-  const { login: loginStore, setError } = useAuthStore();
-  const [form, setForm] = useState<LoginCredentials>({ 
-    email: '', 
-    password: '' 
-  });
+  const { login: loginAuth, setLoading: setAuthLoading, setError: setAuthError } = useAuthStore();
+  const { setProfile, clearProfile, setLoading: setProfileLoading, setError: setProfileError } = useProfileStore();
 
-  // Login mutation
-  const { mutateAsync, isPending, isError, error } = useMutation<
-    User,
-    Error,
-    LoginCredentials
-  >({
+  const loginMutation = useMutation<AuthResponse, Error, LoginCredentials>({
     mutationFn: authApi.login,
-    onSuccess: (userData) => {
-      loginStore(userData);
-      // Update the auth query cache
-      queryClient.setQueryData(['auth', 'me'], userData);
-      setError(null);
+    onMutate: () => {
+      // Set loading states
+      setAuthLoading(true);
+      setProfileLoading(true);
+      // Clear any previous errors
+      setAuthError(null);
+      setProfileError(null);
+    },
+    onSuccess: async (authResponse) => {
+      try {        
+        loginAuth(authResponse.token);
+        setAuthLoading(false);
+        
+        const profileData = await profileApi.getCombinedProfile(authResponse.user._id);
+                
+        setProfile(profileData);
+        setProfileLoading(false);
+      } catch (profileError) {
+        // Profile loading failed, but user is still authenticated
+        console.error('Profile loading failed after successful login:', profileError);
+        setProfileError(profileError instanceof Error ? profileError.message : 'Failed to load profile');
+        setProfileLoading(false);
+      }
     },
     onError: (error) => {
-      const errorMessage = error.message || 'Login failed';
-      setError(errorMessage);
+      // Authentication failed
+      console.error('Login failed:', error);
+      setAuthError(error.message);
+      setAuthLoading(false);
+      setProfileLoading(false);
+      clearProfile();
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await mutateAsync(form);
-    } catch (error) {
-      // Error is handled in onError callback
-      console.error('Login error:', error);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const resetForm = () => {
-    setForm({ email: '', password: '' });
+  const login = (credentials: LoginCredentials) => {
+    loginMutation.mutate(credentials);
   };
 
   return {
-    form,
-    setForm,
-    handleSubmit,
-    handleChange,
-    resetForm,
-    isLoading: isPending,
-    isError,
-    error,
+    login,
+    isLoading: loginMutation.isPending,
+    error: loginMutation.error,
+    isSuccess: loginMutation.isSuccess,
+    reset: loginMutation.reset,
   };
 }; 

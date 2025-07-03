@@ -29,6 +29,7 @@ export const useBulkInvoiceLoader = ({
   
   const loadingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const hasInitialized = useRef(false); // Track if we've already tried to load
 
   const loadInvoices = useCallback(async () => {
     if (loadingRef.current) return;
@@ -131,15 +132,17 @@ export const useBulkInvoiceLoader = ({
     cancelLoading();
     // Clear the store and reload
     useInvoiceStore.getState().setInvoices([]);
+    hasInitialized.current = false; // Reset initialization flag
     loadInvoices();
   }, [cancelLoading, loadInvoices]);
 
-  // Auto-start loading when the hook is first used
+  // Auto-start loading ONCE when the hook is first mounted
   useEffect(() => {
-    if (autoStart && getTotalCount() === 0 && !isLoading) {
+    if (autoStart && !hasInitialized.current && getTotalCount() === 0 && !isLoading) {
+      hasInitialized.current = true; // Mark as initialized
       loadInvoices();
     }
-  }, [autoStart, getTotalCount, isLoading, loadInvoices]);
+  }, [autoStart]); // Only depend on autoStart - run once
 
   // Cleanup on unmount
   useEffect(() => {

@@ -51,36 +51,6 @@
       }
     }
   }
-  
-  .userProfile {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    
-    .avatar {
-      width: 60px;
-      height: 60px;
-    }
-    
-    .userInfo {
-      display: flex;
-      flex-direction: column;
-      
-      .userName {
-        font-family: 'Poppins', sans-serif;
-        font-weight: 600;
-        font-size: 18px;
-        color: #0131ff;
-      }
-      
-      .userEmail {
-        font-family: 'Poppins', sans-serif;
-        font-weight: 400;
-        font-size: 14px;
-        color: #40578c;
-      }
-    }
-  }
 }
 
 .bodyContainer {

@@ -36,8 +36,8 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  // Show simple spinner while invoices are being loaded
-  if (invoicesLoading || totalLoaded === 0) {
+  // Show loading spinner ONLY while actively loading invoices
+  if (invoicesLoading) {
     return (
       <Box
         sx={{
@@ -85,6 +85,7 @@ export default function ProtectedRoute() {
     );
   }
 
-  // Render protected content if authenticated and invoices are loaded
+  // Render protected content when authenticated and loading is complete
+  // (Even if totalLoaded is 0 - that's a valid state!)
   return <Outlet />;
 } 

@@ -5,7 +5,6 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import { lazy, Suspense } from "react";
-import { useAuth } from "../hooks/auth/useAuth";
 import Root from "./Root";
 import ProtectedRoute from "../components/ProtectedRoute";
 
@@ -16,6 +15,7 @@ const DashboardPage = lazy(() => import("../pages/DashboardPage"));
 const AnalysisPage = lazy(() => import("../pages/AnalysisPage"));
 const ReportingPage = lazy(() => import("../pages/ReportingPage"));
 const ManagePage = lazy(() => import("../pages/ManagePage"));
+const SettingsPage = lazy(() => import("../pages/SettingsPage"));
 const AuthTestPage = lazy(() => import("../pages/AuthTestPage"));
 
 // Loading component
@@ -25,63 +25,66 @@ const LoadingSpinner = () => (
   </div>
 );
 
-function Router() {
-  // Initialize auth check
-  useAuth();
+// Create router once, outside component
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route path="/" element={<Root />}>
+      {/* Public Routes */}
+      <Route path="/login" element={
+        <Suspense fallback={<LoadingSpinner />}>
+          <LoginPage />
+        </Suspense>
+      } />
+      <Route path="/auth-test" element={
+        <Suspense fallback={<LoadingSpinner />}>
+          <AuthTestPage />
+        </Suspense>
+      } />
 
-  const router = createBrowserRouter(
-    createRoutesFromElements(
-      <Route path="/" element={<Root />}>
-        {/* Public Routes */}
-        <Route path="/login" element={
+      {/* Protected Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={
           <Suspense fallback={<LoadingSpinner />}>
-            <LoginPage />
+            <AppLayout />
           </Suspense>
-        } />
-        <Route path="/auth-test" element={
-          <Suspense fallback={<LoadingSpinner />}>
-            <AuthTestPage />
-          </Suspense>
-        } />
-
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
-          <Route element={
+        }>
+          <Route index element={
             <Suspense fallback={<LoadingSpinner />}>
-              <AppLayout />
+              <DashboardPage />
             </Suspense>
-          }>
-            <Route index element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <DashboardPage />
-              </Suspense>
-            } />
-            <Route path="/dashboard" element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <DashboardPage />
-              </Suspense>
-            } />
-            <Route path="/analysis" element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <AnalysisPage />
-              </Suspense>
-            } />
-            <Route path="/reporting" element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <ReportingPage />
-              </Suspense>
-            } />
-            <Route path="/manage" element={
-              <Suspense fallback={<LoadingSpinner />}>
-                <ManagePage />
-              </Suspense>
-            } />
-          </Route>
+          } />
+          <Route path="/dashboard" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <DashboardPage />
+            </Suspense>
+          } />
+          <Route path="/analysis" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <AnalysisPage />
+            </Suspense>
+          } />
+          <Route path="/reporting" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <ReportingPage />
+            </Suspense>
+          } />
+          <Route path="/manage" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <ManagePage />
+            </Suspense>
+          } />
+          <Route path="/settings" element={
+            <Suspense fallback={<LoadingSpinner />}>
+              <SettingsPage />
+            </Suspense>
+          } />
         </Route>
       </Route>
-    )
-  );
+    </Route>
+  )
+);
 
+function Router() {
   return <RouterProvider router={router} />;
 }
 

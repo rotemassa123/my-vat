@@ -1,47 +1,45 @@
-import { useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useCallback, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
-import { authApi } from '../../lib/authApi';
-import { type User } from '../../store/authStore';
+import { useProfileStore } from '../../store/profileStore';
+import { authApi, type AuthResponse } from '../../lib/authApi';
 
 export const useAuth = () => {
   const { 
-    user, 
     isAuthenticated, 
-    loading, 
-    error, 
-    setUser, 
-    setLoading, 
-    setError, 
+    loading: authLoading, 
+    error: authError, 
     login: loginStore, 
     logout: logoutStore 
   } = useAuthStore();
 
-  // Auto-verify user on mount
-  const { data: userData, isLoading: isVerifying, error: verifyError } = useQuery<User, Error>({
-    queryKey: ['auth', 'me'],
-    queryFn: authApi.me,
-    enabled: !isAuthenticated, // Only run if not already authenticated
-    retry: false,
+  const { loading: profileLoading, error: profileError } = useProfileStore();
+
+  // Use mutation instead of query to avoid reactive re-enabling
+  const { mutate: verifyAuth, isPending: isVerifying, error: verifyError } = useMutation<AuthResponse, Error>({
+    mutationFn: authApi.me,
+    onSuccess: (authData) => {
+      loginStore(); // Cookie-based auth, no token needed
+    },
+    onError: (error) => {
+      logoutStore();
+    },
   });
 
-  // Handle auth verification result
+  // Verify auth only once on mount - never again
   useEffect(() => {
-    if (userData) {
-      loginStore(userData);
-    } else if (verifyError) {
-      logoutStore();
+    if (!isAuthenticated) {
+      verifyAuth();
     }
-  }, [userData, verifyError, loginStore, logoutStore]);
+  }, []); // Empty dependency array - run once on mount
 
   // Combined loading state
-  const isLoading = loading || isVerifying;
+  const isLoading = authLoading || isVerifying || profileLoading;
 
   return {
-    user,
+    // Auth state
     isAuthenticated,
     isLoading,
-    error,
-    // Methods are available from other hooks
+    error: authError || profileError,
   };
 }; 

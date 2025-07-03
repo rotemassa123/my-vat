@@ -4,7 +4,6 @@ import {
   Box,
   TextField,
   InputAdornment,
-  Avatar,
   Typography,
 } from '@mui/material';
 import {
@@ -13,7 +12,9 @@ import {
   Analytics as AnalyticsIcon,
   Assessment as ReportIcon,
   Settings as SettingsIcon,
+  AccountCircle,
 } from '@mui/icons-material';
+import UserAvatarMenu from '../UserAvatarMenu';
 import styles from './AppLayout.module.scss';
 
 const navigationItems = [
@@ -34,7 +35,12 @@ const navigationItems = [
   },
   {
     path: '/manage',
-    label: 'Manage MyVAT',
+    label: 'Manage account',
+    icon: <AccountCircle className={styles.icon} />,
+  },
+  {
+    path: '/settings',
+    label: 'Settings',
     icon: <SettingsIcon className={styles.icon} />,
   },
 ];
@@ -83,19 +89,8 @@ export default function AppLayout() {
           />
         </Box>
 
-        {/* User Profile */}
-        <Box className={styles.userProfile}>
-          <Avatar
-            className={styles.avatar}
-            sx={{ bgcolor: '#0131ff' }}
-          >
-            E
-          </Avatar>
-          <Box className={styles.userInfo}>
-            <Typography className={styles.userName}>Emma</Typography>
-            <Typography className={styles.userEmail}>emma@gmail.com</Typography>
-          </Box>
-        </Box>
+        {/* User Avatar Menu */}
+        <UserAvatarMenu />
       </Box>
 
       {/* Body Container */}
