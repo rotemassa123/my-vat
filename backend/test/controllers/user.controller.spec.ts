@@ -24,10 +24,10 @@ describe('UserController (Integration)', () => {
     createUser: jest.fn(),
     updateUser: jest.fn(),
     deleteUser: jest.fn(),
-    userExists: jest.fn(),
+    userExistsByEmail: jest.fn(),
     // Entity methods
     findEntityById: jest.fn(),
-    findEntitiesByAccountId: jest.fn(),
+    getEntitiesForAccount: jest.fn(),
     createEntity: jest.fn(),
     updateEntity: jest.fn(),
     deleteEntity: jest.fn(),
@@ -69,7 +69,7 @@ describe('UserController (Integration)', () => {
     it('should get user by userId', async () => {
       const mockUser = {
         _id: '507f1f77bcf86cd799439011',
-        userId: 123,
+        userId: '123',
         fullName: 'John Doe',
         email: 'john@example.com',
         hashedPassword: 'hashed',
@@ -85,7 +85,7 @@ describe('UserController (Integration)', () => {
         .expect(200);
 
       expect(response.body).toEqual([mockUser]);
-      expect(mockProfileRepository.findUserById).toHaveBeenCalledWith(123);
+      expect(mockProfileRepository.findUserById).toHaveBeenCalledWith('123');
     });
 
     it('should return 400 when no userId provided', async () => {
@@ -107,7 +107,7 @@ describe('UserController (Integration)', () => {
     it('should get user by id', async () => {
       const mockUser = {
         _id: '507f1f77bcf86cd799439011',
-        userId: 123,
+        userId: '123',
         fullName: 'John Doe',
         email: 'john@example.com',
         hashedPassword: 'hashed',
@@ -123,7 +123,7 @@ describe('UserController (Integration)', () => {
         .expect(200);
 
       expect(response.body).toEqual(mockUser);
-      expect(mockProfileRepository.findUserById).toHaveBeenCalledWith(123);
+      expect(mockProfileRepository.findUserById).toHaveBeenCalledWith('123');
     });
 
     it('should return 404 when user not found', async () => {
@@ -138,19 +138,17 @@ describe('UserController (Integration)', () => {
   describe('POST /users', () => {
     it('should create a new user', async () => {
       const createUserData = {
-        userId: 456,
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         password: 'password123',
         userType: UserType.member,
-        accountId: '507f1f77bcf86cd799439012',
+        accountId: 1,
         phone: '+1234567890',
       };
 
       const hashedPassword = 'hashed_password123';
       const createdUser = {
         _id: '507f1f77bcf86cd799439013',
-        userId: createUserData.userId,
         fullName: createUserData.fullName,
         email: createUserData.email,
         hashedPassword,
@@ -160,7 +158,7 @@ describe('UserController (Integration)', () => {
         status: 'pending',
       };
 
-      mockProfileRepository.userExists.mockResolvedValue(false);
+      mockProfileRepository.userExistsByEmail.mockResolvedValue(false);
       mockProfileRepository.accountExists.mockResolvedValue(true);
       mockPasswordService.hashPassword.mockResolvedValue(hashedPassword);
       mockProfileRepository.createUser.mockResolvedValue(createdUser);
@@ -171,10 +169,9 @@ describe('UserController (Integration)', () => {
         .expect(201);
 
       expect(response.body).toEqual({ _id: '507f1f77bcf86cd799439013' });
-      expect(mockProfileRepository.accountExists).toHaveBeenCalledWith(createUserData.accountId);
+      expect(mockProfileRepository.accountExists).toHaveBeenCalledWith(createUserData.accountId.toString());
       expect(mockPasswordService.hashPassword).toHaveBeenCalledWith(createUserData.password);
       expect(mockProfileRepository.createUser).toHaveBeenCalledWith({
-        userId: createUserData.userId,
         fullName: createUserData.fullName,
         email: createUserData.email,
         hashedPassword,
@@ -187,15 +184,14 @@ describe('UserController (Integration)', () => {
 
     it('should return 400 when user already exists', async () => {
       const createUserData = {
-        userId: 456,
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         password: 'password123',
         userType: UserType.member,
-        accountId: '507f1f77bcf86cd799439012',
+        accountId: 1,
       };
 
-      mockProfileRepository.userExists.mockResolvedValue(true);
+      mockProfileRepository.userExistsByEmail.mockResolvedValue(true);
 
       await request(app.getHttpServer())
         .post('/users')
@@ -205,7 +201,6 @@ describe('UserController (Integration)', () => {
 
     it('should return 400 when account does not exist', async () => {
       const createUserData = {
-        userId: 456,
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         password: 'password123',
@@ -213,7 +208,7 @@ describe('UserController (Integration)', () => {
         accountId: 'nonexistent_account_id',
       };
 
-      mockProfileRepository.userExists.mockResolvedValue(false);
+      mockProfileRepository.userExistsByEmail.mockResolvedValue(false);
       mockProfileRepository.accountExists.mockResolvedValue(false);
 
       await request(app.getHttpServer())
@@ -225,7 +220,7 @@ describe('UserController (Integration)', () => {
 
   describe('PUT /users/:id', () => {
     it('should update a user', async () => {
-      const userId = 123;
+      const userId = '123';
       const updateData = {
         fullName: 'John Updated',
         status: 'active',
@@ -265,7 +260,7 @@ describe('UserController (Integration)', () => {
     });
 
     it('should update user with password hash', async () => {
-      const userId = 123;
+      const userId = '123';
       const updateData = {
         fullName: 'John Updated',
         password: 'newpassword123',
@@ -313,7 +308,7 @@ describe('UserController (Integration)', () => {
 
   describe('DELETE /users/:id', () => {
     it('should delete a user', async () => {
-      const userId = 123;
+      const userId = '123';
       const existingUser = { _id: '507f1f77bcf86cd799439011', userId };
 
       mockProfileRepository.findUserById.mockResolvedValue(existingUser);

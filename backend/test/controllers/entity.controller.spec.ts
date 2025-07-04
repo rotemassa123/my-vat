@@ -3,6 +3,7 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { EntityController } from '../../src/Features/Profile/Controllers/entity.controller';
 import { IProfileRepository } from '../../src/Common/ApplicationCore/Services/IProfileRepository';
+import * as httpContext from 'express-http-context';
 
 describe('EntityController (Integration)', () => {
   let app: INestApplication;
@@ -18,9 +19,9 @@ describe('EntityController (Integration)', () => {
     createUser: jest.fn(),
     updateUser: jest.fn(),
     deleteUser: jest.fn(),
-    userExists: jest.fn(),
+    userExistsByEmail: jest.fn(),
     findEntityById: jest.fn(),
-    findEntitiesByAccountId: jest.fn(),
+    getEntitiesForAccount: jest.fn(),
     createEntity: jest.fn(),
     updateEntity: jest.fn(),
     deleteEntity: jest.fn(),
@@ -39,32 +40,38 @@ describe('EntityController (Integration)', () => {
     }).compile();
 
     app = module.createNestApplication();
+    // Register http context middleware and attach account_id to each request
+    app.use(httpContext.middleware);
+    // Attach middleware to populate account_id in async context for each request
+    app.use((req, _res, next) => {
+      httpContext.set('account_id', 1);
+      next();
+    });
     await app.init();
+    // Ensure tenant context default values outside requests (safety)
+    httpContext.set('role', undefined);
   });
 
   afterEach(async () => {
     await app.close();
     jest.clearAllMocks();
+    httpContext.set('account_id', undefined);
+    httpContext.set('role', undefined);
   });
 
   describe('GET /entities', () => {
-    it('should get entities by accountId', async () => {
-      const accountId = '507f1f77bcf86cd799439011';
-      const mockEntities = [{ _id: '1', accountId, name: 'Entity One' }];
+    it('should get entities for current account', async () => {
+      const mockEntities = [{ _id: '1', accountId: 1, name: 'Entity One' }];
 
-      mockProfileRepository.findEntitiesByAccountId.mockResolvedValue(mockEntities);
+      mockProfileRepository.getEntitiesForAccount.mockResolvedValue(mockEntities);
 
       const response = await request(app.getHttpServer())
-        .get(`/entities?accountId=${accountId}`)
+        .get('/entities')
+        .set({ 'X-Account-Id': '1' })
         .expect(200);
 
       expect(response.body).toEqual(mockEntities);
-    });
-
-    it('should return 400 when no accountId provided', async () => {
-      await request(app.getHttpServer())
-        .get('/entities')
-        .expect(400);
+      expect(mockProfileRepository.getEntitiesForAccount).toHaveBeenCalled();
     });
   });
 
@@ -94,17 +101,17 @@ describe('EntityController (Integration)', () => {
   describe('POST /entities', () => {
     it('should create a new entity', async () => {
       const createData = {
-        accountId: '507f1f77bcf86cd799439011',
         name: 'New Entity',
       };
 
-      const createdEntity = { _id: '507f1f77bcf86cd799439014', ...createData };
+      const createdEntity = { _id: '507f1f77bcf86cd799439014', accountId: 1, ...createData };
 
       mockProfileRepository.accountExists.mockResolvedValue(true);
       mockProfileRepository.createEntity.mockResolvedValue(createdEntity);
 
       const response = await request(app.getHttpServer())
         .post('/entities')
+        .set({ 'X-Account-Id': '1' })
         .send(createData)
         .expect(201);
 
@@ -113,7 +120,6 @@ describe('EntityController (Integration)', () => {
 
     it('should return 400 when account does not exist', async () => {
       const createData = {
-        accountId: 'nonexistent',
         name: 'New Entity',
       };
 
@@ -121,6 +127,7 @@ describe('EntityController (Integration)', () => {
 
       await request(app.getHttpServer())
         .post('/entities')
+        .set({ 'X-Account-Id': '999' })
         .send(createData)
         .expect(400);
     });
