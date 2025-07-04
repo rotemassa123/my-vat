@@ -1,15 +1,15 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../hooks/auth/useAuth';
-import { useBulkInvoiceLoader } from '../hooks/useBulkInvoiceLoader';
+import { useInvoiceLoader } from '../hooks/useInvoiceLoader';
 
 export default function ProtectedRoute() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const {
-    isLoading: invoicesLoading,
-    totalLoaded
-  } = useBulkInvoiceLoader();
+  
+  // Kick-off invoice loading as soon as the user is authenticated.
+  // We don't block the UI here; the hook will populate the cache in the background.
+  useInvoiceLoader({ autoLoad: true });
 
   // Show loading spinner while checking authentication
   if (authLoading) {
@@ -20,13 +20,10 @@ export default function ProtectedRoute() {
           alignItems: 'center',
           justifyContent: 'center',
           minHeight: '100vh',
-          backgroundColor: '#f3faff'
+          backgroundColor: '#f3faff',
         }}
       >
-        <CircularProgress 
-          size={48} 
-          sx={{ color: '#0131ff' }}
-        />
+        <CircularProgress size={48} sx={{ color: '#0131ff' }} />
       </Box>
     );
   }
@@ -36,56 +33,6 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  // Show loading spinner ONLY while actively loading invoices
-  if (invoicesLoading) {
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          background: 'linear-gradient(135deg, #f3faff 0%, #e8f4fd 100%)',
-          gap: 3
-        }}
-      >
-        <CircularProgress 
-          size={60} 
-          thickness={4}
-          sx={{ 
-            color: '#0131ff',
-            '& .MuiCircularProgress-circle': {
-              strokeLinecap: 'round',
-            }
-          }}
-        />
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography 
-            variant="h6" 
-            sx={{ 
-              color: '#333', 
-              fontWeight: 500,
-              mb: 1
-            }}
-          >
-            Loading your invoices...
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              color: '#666',
-              fontSize: '14px'
-            }}
-          >
-            {totalLoaded > 0 ? `${totalLoaded.toLocaleString()} loaded` : 'This will only take a moment'}
-          </Typography>
-        </Box>
-      </Box>
-    );
-  }
-
-  // Render protected content when authenticated and loading is complete
-  // (Even if totalLoaded is 0 - that's a valid state!)
+  // Render protected content when authenticated
   return <Outlet />;
 } 

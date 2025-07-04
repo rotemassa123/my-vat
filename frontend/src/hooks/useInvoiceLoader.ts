@@ -3,19 +3,19 @@ import { InvoiceApiService } from '../lib/invoiceApi';
 import { useInvoiceStore } from '../lib/invoiceStore';
 import type { Invoice } from '../types/api';
 
-interface BulkLoadOptions {
+interface InvoiceLoaderOptions {
   batchSize?: number;
   maxInvoices?: number;
-  autoStart?: boolean;
-  account_id?: number; // Required for combined endpoint
+  autoLoad?: boolean;
+  account_id?: number;
 }
 
-export const useBulkInvoiceLoader = ({
+export const useInvoiceLoader = ({
   batchSize = 2000,
   maxInvoices = 10000,
-  autoStart = true,
-  account_id = 1 // Default account_id, should be passed from context/auth
-}: BulkLoadOptions = {}) => {
+  autoLoad = true,
+  account_id = 1
+}: InvoiceLoaderOptions = {}) => {
   const {
     isLoading,
     loadingProgress,
@@ -23,21 +23,36 @@ export const useBulkInvoiceLoader = ({
     setLoading,
     setLoadingProgress,
     setError,
-    addInvoices,
-    getTotalCount
+    setInvoices,
+    getTotalCount,
+    isCacheValid,
+    invalidateCache
   } = useInvoiceStore();
   
   const loadingRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const hasInitialized = useRef(false); // Track if we've already tried to load
+  const hasCheckedCache = useRef(false);
 
-  const loadInvoices = useCallback(async () => {
+  const loadInvoices = useCallback(async (forceRefresh = false) => {
     if (loadingRef.current) return;
+    
+    // Check cache validity first (unless forced refresh)
+    if (!forceRefresh && isCacheValid()) {
+      console.log('📦 Using cached invoice data');
+      return;
+    }
+    
+    console.log('🔄 Loading fresh invoice data from API');
     
     loadingRef.current = true;
     setLoading(true);
     setError(null);
     setLoadingProgress(0);
+    
+    // Clear existing data if doing a full refresh
+    if (forceRefresh) {
+      setInvoices([]);
+    }
     
     // Create abort controller for cancellation
     abortControllerRef.current = new AbortController();
@@ -81,12 +96,6 @@ export const useBulkInvoiceLoader = ({
         const progress = Math.round((totalLoaded / estimatedTotal) * 100);
         setLoadingProgress(progress);
         
-        // Add to store in batches for better performance
-        if (allInvoices.length >= batchSize || batchInvoices.length < currentBatchSize) {
-          addInvoices([...allInvoices]);
-          allInvoices.length = 0; // Clear the array
-        }
-        
         // Check if we've loaded enough or if there are no more items
         if (batchInvoices.length < currentBatchSize || totalLoaded >= maxInvoices) {
           hasMore = false;
@@ -98,9 +107,12 @@ export const useBulkInvoiceLoader = ({
         await new Promise(resolve => setTimeout(resolve, 10));
       }
       
-      // Add any remaining invoices
+      // Set all invoices at once (this will update cache timestamp)
       if (allInvoices.length > 0) {
-        addInvoices(allInvoices);
+        setInvoices(allInvoices);
+      } else {
+        // Even if no invoices, update the cache timestamp
+        setInvoices([]);
       }
       
       setLoadingProgress(100);
@@ -120,7 +132,7 @@ export const useBulkInvoiceLoader = ({
       loadingRef.current = false;
       abortControllerRef.current = null;
     }
-  }, [batchSize, maxInvoices, setLoading, setLoadingProgress, setError, addInvoices, account_id]);
+  }, [batchSize, maxInvoices, setLoading, setLoadingProgress, setError, setInvoices, isCacheValid, account_id]);
 
   const cancelLoading = useCallback(() => {
     if (abortControllerRef.current) {
@@ -128,21 +140,28 @@ export const useBulkInvoiceLoader = ({
     }
   }, []);
 
-  const resetAndReload = useCallback(() => {
-    cancelLoading();
-    // Clear the store and reload
-    useInvoiceStore.getState().setInvoices([]);
-    hasInitialized.current = false; // Reset initialization flag
-    loadInvoices();
-  }, [cancelLoading, loadInvoices]);
+  const refreshInvoices = useCallback(() => {
+    loadInvoices(true); // Force refresh
+  }, [loadInvoices]);
 
-  // Auto-start loading ONCE when the hook is first mounted
+  const clearAndReload = useCallback(() => {
+    cancelLoading();
+    invalidateCache();
+    hasCheckedCache.current = false;
+    loadInvoices(true);
+  }, [cancelLoading, invalidateCache, loadInvoices]);
+
+  // Auto-load logic: Check cache and load if needed (run once)
   useEffect(() => {
-    if (autoStart && !hasInitialized.current && getTotalCount() === 0 && !isLoading) {
-      hasInitialized.current = true; // Mark as initialized
-      loadInvoices();
+    if (autoLoad && !hasCheckedCache.current) {
+      hasCheckedCache.current = true;
+      
+      // Load invoices if cache is invalid or empty
+      if (!isCacheValid() || getTotalCount() === 0) {
+        loadInvoices();
+      }
     }
-  }, [autoStart]); // Only depend on autoStart - run once
+  }, [autoLoad, isCacheValid, getTotalCount, loadInvoices]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -152,12 +171,21 @@ export const useBulkInvoiceLoader = ({
   }, [cancelLoading]);
 
   return {
+    // Loading state
     isLoading,
     loadingProgress,
     error,
-    totalLoaded: getTotalCount(),
+    
+    // Data info
+    totalCount: getTotalCount(),
+    hasData: getTotalCount() > 0,
+    isCacheValid: isCacheValid(),
+    isReady: !isLoading && (isCacheValid() || hasCheckedCache.current),
+    
+    // Actions
     loadInvoices,
+    refreshInvoices,
+    clearAndReload,
     cancelLoading,
-    resetAndReload
   };
 }; 

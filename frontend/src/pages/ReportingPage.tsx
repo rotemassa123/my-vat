@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -14,9 +14,7 @@ import {
   Tooltip,
   Snackbar,
   Popover,
-  Divider,
   Badge,
-  Checkbox,
   Stack,
 } from '@mui/material';
 import {
@@ -35,8 +33,9 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { format } from 'date-fns';
 import { useInvoiceStore } from '../lib/invoiceStore';
+import { useInvoiceLoader } from '../hooks/useInvoiceLoader';
 import { InvoiceApiService } from '../lib/invoiceApi';
-import type { InvoiceQueryParams, InvoiceStatus } from '../types/api';
+import type { InvoiceStatus } from '../types/api';
 import styles from './ReportingPage.module.scss';
 
 const ROW_HEIGHT = 60;
@@ -125,16 +124,28 @@ const ReportingPage: React.FC = () => {
   const [exportSuccess, setExportSuccess] = useState(false);
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLButtonElement | null>(null);
 
+  // Load invoices with cache awareness
+  const {
+    isLoading: invoicesLoading,
+    loadingProgress,
+    error: loadingError,
+    refreshInvoices
+  } = useInvoiceLoader();
+
   // Get data from Zustand store (all invoices are already in memory)
   const {
     filteredInvoices,
-    isLoading,
-    error,
+    isLoading: storeLoading,
+    error: storeError,
     setFilters: setStoreFilters,
     setSearchTerm,
     setSorting,
     getTotalCount
   } = useInvoiceStore();
+
+  // Combine loading states
+  const isLoading = invoicesLoading || storeLoading;
+  const error = loadingError || storeError;
 
   // Apply filters to store when local filters change
   useEffect(() => {
@@ -463,7 +474,7 @@ const ReportingPage: React.FC = () => {
               </Button>
             </span>
           </Tooltip>
-          <IconButton onClick={() => window.location.reload()}>
+          <IconButton onClick={refreshInvoices} disabled={isLoading}>
             <RefreshIcon />
           </IconButton>
         </Box>
@@ -931,7 +942,14 @@ const ReportingPage: React.FC = () => {
         {isLoading && allInvoices.length === 0 && (
           <Box className={styles.loadingContainer}>
             <CircularProgress />
-            <Typography>Loading invoice claims...</Typography>
+            <Typography>
+              {invoicesLoading ? 'Loading invoice claims...' : 'Processing invoices...'}
+            </Typography>
+            {invoicesLoading && loadingProgress > 0 && (
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                {loadingProgress}% complete
+              </Typography>
+            )}
           </Box>
         )}
 
@@ -972,25 +990,25 @@ const ReportingPage: React.FC = () => {
                     }}
                   >
                     <Box className={styles.cell}>
-                      {invoice.file_name || '-'}
+                      {invoice.name || '-'}
                     </Box>
                     <Box className={styles.cell}>
-                      {renderStatusChip(invoice.status, invoice.reason)}
+                      {renderStatusChip(invoice.status, invoice.reason || undefined)}
                     </Box>
                     <Box className={styles.cell}>
-                      {invoice.vat_scheme || '-'}
+                      {invoice.vat_rate || '-'}
                     </Box>
                     <Box className={styles.cell}>
-                      {formatDate(invoice.submitted_date)}
+                      {formatDate(invoice.status_updated_at)}
                     </Box>
                     <Box className={styles.cell}>
                       {invoice.currency || '-'}
                     </Box>
                     <Box className={styles.cell}>
-                      {formatCurrency(invoice.claim_amount, invoice.currency)}
+                      {formatCurrency(invoice.claim_amount?.toString() || null, invoice.currency)}
                     </Box>
                     <Box className={styles.cell}>
-                      {formatCurrency(invoice.refund_amount, invoice.currency)}
+                      {formatCurrency(invoice.claim_amount?.toString() || null, invoice.currency)}
                     </Box>
                   </Box>
                 );
