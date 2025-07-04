@@ -9,7 +9,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
-import { Response } from "express";
+import { Request, Response } from "express";
 import { JwtService } from "@nestjs/jwt";
 import { SignInRequest } from "src/Features/Auth/Requests/auth.requests";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
@@ -22,7 +22,7 @@ interface UserResponse {
   _id: string;
   fullName: string;
   userType: UserType;
-  accountId: string;
+  accountId: number;
 }
 
 @ApiTags("auth")
@@ -60,7 +60,7 @@ export class AuthenticationController {
 
     // Create JWT payload (without password)
     const payload = {
-      _id: user._id,
+      userId: user._id,
       fullName: user.fullName,
       userType: user.userType,
       accountId: user.accountId,
@@ -91,13 +91,12 @@ export class AuthenticationController {
   async getGuardProtected(
     @Req() request: Request
   ): Promise<UserResponse> {
-    const jwt = request["jwt"];
-
+    const user = (request as any).user;
     return {
-      fullName: jwt.fullName,
-      _id: jwt._id,
-      userType: jwt.userType,
-      accountId: jwt.accountId,
+      fullName: user.fullName,
+      _id: user.userId,
+      userType: user.userType,
+      accountId: user.accountId,
     };
   }
 

@@ -25,6 +25,7 @@ export class AuthenticationGuard implements CanActivate {
             }
             
             request['jwt'] = jwt;
+            request.user = jwt;
 
         } catch (error) {
             throw new UnauthorizedException(error.message);

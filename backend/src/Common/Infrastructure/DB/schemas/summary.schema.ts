@@ -1,5 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import { AccountBoundPlugin } from '../../../../Common/plugins/account-bound.plugin';
+import { TenantScopePlugin } from '../../../../Common/plugins/tenant-scope.plugin';
 
 export type SummaryDocument = HydratedDocument<Summary>;
 
@@ -81,8 +83,5 @@ export class Summary {
 
 export const SummarySchema = SchemaFactory.createForClass(Summary);
 
-// Additional indexes that match the current DB structure
-SummarySchema.index({ account_id: 1 });
-SummarySchema.index({ file_id: 1 }, { unique: true });
-SummarySchema.index({ is_invoice: 1 });
-SummarySchema.index({ created_at: 1 }); 
+SummarySchema.plugin(AccountBoundPlugin);
+SummarySchema.plugin(TenantScopePlugin); 

@@ -69,7 +69,7 @@ export class UserController {
       }
 
       // Validate that the account exists
-      const accountExists = await this.userService.accountExists(createUserRequest.accountId);
+      const accountExists = await this.userService.accountExists(createUserRequest.accountId.toString());
       if (!accountExists) {
         throw new BadRequestException(`Account with ID ${createUserRequest.accountId} does not exist`);
       }

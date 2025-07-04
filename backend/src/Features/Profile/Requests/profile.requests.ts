@@ -1,6 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsDateString } from "class-validator";
+import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsDateString, IsNumber } from "class-validator";
 import { UserType } from "src/Common/consts/userType";
+import { Type } from "class-transformer";
 
 // Account Requests
 export class CreateAccountRequest {
@@ -145,9 +146,10 @@ export class UpdateAccountRequest {
 
 // Entity Requests
 export class CreateEntityRequest {
-  @ApiProperty({ example: '686172f49a2e1d6393245694' })
+  @ApiProperty({ example: '686172f49a2e1d6393245694', required: false })
+  @IsOptional()
   @IsString()
-  accountId: string;
+  accountId?: number;
 
   @ApiProperty({ example: 'Test Entity LLC' })
   @IsString()
@@ -327,13 +329,15 @@ export class CreateUserRequest {
   @IsEnum(UserType)
   userType: UserType;
 
+  @Type(() => Number)
+  @IsNumber()
   @ApiProperty({ 
     example: '686174a98307686bff647c0c',
     default: '686174a98307686bff647c0c',
     description: 'ID of the account this user belongs to'
   })
   @IsString()
-  accountId: string;
+  accountId: number;
 
   @ApiProperty({ 
     required: false, 

@@ -37,7 +37,7 @@ export interface CreateAccountResponse {
 // Entity Responses
 export interface EntityResponse {
   _id: string;
-  accountId: string;
+  accountId: number;
   name: string;
   entity_type?: string;
   registration_number?: string;
@@ -74,7 +74,7 @@ export interface UserResponse {
   fullName: string;
   email: string;
   userType: UserType;
-  accountId: string;
+  accountId: number;
   status: string;
   last_login?: Date;
   profile_image_url?: string;

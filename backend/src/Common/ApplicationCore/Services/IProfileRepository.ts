@@ -86,7 +86,7 @@ export interface UserData {
   email: string;
   hashedPassword: string;
   userType: UserType;
-  accountId: string;
+  accountId: number;
   status: string;
   last_login?: Date;
   profile_image_url?: string;
@@ -100,7 +100,7 @@ export interface CreateUserData {
   email: string;
   hashedPassword: string;
   userType: UserType;
-  accountId: string;
+  accountId: number;
   phone?: string;
   profile_image_url?: string;
 }
@@ -118,7 +118,7 @@ export interface UpdateUserData {
 // ==================== ENTITY TYPES ====================
 export interface EntityData {
   _id?: string;
-  accountId: string;
+  accountId: number;
   name: string;
   entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
   registration_number?: string;
@@ -146,7 +146,7 @@ export interface EntityData {
 }
 
 export interface CreateEntityData {
-  accountId: string;
+  accountId: number;
   name: string;
   entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
   registration_number?: string;
@@ -216,7 +216,7 @@ export abstract class IProfileRepository {
 
   // Entity methods
   abstract findEntityById(entityId: string): Promise<EntityData | null>;
-  abstract findEntitiesByAccountId(accountId: string): Promise<EntityData[]>;
+  abstract getEntitiesForAccount(): Promise<EntityData[]>;
   abstract createEntity(entityData: CreateEntityData): Promise<EntityData>;
   abstract updateEntity(entityId: string, updateData: UpdateEntityData): Promise<boolean>;
   abstract deleteEntity(entityId: string): Promise<boolean>;

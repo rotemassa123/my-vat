@@ -21,7 +21,6 @@ export class SummaryController {
     summary: 'Get summaries with filters', 
     description: 'Retrieve invoice analysis summaries with comprehensive filtering, pagination, and sorting options' 
   })
-  @ApiQuery({ name: 'account_id', required: false, type: Number, description: 'Filter by account ID' })
   @ApiQuery({ name: 'file_id', required: false, type: String, description: 'Filter by file ID' })
   @ApiQuery({ name: 'is_invoice', required: false, type: Boolean, description: 'Filter by invoice classification' })
   @ApiQuery({ name: 'processing_status', required: false, type: String, description: 'Filter by processing status' })

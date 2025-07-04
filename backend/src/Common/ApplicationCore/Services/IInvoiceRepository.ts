@@ -119,7 +119,8 @@ export interface CombinedInvoiceData {
 }
 
 export interface CombinedInvoiceFilters {
-  account_id: number;             // Account ID filter (required)
+  // Account ID is optional – scoping applied automatically
+  account_id?: number;
 }
 
 export interface PaginatedCombinedResult {

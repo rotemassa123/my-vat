@@ -11,6 +11,8 @@ import { ProfileMongoService } from "src/Common/Infrastructure/Services/profile-
 import { IGCSService } from "src/Common/ApplicationCore/Services/IGCSService";
 import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
 import { User, UserSchema } from "./DB/schemas/user.schema";
+import { TenantContextInterceptor } from "../interceptors/tenant-context.interceptor";
+import { APP_INTERCEPTOR } from "@nestjs/core";
 
 @Global()
 @Module({
@@ -30,6 +32,7 @@ import { User, UserSchema } from "./DB/schemas/user.schema";
     ProfileMongoService,
     { provide: IProfileRepository, useExisting: ProfileMongoService },
     { provide: IGCSService, useClass: GCSService },
+    { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },
   ],
   exports: [MongooseModule, JwtModule, IProfileRepository, IGCSService],
 })

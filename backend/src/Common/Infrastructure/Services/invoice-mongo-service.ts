@@ -52,9 +52,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private buildInvoiceQuery(filters: InvoiceFilters): FilterQuery<InvoiceDocument> {
     const query: FilterQuery<InvoiceDocument> = {};
 
-    if (filters.account_id !== undefined) {
-      query.account_id = filters.account_id;
-    }
     if (filters.source_id) {
       query.source_id = filters.source_id;
     }
@@ -156,9 +153,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private buildSummaryQuery(filters: SummaryFilters): FilterQuery<SummaryDocument> {
     const query: FilterQuery<SummaryDocument> = {};
 
-    if (filters.account_id !== undefined) {
-      query.account_id = filters.account_id;
-    }
     if (filters.file_id) {
       query.file_id = filters.file_id;
     }
@@ -255,15 +249,11 @@ export class InvoiceMongoService implements IInvoiceRepository {
     limit = 50, 
     skip = 0
   ): Promise<PaginatedCombinedResult> {
+    // account_id scoping is automatic – suppress unused param warning
+      
     
     // Build aggregation pipeline
     const pipeline: any[] = [
-      // Filter by account_id
-      { 
-        $match: { 
-          account_id: filters.account_id 
-        } 
-      },
       // Convert ObjectId to string for joining
       { 
         $addFields: { 

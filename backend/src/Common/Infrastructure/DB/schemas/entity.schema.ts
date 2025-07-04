@@ -1,5 +1,7 @@
+import { AccountBoundPlugin } from '../../../../Common/plugins/account-bound.plugin';
+import { TenantScopePlugin } from '../../../../Common/plugins/tenant-scope.plugin';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 
 export type EntityDocument = HydratedDocument<Entity>;
 
@@ -21,9 +23,6 @@ export interface EntityVatSettings {
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Entity {
-  @Prop({ type: Types.ObjectId, ref: 'Account', required: true })
-  accountId: Types.ObjectId;
-
   @Prop({ required: true })
   name: string;
 
@@ -55,4 +54,7 @@ export class Entity {
   description?: string;
 }
 
-export const EntitySchema = SchemaFactory.createForClass(Entity); 
+export const EntitySchema = SchemaFactory.createForClass(Entity);
+
+EntitySchema.plugin(AccountBoundPlugin);
+EntitySchema.plugin(TenantScopePlugin); 

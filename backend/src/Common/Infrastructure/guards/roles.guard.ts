@@ -16,8 +16,7 @@ export class RolesGuard implements CanActivate {
         const requiredRoles: UserType[] = this.reflector.get<UserType[]>('roles', context.getHandler()) || [];
         const request = context.switchToHttp().getRequest();
 
-
-        if (!requiredRoles.includes(request.jwt.type)) {
+        if (!requiredRoles.includes(request.user?.userType)) {
             throw new ForbiddenException("You do not have permission to access this resource.");
         }
 

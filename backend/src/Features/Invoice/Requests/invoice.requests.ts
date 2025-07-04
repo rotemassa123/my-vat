@@ -222,11 +222,11 @@ export class SummaryPaginationRequest {
 // ==================== COMBINED REQUESTS ====================
 
 export class CombinedInvoiceFilterRequest {
-  // Required filter
-  @ApiProperty({ required: true, description: 'Account ID to filter invoices', example: 1 })
+  @ApiProperty({ required: false, description: 'Account ID (ignored, scoping automatic)', example: 1 })
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
-  account_id: number;
+  account_id?: number;
 
   // Pagination properties
   @ApiProperty({ required: false, description: 'Number of items to return', default: 50 })

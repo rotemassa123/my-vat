@@ -6,15 +6,15 @@ import {
   Param,
   Post,
   Put,
-  Query,
-  NotFoundException,
   BadRequestException,
+  NotFoundException,
 } from "@nestjs/common";
-import { ApiTags, ApiQuery, ApiParam } from "@nestjs/swagger";
+import { ApiTags, ApiParam } from "@nestjs/swagger";
 import { CreateEntityRequest, UpdateEntityRequest } from "../Requests/profile.requests";
 import { EntityResponse, CreateEntityResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
+import { CurrentAccountId } from "../../../common/decorators/current-account-id.decorator";
 
 @ApiTags("entities")
 @Controller("entities")
@@ -22,15 +22,10 @@ export class EntityController {
   constructor(private entityService: IProfileRepository) {}
 
   @Get()
-  @ApiQuery({ name: "accountId", required: false, type: String })
-  async getEntities(@Query("accountId") accountId?: string): Promise<EntityResponse[]> {
+  async getEntities(@CurrentAccountId() accountId: number): Promise<EntityResponse[]> {
     try {
-      if (accountId) {
-        const entities = await this.entityService.findEntitiesByAccountId(accountId);
-        return entities as EntityResponse[];
-      }
-
-      throw new BadRequestException("'accountId' query parameter is required");
+      const entities = await this.entityService.getEntitiesForAccount();
+      return entities as EntityResponse[];
     } catch (error) {
       logger.error("Error fetching entities", EntityController.name, { error: error.message, accountId });
       throw error;
@@ -53,15 +48,18 @@ export class EntityController {
   }
 
   @Post()
-  async createEntity(@Body() createEntityRequest: CreateEntityRequest): Promise<CreateEntityResponse> {
+  async createEntity(
+    @CurrentAccountId() accountId: number,
+    @Body() createEntityRequest: Omit<CreateEntityRequest, 'accountId'>,
+  ): Promise<CreateEntityResponse> {
     try {
-      // Validate that the account exists
-      const accountExists = await this.entityService.accountExists(createEntityRequest.accountId);
+      // Validate that the account exists (server-injected)
+      const accountExists = await this.entityService.accountExists(accountId.toString());
       if (!accountExists) {
-        throw new BadRequestException(`Account with ID ${createEntityRequest.accountId} does not exist`);
+        throw new BadRequestException(`Account with ID ${accountId} does not exist`);
       }
 
-      const entity = await this.entityService.createEntity(createEntityRequest);
+      const entity = await this.entityService.createEntity({ ...createEntityRequest, accountId } as any);
       if (!entity._id) {
         throw new BadRequestException('Failed to create entity - no ID returned');
       }
@@ -69,7 +67,7 @@ export class EntityController {
     } catch (error) {
       logger.error("Error creating entity", EntityController.name, { 
         error: error.message, 
-        accountId: createEntityRequest.accountId,
+        accountId: accountId,
         name: createEntityRequest.name
       });
       throw error;
@@ -123,4 +121,4 @@ export class EntityController {
       throw error;
     }
   }
-} 
+}

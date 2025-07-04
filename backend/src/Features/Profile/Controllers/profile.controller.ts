@@ -30,15 +30,15 @@ export class ProfileController {
       }
 
       // Get account data using the user's accountId
-      const account = await this.profileService.findAccountById(user.accountId);
+      const account = await this.profileService.findAccountById(user.accountId.toString());
       if (!account) {
         throw new NotFoundException(`Account with ID ${user.accountId} not found`);
       }
 
-      // Get all entities for the account
-      const entities = await this.profileService.findEntitiesByAccountId(user.accountId);
+      // Get all entities for the account (tenant filter applied automatically)
+      const entities = await this.profileService.getEntitiesForAccount();
 
-      // Combine all data
+      // Combine all data into a single response
       const combinedProfile: CombinedProfileResponse = {
         user: {
           _id: user._id!,
@@ -88,19 +88,19 @@ export class ProfileController {
         })),
       };
 
-      logger.info("Combined profile data retrieved successfully", ProfileController.name, { 
-        userId, 
-        accountId: user.accountId, 
-        entitiesCount: entities.length 
+      logger.info("Combined profile data retrieved successfully", ProfileController.name, {
+        userId,
+        accountId: user.accountId,
+        entitiesCount: entities.length,
       });
 
       return combinedProfile;
     } catch (error) {
-      logger.error("Error fetching combined profile", ProfileController.name, { 
-        error: error.message, 
-        userId 
+      logger.error("Error fetching combined profile", ProfileController.name, {
+        error: error.message,
+        userId,
       });
       throw error;
     }
   }
-} 
+}

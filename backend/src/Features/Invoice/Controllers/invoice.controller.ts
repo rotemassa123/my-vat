@@ -19,15 +19,13 @@ export class InvoiceController {
   @Get("combined")
   @ApiOperation({ 
     summary: 'Get combined invoices with summary data', 
-    description: 'Retrieve invoices joined with their summary data filtered by account ID only.' 
+    description: 'Retrieve invoices joined with their summary data.' 
   })
-  @ApiQuery({ name: 'account_id', required: true, type: Number, description: 'Account ID to filter invoices' })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-5000)', example: 50 })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip for pagination', example: 0 })
   async getCombinedInvoices(@Query() request: CombinedInvoiceFilterRequest): Promise<CombinedInvoiceListResponse> {
     try {
       logger.info("Fetching combined invoices with summary data", InvoiceController.name, { 
-        accountId: request.account_id,
         limit: request.limit,
         skip: request.skip
       });
@@ -95,8 +93,7 @@ export class InvoiceController {
 
     } catch (error) {
       logger.error("Error fetching combined invoices", InvoiceController.name, { 
-        error: error.message, 
-        accountId: request.account_id
+        error: error.message
       });
       throw error;
     }
@@ -107,7 +104,6 @@ export class InvoiceController {
     summary: 'Get invoices with filters', 
     description: 'Retrieve invoices with comprehensive filtering, pagination, and sorting options' 
   })
-  @ApiQuery({ name: 'account_id', required: false, type: Number, description: 'Filter by account ID' })
   @ApiQuery({ name: 'source_id', required: false, type: String, description: 'Filter by source ID' })
   @ApiQuery({ name: 'source', required: false, type: String, description: 'Filter by source type' })
   @ApiQuery({ name: 'status', required: false, type: String, description: 'Filter by processing status' })

@@ -1,5 +1,7 @@
+import { AccountBoundPlugin } from '../../../../Common/plugins/account-bound.plugin';
+import { TenantScopePlugin } from '../../../../Common/plugins/tenant-scope.plugin';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Types } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { UserType } from 'src/Common/consts/userType';
 
 export type UserDocument = HydratedDocument<User>;
@@ -18,9 +20,6 @@ export class User {
   @Prop({ required: true, enum: UserType })
   userType: UserType;
 
-  @Prop({ type: Types.ObjectId, ref: 'Account', required: true })
-  accountId: Types.ObjectId;
-
   @Prop({ enum: ['active', 'inactive', 'pending'], default: 'pending' })
   status: string;
 
@@ -34,4 +33,7 @@ export class User {
   phone?: string;
 }
 
-export const UserSchema = SchemaFactory.createForClass(User); 
+export const UserSchema = SchemaFactory.createForClass(User);
+
+UserSchema.plugin(AccountBoundPlugin);
+UserSchema.plugin(TenantScopePlugin); 

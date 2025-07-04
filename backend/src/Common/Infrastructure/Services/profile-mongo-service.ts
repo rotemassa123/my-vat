@@ -98,7 +98,7 @@ export class ProfileMongoService implements IProfileRepository {
       email: doc.email,
       hashedPassword: doc.hashedPassword,
       userType: doc.userType,
-      accountId: doc.accountId.toString(),
+      accountId: doc.get('account_id') as number,
       status: doc.status,
       last_login: doc.last_login,
       profile_image_url: doc.profile_image_url,
@@ -152,7 +152,7 @@ export class ProfileMongoService implements IProfileRepository {
   private mapDocumentToEntityData(doc: EntityDocument): EntityData {
     return {
       _id: doc._id.toString(),
-      accountId: doc.accountId.toString(),
+      accountId: doc.get('account_id') as number,
       name: doc.name,
       entity_type: doc.entity_type as 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship',
       registration_number: doc.registration_number,
@@ -173,8 +173,9 @@ export class ProfileMongoService implements IProfileRepository {
     return doc ? this.mapDocumentToEntityData(doc) : null;
   }
 
-  async findEntitiesByAccountId(accountId: string): Promise<EntityData[]> {
-    const docs = await this.entityModel.find({ accountId }).exec();
+  async getEntitiesForAccount(): Promise<EntityData[]> {
+    // account_id scoping handled by TenantScopePlugin
+    const docs = await this.entityModel.find().exec();
     return docs.map(doc => this.mapDocumentToEntityData(doc));
   }
 

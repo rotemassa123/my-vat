@@ -13,7 +13,7 @@ export class UserGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         try {
             const userId = Number(getDesiredFieldFromRequest(request, 'userId'));
-            return request.jwt.sub === userId;
+            return request.user?.userId === userId;
         } catch (error) {
             throw new UnauthorizedException(error.message);
         }
