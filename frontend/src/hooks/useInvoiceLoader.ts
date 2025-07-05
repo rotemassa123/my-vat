@@ -7,14 +7,14 @@ interface InvoiceLoaderOptions {
   batchSize?: number;
   maxInvoices?: number;
   autoLoad?: boolean;
-  account_id?: number;
+  account_id?: string;
 }
 
 export const useInvoiceLoader = ({
   batchSize = 2000,
   maxInvoices = 10000,
   autoLoad = true,
-  account_id = 1
+  account_id = ''
 }: InvoiceLoaderOptions = {}) => {
   const {
     isLoading,

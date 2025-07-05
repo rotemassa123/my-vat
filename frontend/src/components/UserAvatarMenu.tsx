@@ -26,7 +26,6 @@ export default function UserAvatarMenu() {
   const { user } = useProfileStore();
   const { logout } = useLogout();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const menuRef = useRef<HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {

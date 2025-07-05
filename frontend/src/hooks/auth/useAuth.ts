@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 import { useProfileStore } from '../../store/profileStore';
@@ -16,12 +16,12 @@ export const useAuth = () => {
   const { loading: profileLoading, error: profileError } = useProfileStore();
 
   // Use mutation instead of query to avoid reactive re-enabling
-  const { mutate: verifyAuth, isPending: isVerifying, error: verifyError } = useMutation<AuthResponse, Error>({
+  const { mutate: verifyAuth, isPending: isVerifying } = useMutation<AuthResponse, Error>({
     mutationFn: authApi.me,
-    onSuccess: (authData) => {
-      loginStore(); // Cookie-based auth, no token needed
+    onSuccess: () => {
+      loginStore();
     },
-    onError: (error) => {
+    onError: () => {
       logoutStore();
     },
   });

@@ -137,7 +137,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
       success: doc.success,
       error_message: doc.error_message,
       created_at: doc.created_at,
-      analysis_result: doc.analysis_result,
       extracted_data: doc.extracted_data,
       confidence_score: doc.confidence_score,
       processing_status: doc.processing_status,

@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Figma-generated assets (these would be served from the MCP server in actual usage)
 const imgGroup = "data:image/svg+xml,%3Csvg viewBox='0 0 125 70' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='0' y='40' font-family='Poppins' font-weight='700' font-size='48' fill='%23004DFF'%3EMY%3C/text%3E%3C/svg%3E";
 const imgGroup1 = "data:image/svg+xml,%3Csvg viewBox='0 0 69 27' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='0' y='20' font-family='Poppins' font-weight='400' font-size='18' fill='%23333'%3EVAT%3C/text%3E%3C/svg%3E";
