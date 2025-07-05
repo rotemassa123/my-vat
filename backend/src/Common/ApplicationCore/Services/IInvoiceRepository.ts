@@ -1,7 +1,7 @@
 // ==================== INVOICE TYPES ====================
 export interface InvoiceData {
   _id?: string;
-  account_id: number;
+  account_id: string;
   name: string;
   source_id: string;
   size: number;
@@ -18,7 +18,7 @@ export interface InvoiceData {
 }
 
 export interface InvoiceFilters {
-  account_id?: number;
+  account_id?: string;
   source_id?: string;
   source?: string;
   status?: string;
@@ -38,7 +38,7 @@ import { SummaryContent } from "../../Infrastructure/DB/schemas/summary.schema";
 
 export interface SummaryData {
   _id?: string;
-  account_id: number;
+  account_id: string;
   file_id: string;
   file_name: string;
   is_invoice: boolean;
@@ -60,7 +60,7 @@ export interface SummaryData {
 }
 
 export interface SummaryFilters {
-  account_id?: number;
+  account_id?: string;
   file_id?: string;
   is_invoice?: boolean;
   processing_status?: string;
@@ -81,7 +81,7 @@ export interface SummaryFilters {
 export interface CombinedInvoiceData {
   // Core invoice fields
   _id: string;
-  account_id: number;
+  account_id: string;
   name: string;
   source_id: string;
   size: number;
@@ -120,7 +120,7 @@ export interface CombinedInvoiceData {
 
 export interface CombinedInvoiceFilters {
   // Account ID is optional – scoping applied automatically
-  account_id?: number;
+  account_id?: string;
 }
 
 export interface PaginatedCombinedResult {

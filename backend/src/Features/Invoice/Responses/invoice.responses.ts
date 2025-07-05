@@ -4,11 +4,11 @@ import { SummaryContent } from "../../../Common/Infrastructure/DB/schemas/summar
 // ==================== INVOICE RESPONSES ====================
 
 export class InvoiceResponse {
-  @ApiProperty({ description: 'Unique invoice ID' })
+  @ApiProperty({ description: 'Unique invoice ID', example: '635f8e5d1e2e3f2c9f8b4a5d' })
   _id: string;
 
-  @ApiProperty({ description: 'Account ID that owns this invoice' })
-  account_id: number;
+  @ApiProperty({ description: 'Account ID that owns this invoice', example: '635f8e5d1e2e3f2c9f8b4a5e' })
+  account_id: string;
 
   @ApiProperty({ description: 'Original file name' })
   name: string;
@@ -66,11 +66,11 @@ export class InvoiceListResponse {
 // ==================== SUMMARY RESPONSES ====================
 
 export class SummaryResponse {
-  @ApiProperty({ description: 'Unique summary ID' })
+  @ApiProperty({ description: 'Unique summary ID', example: '635f8e5d1e2e3f2c9f8b4a5f' })
   _id: string;
 
-  @ApiProperty({ description: 'Account ID that owns this summary' })
-  account_id: number;
+  @ApiProperty({ description: 'Account ID that owns this summary', example: '635f8e5d1e2e3f2c9f8b4a5e' })
+  account_id: string;
 
   @ApiProperty({ description: 'Reference to the original file ID' })
   file_id: string;
@@ -142,11 +142,11 @@ export class SummaryListResponse {
 
 export class CombinedInvoiceResponse {
   // Core invoice fields
-  @ApiProperty({ description: 'Unique invoice ID' })
+  @ApiProperty({ description: 'Unique invoice ID', example: '635f8e5d1e2e3f2c9f8b4a5d' })
   _id: string;
 
-  @ApiProperty({ description: 'Account ID that owns this invoice' })
-  account_id: number;
+  @ApiProperty({ description: 'Account ID that owns this invoice', example: '635f8e5d1e2e3f2c9f8b4a5e' })
+  account_id: string;
 
   @ApiProperty({ description: 'Original file name' })
   name: string;

@@ -30,7 +30,7 @@ export class ProfileController {
       }
 
       // Get account data using the user's accountId
-      const account = await this.profileService.findAccountById(user.accountId.toString());
+      const account = await this.profileService.findAccountById(user.accountId);
       if (!account) {
         throw new NotFoundException(`Account with ID ${user.accountId} not found`);
       }

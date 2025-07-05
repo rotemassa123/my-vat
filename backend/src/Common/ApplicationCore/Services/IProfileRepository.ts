@@ -2,7 +2,7 @@ import { UserType } from "src/Common/consts/userType";
 
 // ==================== ACCOUNT TYPES ====================
 export interface AccountData {
-  _id?: string;
+  _id: string;
   email: string;
   account_type: 'individual' | 'business';
   status: 'active' | 'inactive' | 'suspended';
@@ -81,12 +81,12 @@ export interface UpdateAccountData {
 
 // ==================== USER TYPES ====================
 export interface UserData {
-  _id?: string;
+  _id: string;
   fullName: string;
   email: string;
   hashedPassword: string;
   userType: UserType;
-  accountId: number;
+  accountId: string;
   status: string;
   last_login?: Date;
   profile_image_url?: string;
@@ -100,7 +100,7 @@ export interface CreateUserData {
   email: string;
   hashedPassword: string;
   userType: UserType;
-  accountId: number;
+  accountId: string;
   phone?: string;
   profile_image_url?: string;
 }
@@ -117,8 +117,8 @@ export interface UpdateUserData {
 
 // ==================== ENTITY TYPES ====================
 export interface EntityData {
-  _id?: string;
-  accountId: number;
+  _id: string;
+  accountId: string;
   name: string;
   entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
   registration_number?: string;
@@ -146,7 +146,7 @@ export interface EntityData {
 }
 
 export interface CreateEntityData {
-  accountId: number;
+  accountId: string;
   name: string;
   entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
   registration_number?: string;

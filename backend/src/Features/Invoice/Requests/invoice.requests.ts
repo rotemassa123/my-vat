@@ -1,15 +1,15 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsOptional, IsNumber, IsDateString, IsBoolean, Min, Max } from "class-validator";
+import { IsString, IsOptional, IsNumber, IsDateString, IsBoolean, Min, Max, IsMongoId } from "class-validator";
 import { Type, Transform } from "class-transformer";
 
 // ==================== INVOICE FILTER REQUESTS ====================
 
 export class InvoiceFilterRequest {
-  @ApiProperty({ required: false, description: 'Filter by account ID', example: 1 })
+  @ApiProperty({ required: false, description: 'Filter by account ID', example: '635f8e5d1e2e3f2c9f8b4a5d' })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  account_id?: number;
+  @IsString()
+  @IsMongoId()
+  account_id?: string;
 
   @ApiProperty({ required: false, description: 'Filter by source ID (exact match)', example: 'invoice_001' })
   @IsOptional()
@@ -101,11 +101,11 @@ export class InvoicePaginationRequest {
 // ==================== SUMMARY FILTER REQUESTS ====================
 
 export class SummaryFilterRequest {
-  @ApiProperty({ required: false, description: 'Filter by account ID', example: 1 })
+  @ApiProperty({ required: false, description: 'Filter by account ID', example: '635f8e5d1e2e3f2c9f8b4a5d' })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  account_id?: number;
+  @IsString()
+  @IsMongoId()
+  account_id?: string;
 
   @ApiProperty({ required: false, description: 'Filter by file ID (exact match)', example: 'file_12345' })
   @IsOptional()
@@ -222,11 +222,11 @@ export class SummaryPaginationRequest {
 // ==================== COMBINED REQUESTS ====================
 
 export class CombinedInvoiceFilterRequest {
-  @ApiProperty({ required: false, description: 'Account ID (ignored, scoping automatic)', example: 1 })
+  @ApiProperty({ required: false, description: 'Account ID (ignored, scoping automatic)', example: '635f8e5d1e2e3f2c9f8b4a5d' })
   @IsOptional()
-  @Type(() => Number)
-  @IsNumber()
-  account_id?: number;
+  @IsString()
+  @IsMongoId()
+  account_id?: string;
 
   // Pagination properties
   @ApiProperty({ required: false, description: 'Number of items to return', default: 50 })

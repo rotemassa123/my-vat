@@ -1,4 +1,5 @@
 import { Schema } from 'mongoose';
+import mongoose from 'mongoose';
 // No explicit HookNextFunction import to stay compatible across mongoose versions
 
 /**
@@ -19,7 +20,8 @@ export function AccountBoundPlugin(schema: Schema) {
   if (!schema.path('account_id')) {
     schema.add({
       account_id: {
-        type: Number,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Account', // Foreign key relationship
         required: true,
         index: true,
         alias: 'accountId', // allow using "accountId" in code & queries
@@ -28,7 +30,7 @@ export function AccountBoundPlugin(schema: Schema) {
   }
 
   // Static helper: Model.forAccount(id)
-  schema.static('forAccount', function (accountId: number) {
+  schema.static('forAccount', function (accountId: string | mongoose.Types.ObjectId) {
     return this.find({ account_id: accountId });
   });
 

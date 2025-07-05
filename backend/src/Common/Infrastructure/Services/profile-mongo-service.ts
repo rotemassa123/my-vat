@@ -98,7 +98,7 @@ export class ProfileMongoService implements IProfileRepository {
       email: doc.email,
       hashedPassword: doc.hashedPassword,
       userType: doc.userType,
-      accountId: doc.get('account_id') as number,
+      accountId: doc.get('account_id').toString(),
       status: doc.status,
       last_login: doc.last_login,
       profile_image_url: doc.profile_image_url,
@@ -152,7 +152,7 @@ export class ProfileMongoService implements IProfileRepository {
   private mapDocumentToEntityData(doc: EntityDocument): EntityData {
     return {
       _id: doc._id.toString(),
-      accountId: doc.get('account_id') as number,
+      accountId: doc.get('account_id').toString(),
       name: doc.name,
       entity_type: doc.entity_type as 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship',
       registration_number: doc.registration_number,

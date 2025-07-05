@@ -8,6 +8,7 @@ import {
   Put,
   BadRequestException,
   NotFoundException,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import { ApiTags, ApiParam } from "@nestjs/swagger";
 import { CreateEntityRequest, UpdateEntityRequest } from "../Requests/profile.requests";
@@ -19,16 +20,15 @@ import { CurrentAccountId } from "../../../common/decorators/current-account-id.
 @ApiTags("entities")
 @Controller("entities")
 export class EntityController {
-  constructor(private entityService: IProfileRepository) {}
+  constructor(private readonly entityService: IProfileRepository) {}
 
   @Get()
-  async getEntities(@CurrentAccountId() accountId: number): Promise<EntityResponse[]> {
+  async getEntities(@CurrentAccountId() accountId: string): Promise<EntityResponse[]> {
     try {
-      const entities = await this.entityService.getEntitiesForAccount();
-      return entities as EntityResponse[];
+      return await this.entityService.getEntitiesForAccount();
     } catch (error) {
       logger.error("Error fetching entities", EntityController.name, { error: error.message, accountId });
-      throw error;
+      throw new InternalServerErrorException("Failed to fetch entities");
     }
   }
 
@@ -49,28 +49,26 @@ export class EntityController {
 
   @Post()
   async createEntity(
-    @CurrentAccountId() accountId: number,
+    @CurrentAccountId() accountId: string,
     @Body() createEntityRequest: Omit<CreateEntityRequest, 'accountId'>,
   ): Promise<CreateEntityResponse> {
     try {
-      // Validate that the account exists (server-injected)
-      const accountExists = await this.entityService.accountExists(accountId.toString());
+      const accountExists = await this.entityService.accountExists(accountId);
       if (!accountExists) {
         throw new BadRequestException(`Account with ID ${accountId} does not exist`);
       }
-
-      const entity = await this.entityService.createEntity({ ...createEntityRequest, accountId } as any);
-      if (!entity._id) {
-        throw new BadRequestException('Failed to create entity - no ID returned');
-      }
+      const entity = await this.entityService.createEntity({ ...createEntityRequest, accountId });
       return { _id: entity._id };
     } catch (error) {
       logger.error("Error creating entity", EntityController.name, { 
         error: error.message, 
         accountId: accountId,
-        name: createEntityRequest.name
+        request: createEntityRequest 
       });
-      throw error;
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new InternalServerErrorException("Failed to create entity");
     }
   }
 

@@ -1,4 +1,4 @@
-import { Schema, Query, Aggregate } from 'mongoose';
+import { Schema, Query, Aggregate, Types } from 'mongoose';
 import * as httpContext from 'express-http-context';
 
 /**
@@ -16,9 +16,9 @@ export function TenantScopePlugin(schema: Schema) {
   /* -------------------------------------------------------------------------- */
   /* Helpers                                                                    */
   /* -------------------------------------------------------------------------- */
-  const getAccountId = (): number | undefined => {
+  const getAccountId = (): string | undefined => {
     const id = httpContext.get('account_id');
-    return typeof id === 'number' ? id : undefined;
+    return typeof id === 'string' && id ? id : undefined;
   };
 
   /** Apply tenant filter to the current mongoose Query */
@@ -28,7 +28,7 @@ export function TenantScopePlugin(schema: Schema) {
     if (!accountId) return;
     if ((this as any).options?.disableTenantScope) return;
 
-    this.setQuery({ ...this.getQuery(), account_id: accountId });
+    this.setQuery({ ...this.getQuery(), account_id: new Types.ObjectId(accountId) });
   };
 
   /** For aggregation pipelines prepend a $match stage */
@@ -40,7 +40,7 @@ export function TenantScopePlugin(schema: Schema) {
 
     const firstStage = this.pipeline()[0];
     if (!firstStage || !('$match' in firstStage) || !('account_id' in firstStage.$match)) {
-      this.pipeline().unshift({ $match: { account_id: accountId } });
+      this.pipeline().unshift({ $match: { account_id: new Types.ObjectId(accountId) } });
     }
   };
 
@@ -68,7 +68,7 @@ export function TenantScopePlugin(schema: Schema) {
   schema.pre('save', function (next) {
     const accountId = getAccountId();
     if (accountId && !this.get('account_id')) {
-      this.set('account_id', accountId);
+      this.set('account_id', new Types.ObjectId(accountId));
     }
     next();
   });

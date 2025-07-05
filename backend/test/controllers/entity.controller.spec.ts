@@ -44,7 +44,7 @@ describe('EntityController (Integration)', () => {
     app.use(httpContext.middleware);
     // Attach middleware to populate account_id in async context for each request
     app.use((req, _res, next) => {
-      httpContext.set('account_id', 1);
+      httpContext.set('account_id', '635f8e5d1e2e3f2c9f8b4a5e');
       next();
     });
     await app.init();
@@ -61,13 +61,13 @@ describe('EntityController (Integration)', () => {
 
   describe('GET /entities', () => {
     it('should get entities for current account', async () => {
-      const mockEntities = [{ _id: '1', accountId: 1, name: 'Entity One' }];
+      const mockEntities = [{ _id: '1', accountId: '635f8e5d1e2e3f2c9f8b4a5e', name: 'Entity One' }];
 
       mockProfileRepository.getEntitiesForAccount.mockResolvedValue(mockEntities);
 
       const response = await request(app.getHttpServer())
         .get('/entities')
-        .set({ 'X-Account-Id': '1' })
+        .set({ 'X-Account-Id': '635f8e5d1e2e3f2c9f8b4a5e' })
         .expect(200);
 
       expect(response.body).toEqual(mockEntities);
@@ -104,14 +104,14 @@ describe('EntityController (Integration)', () => {
         name: 'New Entity',
       };
 
-      const createdEntity = { _id: '507f1f77bcf86cd799439014', accountId: 1, ...createData };
+      const createdEntity = { _id: '507f1f77bcf86cd799439014', accountId: '635f8e5d1e2e3f2c9f8b4a5e', ...createData };
 
       mockProfileRepository.accountExists.mockResolvedValue(true);
       mockProfileRepository.createEntity.mockResolvedValue(createdEntity);
 
       const response = await request(app.getHttpServer())
         .post('/entities')
-        .set({ 'X-Account-Id': '1' })
+        .set({ 'X-Account-Id': '635f8e5d1e2e3f2c9f8b4a5e' })
         .send(createData)
         .expect(201);
 
@@ -127,7 +127,7 @@ describe('EntityController (Integration)', () => {
 
       await request(app.getHttpServer())
         .post('/entities')
-        .set({ 'X-Account-Id': '999' })
+        .set({ 'X-Account-Id': '635f8e5d1e2e3f2c9f8b4a5f' })
         .send(createData)
         .expect(400);
     });

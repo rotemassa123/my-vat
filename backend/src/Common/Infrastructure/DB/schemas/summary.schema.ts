@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument, Schema as MongooseSchema } from 'mongoose';
+import { HydratedDocument, Schema as MongooseSchema, default as mongoose } from 'mongoose';
 import { AccountBoundPlugin } from '../../../../Common/plugins/account-bound.plugin';
 import { TenantScopePlugin } from '../../../../Common/plugins/tenant-scope.plugin';
 
@@ -22,8 +22,8 @@ export interface SummaryContent {
   collection: 'summaries' 
 })
 export class Summary {
-  @Prop({ required: true, index: true })
-  account_id: number;
+  // This property is defined for TypeScript type safety; the actual schema field is created by AccountBoundPlugin.
+  account_id: mongoose.Types.ObjectId;
 
   @Prop({ required: true, unique: true })
   file_id: string;

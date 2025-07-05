@@ -11,18 +11,18 @@ export class TenantContextInterceptor implements NestInterceptor {
     const request = httpCtx.getRequest<Request & { user?: any }>();
 
     // Default comes from authenticated user
-    let accountId: number | undefined = request.user?.accountId;
+    let accountId: string | undefined = request.user?.accountId;
 
     // Operator can override via header or query param
     if (request.user?.userType === UserType.operator) {
-      const headerOverride = request.headers['x-account-id'];
+      const headerOverride = request.headers['x-account-id'] as string;
       const queryParam = (request.query as any)?.['account_id'] ?? (request.query as any)?.['accountId'];
       const queryOverride = typeof queryParam === 'string' ? queryParam : undefined;
 
       if (headerOverride) {
-        accountId = Number(headerOverride);
+        accountId = headerOverride;
       } else if (queryOverride) {
-        accountId = Number(queryOverride);
+        accountId = queryOverride;
       }
     }
 
