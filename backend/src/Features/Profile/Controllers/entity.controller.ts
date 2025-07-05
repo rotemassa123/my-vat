@@ -11,7 +11,7 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { ApiTags, ApiParam } from "@nestjs/swagger";
-import { CreateEntityRequest, UpdateEntityRequest } from "../Requests/profile.requests";
+import { CreateEntityBodyDto, UpdateEntityRequest } from "../Requests/profile.requests";
 import { EntityResponse, CreateEntityResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
@@ -50,7 +50,7 @@ export class EntityController {
   @Post()
   async createEntity(
     @CurrentAccountId() accountId: string,
-    @Body() createEntityRequest: Omit<CreateEntityRequest, 'accountId'>,
+    @Body() createEntityRequest: CreateEntityBodyDto,
   ): Promise<CreateEntityResponse> {
     try {
       const accountExists = await this.entityService.accountExists(accountId);

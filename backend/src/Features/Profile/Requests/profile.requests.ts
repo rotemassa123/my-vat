@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, OmitType } from "@nestjs/swagger";
 import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsDateString, IsNumber, IsMongoId } from "class-validator";
 import { UserType } from "src/Common/consts/userType";
 import { Type } from "class-transformer";
@@ -230,6 +230,8 @@ export class CreateEntityRequest {
   @IsString()
   description?: string;
 }
+
+export class CreateEntityBodyDto extends OmitType(CreateEntityRequest, ['accountId'] as const) {}
 
 export class UpdateEntityRequest {
   @ApiProperty({ required: false })
