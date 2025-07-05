@@ -22,7 +22,7 @@ interface UserResponse {
   _id: string;
   fullName: string;
   userType: UserType;
-  accountId: number;
+  accountId: string;
 }
 
 @ApiTags("auth")
@@ -39,7 +39,6 @@ export class AuthenticationController {
     @Body() request: SignInRequest,
     @Res({ passthrough: true }) response: Response
   ): Promise<UserResponse> {
-    // Get user from database via user repository
     const user = await this.userService.findUserByEmail(request.email);
 
     if (!user) {

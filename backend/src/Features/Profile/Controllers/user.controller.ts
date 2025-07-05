@@ -145,7 +145,6 @@ export class UserController {
   @ApiParam({ name: "id", type: String })
   async deleteUser(@Param("id") id: string): Promise<{ success: boolean }> {
     try {
-      // Check if user exists
       const existingUser = await this.userService.findUserById(id);
       if (!existingUser) {
         throw new NotFoundException(`User with ID ${id} not found`);

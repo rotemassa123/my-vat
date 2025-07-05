@@ -323,11 +323,12 @@ export class CreateUserRequest {
 
   @ApiProperty({ 
     enum: UserType, 
-    example: 'admin',
-    default: 'admin',
-    description: 'Role/type of the user'
+    example: 1, // 0: operator, 1: admin, 2: member, 3: guest
+    default: 1,
+    description: 'Role/type of the user (0: operator, 1: admin, 2: member, 3: guest)'
   })
   @IsEnum(UserType)
+  @IsNumber()
   userType: UserType;
 
   @ApiProperty({
@@ -376,9 +377,15 @@ export class UpdateUserRequest {
   @IsString()
   password?: string;
 
-  @ApiProperty({ enum: UserType, required: false, example: 'member' })
+  @ApiProperty({ 
+    enum: UserType, 
+    required: false, 
+    example: 2, // 0: operator, 1: admin, 2: member, 3: guest
+    description: 'Role/type of the user (0: operator, 1: admin, 2: member, 3: guest)'
+  })
   @IsOptional()
   @IsEnum(UserType)
+  @IsNumber()
   userType?: UserType;
 
   @ApiProperty({ enum: ['active', 'inactive', 'pending'], required: false, example: 'active' })
