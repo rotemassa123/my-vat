@@ -17,6 +17,7 @@ import { PasswordService } from "src/Common/ApplicationCore/Features/password.se
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { UserType } from "src/Common/consts/userType";
+import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 
 interface UserResponse {
   _id: string;
@@ -34,6 +35,7 @@ export class AuthenticationController {
     private userService: IProfileRepository
   ) {}
 
+  @PublicEndpointGuard()
   @Post("/login")
   async signIn(
     @Body() request: SignInRequest,

@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ApiSettings } from '../api.settings';
 import * as httpContext from 'express-http-context';
 import * as cookieParser from 'cookie-parser';
+import { TenantContextInterceptor } from '../../interceptors/tenant-context.interceptor';
 
 export async function InitializeRestApi(app: INestApplication) {
   app.setGlobalPrefix('api');
@@ -18,6 +19,8 @@ export async function InitializeRestApi(app: INestApplication) {
   app.use(httpContext.middleware);
   app.use(cookieParser());
   
+  app.useGlobalInterceptors(new TenantContextInterceptor());
+
   app.enableCors({ 
     origin: [
       'http://localhost:3000',

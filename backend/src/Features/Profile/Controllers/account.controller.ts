@@ -15,6 +15,7 @@ import { CreateAccountRequest, UpdateAccountRequest } from "../Requests/profile.
 import { AccountResponse, CreateAccountResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
+import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 
 @ApiTags("accounts")
 @Controller("accounts")
@@ -67,6 +68,7 @@ export class AccountController {
     }
   }
 
+  @PublicEndpointGuard()
   @Post()
   async createAccount(@Body() createAccountRequest: CreateAccountRequest): Promise<CreateAccountResponse> {
     try {

@@ -13,6 +13,7 @@ export class MongooseConfigService implements MongooseOptionsFactory {
 
         return {
             uri: connectionString,
+            autoIndex: true,
         };
     }
 

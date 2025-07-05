@@ -13,6 +13,9 @@ import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
 import { User, UserSchema } from "./DB/schemas/user.schema";
 import { TenantContextInterceptor } from "../interceptors/tenant-context.interceptor";
 import { APP_INTERCEPTOR } from "@nestjs/core";
+import { DatabaseInitializationService } from "./Services/database-initialization.service";
+import { Summary, SummarySchema } from "./DB/schemas/summary.schema";
+import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
 
 @Global()
 @Module({
@@ -25,11 +28,14 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
       { name: Account.name, schema: AccountSchema },
       { name: User.name, schema: UserSchema },
       { name: Entity.name, schema: EntitySchema },
+      { name: Invoice.name, schema: InvoiceSchema },
+      { name: Summary.name, schema: SummarySchema },
     ]),
     JwtModule.registerAsync(jwtModuleOptionsFactory),
   ],
   providers: [
     ProfileMongoService,
+    DatabaseInitializationService,
     { provide: IProfileRepository, useExisting: ProfileMongoService },
     { provide: IGCSService, useClass: GCSService },
     { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },

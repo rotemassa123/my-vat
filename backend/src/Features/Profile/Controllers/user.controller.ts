@@ -16,6 +16,7 @@ import { UserResponse, CreateUserResponse } from "../Responses/profile.responses
 import { IProfileRepository, CreateUserData, UpdateUserData } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
+import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 
 @ApiTags("users")
 @Controller("users")
@@ -29,15 +30,16 @@ export class UserController {
   @ApiQuery({ name: "userId", required: false, type: String })
   async getUsers(@Query("userId") userId?: string): Promise<UserResponse[]> {
     try {
-      if (userId) {
-        const user = await this.userService.findUserById(userId);
+      if (!userId) {
+        throw new BadRequestException("'userId' query parameter is required");
+      }
+
+      const user = await this.userService.findUserById(userId);
         if (!user) {
           throw new NotFoundException(`User with ID ${userId} not found`);
         }
-        return [user as UserResponse];
-      }
-
-      throw new BadRequestException("'userId' query parameter is required");
+        
+        return [user as UserResponse];      
     } catch (error) {
       logger.error("Error fetching users", UserController.name, { error: error.message, userId });
       throw error;
@@ -59,6 +61,7 @@ export class UserController {
     }
   }
 
+  @PublicEndpointGuard()
   @Post()
   async createUser(@Body() createUserRequest: CreateUserRequest): Promise<CreateUserResponse> {
     try {
