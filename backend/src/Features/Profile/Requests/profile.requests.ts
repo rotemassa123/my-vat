@@ -1,7 +1,6 @@
 import { ApiProperty, OmitType } from "@nestjs/swagger";
 import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsDateString, IsNumber, IsMongoId } from "class-validator";
 import { UserType } from "src/Common/consts/userType";
-import { Type } from "class-transformer";
 
 // Account Requests
 export class CreateAccountRequest {
