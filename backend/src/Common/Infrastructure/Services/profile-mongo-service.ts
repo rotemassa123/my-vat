@@ -242,5 +242,12 @@ export class ProfileMongoService implements IProfileRepository {
   async entityExists(entityId: string): Promise<boolean> {
     const entity = await this.entityModel.findById(entityId).exec();
     return !!entity;
+    return !!entity;
+  }
+
+  async getUsersForAccount(): Promise<UserData[]> {
+    // account_id scoping handled by AccountScopePlugin (if user has account context)
+    const docs = await this.userModel.find().exec();
+    return docs.map(doc => this.mapDocumentToUserData(doc));
   }
 } 

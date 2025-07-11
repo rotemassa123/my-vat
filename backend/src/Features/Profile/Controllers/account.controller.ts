@@ -7,15 +7,19 @@ import {
   Post,
   Put,
   Query,
+  Req,
+  UseGuards,
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
 import { ApiTags, ApiQuery, ApiParam } from "@nestjs/swagger";
 import { CreateAccountRequest, UpdateAccountRequest } from "../Requests/profile.requests";
-import { AccountResponse, CreateAccountResponse } from "../Responses/profile.responses";
+import { AccountResponse, CreateAccountResponse, ComprehensiveProfileResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
+import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
+import { UserType } from "src/Common/consts/userType";
 
 @ApiTags("accounts")
 @Controller("accounts")
@@ -139,4 +143,4 @@ export class AccountController {
       throw error;
     }
   }
-} 
+}

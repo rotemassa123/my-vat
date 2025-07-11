@@ -217,6 +217,7 @@ export abstract class IProfileRepository {
   abstract deleteUser(userId: string): Promise<boolean>;
   abstract userExists(userId: string): Promise<boolean>;
   abstract userExistsByEmail(email: string): Promise<boolean>;
+  abstract getUsersForAccount(): Promise<UserData[]>;
 
   // Entity methods
   abstract findEntityById(entityId: string): Promise<EntityData | null>;
