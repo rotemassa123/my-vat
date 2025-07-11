@@ -24,17 +24,10 @@ export class ProfileController {
     try {
       const user = request.user;
       const userType = user.userType;
-      
-      const userData = await this.profileService.findUserById(user.userId);
-      if (!userData) {
-        throw new NotFoundException('User not found');
-      }
 
-      // Operator: Just user data
+      // Operator: No additional data to return
       if (userType === UserType.operator) {
-        return {
-          user: userData,
-        };
+        return {};
       }
 
       const account = await this.profileService.findAccountById(user.accountId);
@@ -48,7 +41,6 @@ export class ProfileController {
         const users = await this.profileService.getUsersForAccount();
 
         return {
-          user: userData,
           account: account,
           entities: entities,
           users: users,
@@ -63,7 +55,6 @@ export class ProfileController {
         }
 
         return {
-          user: userData,
           account: account,
           entities: [entity],
         };

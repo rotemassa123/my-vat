@@ -96,7 +96,6 @@ export interface CombinedProfileResponse {
 } 
 // Comprehensive Profile Response based on user type
 export interface ComprehensiveProfileResponse {
-  user: UserResponse;
   account?: AccountResponse;
   entities?: EntityResponse[];
   users?: UserResponse[];
