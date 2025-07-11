@@ -4,6 +4,7 @@ import {Request} from 'express';
 import {ConfigService} from "@nestjs/config";
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/publicEndpoint.decorator';
+import { UserType } from '../../consts/userType';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -37,6 +38,8 @@ export class AuthenticationGuard implements CanActivate {
             if (!jwt) {
                 return false;
             }
+
+            this.validateUserTypeConsistency(jwt);
             
             request['jwt'] = jwt;
             request.user = jwt;
@@ -45,6 +48,40 @@ export class AuthenticationGuard implements CanActivate {
             throw new UnauthorizedException(error.message);
         }
         return true;
+    }
+
+    private validateUserTypeConsistency(jwt: any): void {
+        const { userType, accountId, entityId } = jwt;
+        
+        // Operator: must NOT have accountId or entityId
+        if (userType === UserType.operator) {
+            if (accountId || entityId) {
+                throw new UnauthorizedException('Operator users cannot have account or entity associations');
+            }
+            return;
+        }
+        
+        // Admin: must have accountId, must NOT have entityId
+        if (userType === UserType.admin) {
+            if (!accountId) {
+                throw new UnauthorizedException('Admin users must have an account association');
+            }
+            if (entityId) {
+                throw new UnauthorizedException('Admin users cannot have entity associations');
+            }
+            return;
+        }
+        
+        // Member/Guest: must have both accountId and entityId
+        if (userType === UserType.member || userType === UserType.guest) {
+            if (!accountId || !entityId) {
+                throw new UnauthorizedException('Member/Guest users must have both account and entity associations');
+            }
+            return;
+        }
+        
+        // Unknown user type
+        throw new UnauthorizedException('Invalid user type');
     }
 
     private extractToken(request: Request): string | undefined {

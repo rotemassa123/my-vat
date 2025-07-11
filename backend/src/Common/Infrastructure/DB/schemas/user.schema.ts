@@ -52,7 +52,6 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Static helper methods for queries
 UserSchema.static('forAccount', function (accountId: string | mongoose.Types.ObjectId) {
   return this.find({ account_id: accountId });
 });
