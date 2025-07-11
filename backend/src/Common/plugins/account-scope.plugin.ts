@@ -1,18 +1,29 @@
 import { Schema, Query, Aggregate, Types } from 'mongoose';
 import * as httpContext from 'express-http-context';
+import mongoose from 'mongoose';
 
 /**
- * TenantScopePlugin
- * -----------------
+ * AccountScopePlugin
+ * ------------------
  * Automatically restricts every query / save / aggregate operation to the
- * current tenant (account_id) kept on `express-http-context`.
- *
- * Register this plugin on every tenant-scoped schema **after**
- * `AccountBoundPlugin`. Do NOT apply it to global collections such as
- * `Account`.
+ * current account (account_id) kept on `express-http-context`.
+ * Also adds a required account_id field to the schema.
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function TenantScopePlugin(schema: Schema) {
+export function AccountScopePlugin(schema: Schema) {
+  // Add the account_id field if it doesn't exist
+  if (!schema.path('account_id')) {
+    schema.add({
+      account_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Account',
+        required: true,
+        index: true,
+        alias: 'accountId',
+      },
+    });
+  }
+
   /* -------------------------------------------------------------------------- */
   /* Helpers                                                                    */
   /* -------------------------------------------------------------------------- */
@@ -21,22 +32,22 @@ export function TenantScopePlugin(schema: Schema) {
     return typeof id === 'string' && id ? id : undefined;
   };
 
-  /** Apply tenant filter to the current mongoose Query */
+  /** Apply account filter to the current mongoose Query */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const applyTenantFilter = function <T>(this: Query<T, any>) {
+  const applyAccountFilter = function <T>(this: Query<T, any>) {
     const accountId = getAccountId();
     if (!accountId) return;
-    if ((this as any).options?.disableTenantScope) return;
+    if ((this as any).options?.disableAccountScope) return;
 
     this.setQuery({ ...this.getQuery(), account_id: new Types.ObjectId(accountId) });
   };
 
   /** For aggregation pipelines prepend a $match stage */
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const applyTenantFilterToAggregate = function <T>(this: Aggregate<T[]>) {
+  const applyAccountFilterToAggregate = function <T>(this: Aggregate<T[]>) {
     const accountId = getAccountId();
     if (!accountId) return;
-    if ((this as any).options?.disableTenantScope) return;
+    if ((this as any).options?.disableAccountScope) return;
 
     const firstStage = this.pipeline()[0];
     if (!firstStage || !('$match' in firstStage) || !('account_id' in firstStage.$match)) {
@@ -61,9 +72,9 @@ export function TenantScopePlugin(schema: Schema) {
     'updateOne',
   ];
 
-  queryMethods.forEach((m) => schema.pre(m as any, applyTenantFilter));
+  queryMethods.forEach((m) => schema.pre(m as any, applyAccountFilter));
 
-  schema.pre('aggregate', applyTenantFilterToAggregate);
+  schema.pre('aggregate', applyAccountFilterToAggregate);
 
   schema.pre('save', function (next) {
     const accountId = getAccountId();
@@ -73,7 +84,12 @@ export function TenantScopePlugin(schema: Schema) {
     next();
   });
 
-  schema.static('withoutTenantScope', function () {
-    return (this as any).setOptions({ disableTenantScope: true });
+  // Static helper: Model.forAccount(id)
+  schema.static('forAccount', function (accountId: string | mongoose.Types.ObjectId) {
+    return this.find({ account_id: accountId });
+  });
+
+  schema.static('withoutAccountScope', function () {
+    return (this as any).setOptions({ disableAccountScope: true });
   });
 } 

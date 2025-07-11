@@ -11,7 +11,7 @@ import { ProfileMongoService } from "src/Common/Infrastructure/Services/profile-
 import { IGCSService } from "src/Common/ApplicationCore/Services/IGCSService";
 import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
 import { User, UserSchema } from "./DB/schemas/user.schema";
-import { TenantContextInterceptor } from "../interceptors/tenant-context.interceptor";
+import { TenantContextInterceptor } from "../interceptors/context.interceptor";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { DatabaseInitializationService } from "./Services/database-initialization.service";
 import { Summary, SummarySchema } from "./DB/schemas/summary.schema";

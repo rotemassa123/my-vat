@@ -1,7 +1,7 @@
-import { AccountBoundPlugin } from '../../../../Common/plugins/account-bound.plugin';
-import { TenantScopePlugin } from '../../../../Common/plugins/tenant-scope.plugin';
+import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
+import mongoose from 'mongoose';
 
 export type EntityDocument = HydratedDocument<Entity>;
 
@@ -23,6 +23,9 @@ export interface EntityVatSettings {
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class Entity {
+  // This property is defined for TypeScript type safety; the actual schema field is created by AccountScopePlugin.
+  account_id: mongoose.Types.ObjectId;
+
   @Prop({ required: true })
   name: string;
 
@@ -56,5 +59,4 @@ export class Entity {
 
 export const EntitySchema = SchemaFactory.createForClass(Entity);
 
-EntitySchema.plugin(AccountBoundPlugin);
-EntitySchema.plugin(TenantScopePlugin); 
+EntitySchema.plugin(AccountScopePlugin); 

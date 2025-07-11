@@ -86,7 +86,8 @@ export interface UserData {
   email: string;
   hashedPassword: string;
   userType: UserType;
-  accountId: string;
+  accountId?: string;
+  entityId?: string;
   status: string;
   last_login?: Date;
   profile_image_url?: string;
@@ -100,7 +101,8 @@ export interface CreateUserData {
   email: string;
   hashedPassword: string;
   userType: UserType;
-  accountId: string;
+  accountId?: string;
+  entityId?: string;
   phone?: string;
   profile_image_url?: string;
 }
@@ -110,6 +112,8 @@ export interface UpdateUserData {
   email?: string;
   hashedPassword?: string;
   userType?: UserType;
+  accountId?: string;
+  entityId?: string;
   status?: string;
   profile_image_url?: string;
   phone?: string;

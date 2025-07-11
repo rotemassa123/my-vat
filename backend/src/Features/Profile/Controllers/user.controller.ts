@@ -17,6 +17,7 @@ import { IProfileRepository, CreateUserData, UpdateUserData } from "src/Common/A
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
+import { UserType } from "src/Common/consts/userType";
 
 @ApiTags("users")
 @Controller("users")
@@ -71,10 +72,47 @@ export class UserController {
         throw new BadRequestException(`User with email ${createUserRequest.email} already exists`);
       }
 
-      // Validate that the account exists
-      const accountExists = await this.userService.accountExists(createUserRequest.accountId);
-      if (!accountExists) {
-        throw new BadRequestException(`Account with ID ${createUserRequest.accountId} does not exist`);
+      // Validate user type specific requirements
+      if (createUserRequest.userType === UserType.operator) {
+        // Operator: should not have account_id or entity_id
+        if (createUserRequest.accountId) {
+          throw new BadRequestException('Operator user should not have account_id');
+        }
+        if (createUserRequest.entityId) {
+          throw new BadRequestException('Operator user should not have entity_id');
+        }
+      } else if (createUserRequest.userType === UserType.admin) {
+        // Admin: must have account_id, must NOT have entity_id
+        if (!createUserRequest.accountId) {
+          throw new BadRequestException('Admin user must have account_id');
+        }
+        if (createUserRequest.entityId) {
+          throw new BadRequestException('Admin user must not have entity_id');
+        }
+      } else if (createUserRequest.userType === UserType.member || createUserRequest.userType === UserType.guest) {
+        // Member/Guest: must have both account_id and entity_id
+        if (!createUserRequest.accountId) {
+          throw new BadRequestException('Member/Guest user must have account_id');
+        }
+        if (!createUserRequest.entityId) {
+          throw new BadRequestException('Member/Guest user must have entity_id');
+        }
+      }
+
+      // Validate that the account exists if accountId is provided
+      if (createUserRequest.accountId) {
+        const accountExists = await this.userService.accountExists(createUserRequest.accountId);
+        if (!accountExists) {
+          throw new BadRequestException(`Account with ID ${createUserRequest.accountId} does not exist`);
+        }
+      }
+
+      // Validate that the entity exists if entityId is provided
+      if (createUserRequest.entityId) {
+        const entityExists = await this.userService.entityExists(createUserRequest.entityId);
+        if (!entityExists) {
+          throw new BadRequestException(`Entity with ID ${createUserRequest.entityId} does not exist`);
+        }
       }
 
       // Hash password
@@ -86,6 +124,7 @@ export class UserController {
         hashedPassword: hashedPassword,
         userType: createUserRequest.userType,
         accountId: createUserRequest.accountId,
+        entityId: createUserRequest.entityId,
         phone: createUserRequest.phone,
         profile_image_url: createUserRequest.profile_image_url,
       };
@@ -117,14 +156,59 @@ export class UserController {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
 
+      // Prevent users from becoming operators
+      if (updateUserRequest.userType === UserType.operator) {
+        throw new BadRequestException("Users cannot become operators");
+      }
+
       const updateData: UpdateUserData = {
         fullName: updateUserRequest.fullName,
         email: updateUserRequest.email,
         userType: updateUserRequest.userType,
+        accountId: updateUserRequest.accountId,
+        entityId: updateUserRequest.entityId,
         status: updateUserRequest.status,
         phone: updateUserRequest.phone,
         profile_image_url: updateUserRequest.profile_image_url,
       };
+
+      // Handle user type changes
+      if (updateUserRequest.userType !== undefined) {
+        // If user is being set to admin, remove entity_id
+        if (updateUserRequest.userType === UserType.admin) {
+          updateData.entityId = undefined;
+        }
+        
+        // If user is being set to member/guest after being admin, ensure they have an entity
+        if ((updateUserRequest.userType === UserType.member || updateUserRequest.userType === UserType.guest) &&
+            existingUser.userType === UserType.admin) {
+          if (!updateUserRequest.entityId) {
+            throw new BadRequestException("Member/Guest users must have an entity_id");
+          }
+          
+          // Validate that the entity exists
+          const entityExists = await this.userService.entityExists(updateUserRequest.entityId);
+          if (!entityExists) {
+            throw new BadRequestException(`Entity with ID ${updateUserRequest.entityId} does not exist`);
+          }
+        }
+      }
+
+      // Validate entity exists if entityId is provided
+      if (updateUserRequest.entityId) {
+        const entityExists = await this.userService.entityExists(updateUserRequest.entityId);
+        if (!entityExists) {
+          throw new BadRequestException(`Entity with ID ${updateUserRequest.entityId} does not exist`);
+        }
+      }
+
+      // Validate account exists if accountId is provided
+      if (updateUserRequest.accountId) {
+        const accountExists = await this.userService.accountExists(updateUserRequest.accountId);
+        if (!accountExists) {
+          throw new BadRequestException(`Account with ID ${updateUserRequest.accountId} does not exist`);
+        }
+      }
 
       // Hash password if provided
       if (updateUserRequest.password) {

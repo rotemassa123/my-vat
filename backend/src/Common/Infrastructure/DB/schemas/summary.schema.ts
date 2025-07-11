@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema, default as mongoose } from 'mongoose';
-import { EntityBoundPlugin } from '../../../../Common/plugins/entity-bound.plugin';
-import { EntityScopePlugin } from '../../../../Common/plugins/entity-scope.plugin';
+import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
+import { EntityScopePlugin } from '../../../../Common/plugins/entity-scope-new.plugin';
 
 export type SummaryDocument = HydratedDocument<Summary>;
 
@@ -22,7 +22,10 @@ export interface SummaryContent {
   collection: 'summaries' 
 })
 export class Summary {
-  // This property is defined for TypeScript type safety; the actual schema field is created by EntityBoundPlugin.
+  // This property is defined for TypeScript type safety; the actual schema field is created by AccountScopePlugin.
+  account_id: mongoose.Types.ObjectId;
+  
+  // This property is defined for TypeScript type safety; the actual schema field is created by EntityScopePlugin.
   entity_id: mongoose.Types.ObjectId;
 
   @Prop({ required: true, unique: true })
@@ -83,5 +86,5 @@ export class Summary {
 
 export const SummarySchema = SchemaFactory.createForClass(Summary);
 
-SummarySchema.plugin(EntityBoundPlugin);
+SummarySchema.plugin(AccountScopePlugin);
 SummarySchema.plugin(EntityScopePlugin); 

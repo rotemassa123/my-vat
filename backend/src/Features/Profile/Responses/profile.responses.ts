@@ -74,7 +74,8 @@ export interface UserResponse {
   fullName: string;
   email: string;
   userType: UserType;
-  accountId: string;
+  accountId?: string;
+  entityId?: string;
   status: string;
   last_login?: Date;
   profile_image_url?: string;

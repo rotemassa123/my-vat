@@ -11,11 +11,12 @@ import {
   InternalServerErrorException,
 } from "@nestjs/common";
 import { ApiTags, ApiParam } from "@nestjs/swagger";
-import { CreateEntityBodyDto, UpdateEntityRequest } from "../Requests/profile.requests";
+import { CreateEntityRequest, UpdateEntityRequest } from "../Requests/profile.requests";
 import { EntityResponse, CreateEntityResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { CurrentAccountId } from "../../../common/decorators/current-account-id.decorator";
+import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 
 @ApiTags("entities")
 @Controller("entities")
@@ -47,22 +48,23 @@ export class EntityController {
     }
   }
 
+  @PublicEndpointGuard()
   @Post()
   async createEntity(
-    @CurrentAccountId() accountId: string,
-    @Body() createEntityRequest: CreateEntityBodyDto,
+    @Body() createEntityRequest: CreateEntityRequest,
   ): Promise<CreateEntityResponse> {
     try {
-      const accountExists = await this.entityService.accountExists(accountId);
+      const accountExists = await this.entityService.accountExists(createEntityRequest.accountId);
       if (!accountExists) {
-        throw new BadRequestException(`Account with ID ${accountId} does not exist`);
+        throw new BadRequestException(`Account with ID ${createEntityRequest.accountId} does not exist`);
       }
-      const entity = await this.entityService.createEntity({ ...createEntityRequest, accountId });
+      
+      const entity = await this.entityService.createEntity(createEntityRequest);
       return { _id: entity._id };
     } catch (error) {
       logger.error("Error creating entity", EntityController.name, { 
         error: error.message, 
-        accountId: accountId,
+        accountId: createEntityRequest.accountId,
         request: createEntityRequest 
       });
       if (error instanceof BadRequestException) {

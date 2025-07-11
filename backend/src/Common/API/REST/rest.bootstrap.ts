@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ApiSettings } from '../api.settings';
 import * as httpContext from 'express-http-context';
 import * as cookieParser from 'cookie-parser';
-import { TenantContextInterceptor } from '../../interceptors/tenant-context.interceptor';
+import { TenantContextInterceptor } from '../../interceptors/context.interceptor';
 
 export async function InitializeRestApi(app: INestApplication) {
   app.setGlobalPrefix('api');

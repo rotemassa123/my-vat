@@ -24,6 +24,7 @@ interface UserResponse {
   fullName: string;
   userType: UserType;
   accountId: string;
+  entityId: string;
 }
 
 @ApiTags("auth")
@@ -65,6 +66,7 @@ export class AuthenticationController {
       fullName: user.fullName,
       userType: user.userType,
       accountId: user.accountId,
+      entityId: user.entityId,
     };
 
     // Generate token
@@ -84,6 +86,7 @@ export class AuthenticationController {
       fullName: user.fullName,
       userType: user.userType,
       accountId: user.accountId,
+      entityId: user.entityId,
     };
   }
 
@@ -98,6 +101,7 @@ export class AuthenticationController {
       _id: user.userId,
       userType: user.userType,
       accountId: user.accountId,
+      entityId: user.entityId,
     };
   }
 

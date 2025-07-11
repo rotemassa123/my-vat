@@ -145,11 +145,10 @@ export class UpdateAccountRequest {
 
 // Entity Requests
 export class CreateEntityRequest {
-  @ApiProperty({ example: '686172f49a2e1d6393245694', required: false })
-  @IsOptional()
+  @ApiProperty({ example: '686172f49a2e1d6393245694', required: true })
   @IsString()
   @IsMongoId()
-  accountId?: string;
+  accountId: string;
 
   @ApiProperty({ example: 'Test Entity LLC' })
   @IsString()
@@ -335,11 +334,24 @@ export class CreateUserRequest {
   @ApiProperty({
     example: '686174a98307686bff647c0c',
     default: '686174a98307686bff647c0c',
-    description: 'ID of the account this user belongs to'
+    description: 'ID of the account this user belongs to',
+    required: false
   })
+  @IsOptional()
   @IsString()
   @IsMongoId()
-  accountId: string;
+  accountId?: string;
+
+  @ApiProperty({
+    example: '686174a98307686bff647c0d',
+    default: '686174a98307686bff647c0d',
+    description: 'ID of the entity this user belongs to',
+    required: false
+  })
+  @IsOptional()
+  @IsString()
+  @IsMongoId()
+  entityId?: string;
 
   @ApiProperty({ 
     required: false, 
@@ -403,4 +415,14 @@ export class UpdateUserRequest {
   @IsOptional()
   @IsString()
   profile_image_url?: string;
+
+  @ApiProperty({ required: false, example: '686174a98307686bff647c0c' })
+  @IsOptional()
+  @IsMongoId()
+  accountId?: string;
+
+  @ApiProperty({ required: false, example: '686174a98307686bff647c0d' })
+  @IsOptional()
+  @IsMongoId()
+  entityId?: string;
 } 

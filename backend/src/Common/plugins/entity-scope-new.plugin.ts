@@ -1,18 +1,29 @@
 import { Schema, Query, Aggregate, Types } from 'mongoose';
 import * as httpContext from 'express-http-context';
+import mongoose from 'mongoose';
 
 /**
  * EntityScopePlugin
  * -----------------
  * Automatically restricts every query / save / aggregate operation to the
  * current entity (entity_id) kept on `express-http-context`.
- *
- * Register this plugin on every entity-scoped schema **after**
- * `EntityBoundPlugin`. Do NOT apply it to global collections such as
- * `Account` or `Entity`.
+ * Also adds a required entity_id field to the schema.
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 export function EntityScopePlugin(schema: Schema) {
+  // Add the entity_id field if it doesn't exist
+  if (!schema.path('entity_id')) {
+    schema.add({
+      entity_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Entity',
+        required: true,
+        index: true,
+        alias: 'entityId',
+      },
+    });
+  }
+
   /* -------------------------------------------------------------------------- */
   /* Helpers                                                                    */
   /* -------------------------------------------------------------------------- */
@@ -71,6 +82,11 @@ export function EntityScopePlugin(schema: Schema) {
       this.set('entity_id', new Types.ObjectId(entityId));
     }
     next();
+  });
+
+  // Static helper: Model.forEntity(id)
+  schema.static('forEntity', function (entityId: string | mongoose.Types.ObjectId) {
+    return this.find({ entity_id: entityId });
   });
 
   schema.static('withoutEntityScope', function () {

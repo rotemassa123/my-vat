@@ -34,7 +34,10 @@ export class TenantContextInterceptor implements NestInterceptor {
       httpContext.set('user_id', request.user.userId);
     }
     if (request.user?.userType !== undefined) {
-      httpContext.set('role', request.user.userType);
+      httpContext.set('user_type', request.user.userType);
+    }
+    if (request.user?.entityId) {
+      httpContext.set('entity_id', request.user.entityId);
     }
 
     return next.handle();

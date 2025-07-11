@@ -98,7 +98,8 @@ export class ProfileMongoService implements IProfileRepository {
       email: doc.email,
       hashedPassword: doc.hashedPassword,
       userType: doc.userType,
-      accountId: doc.get('account_id').toString(),
+      accountId: doc.get('account_id') ? `ObjectId('${doc.get('account_id').toString()}')` : undefined,
+      entityId: doc.get('entity_id') ? `ObjectId('${doc.get('entity_id').toString()}')` : undefined,
       status: doc.status,
       last_login: doc.last_login,
       profile_image_url: doc.profile_image_url,
@@ -119,16 +120,56 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async createUser(userData: CreateUserData): Promise<UserData> {
-    const user = new this.userModel({
+    // Convert the field names to match MongoDB schema
+    const mongoUserData: any = {
       ...userData,
       status: 'pending', // Default status for new users
-    });
+    };
+    
+    // Convert accountId to account_id for MongoDB (only if provided)
+    if (userData.accountId) {
+      mongoUserData.account_id = userData.accountId;
+    }
+    delete mongoUserData.accountId;
+    
+    // Convert entityId to entity_id for MongoDB (only if provided)
+    if (userData.entityId) {
+      mongoUserData.entity_id = userData.entityId;
+    }
+    delete mongoUserData.entityId;
+    
+    const user = new this.userModel(mongoUserData);
     const savedDoc = await user.save();
     return this.mapDocumentToUserData(savedDoc);
   }
 
   async updateUser(userId: string, updateData: UpdateUserData): Promise<boolean> {
-    const result = await this.userModel.updateOne({ _id: userId }, updateData).exec();
+    // Handle the plugin-managed fields separately
+    const mongoUpdateData: any = { ...updateData };
+    
+    // Convert accountId to account_id for MongoDB
+    if (updateData.accountId !== undefined) {
+      if (updateData.accountId) {
+        mongoUpdateData.account_id = updateData.accountId;
+      } else {
+        mongoUpdateData.$unset = { account_id: 1 };
+      }
+      delete mongoUpdateData.accountId;
+    }
+    
+    // Convert entityId to entity_id for MongoDB
+    if (updateData.entityId !== undefined) {
+      if (updateData.entityId) {
+        mongoUpdateData.entity_id = updateData.entityId;
+      } else {
+        // Remove entity_id field if setting to undefined
+        if (!mongoUpdateData.$unset) mongoUpdateData.$unset = {};
+        mongoUpdateData.$unset.entity_id = 1;
+      }
+      delete mongoUpdateData.entityId;
+    }
+    
+    const result = await this.userModel.updateOne({ _id: userId }, mongoUpdateData).exec();
     return result.modifiedCount > 0;
   }
 

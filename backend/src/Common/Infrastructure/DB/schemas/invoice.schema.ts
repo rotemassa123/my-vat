@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
-import { EntityBoundPlugin } from '../../../../Common/plugins/entity-bound.plugin';
-import { EntityScopePlugin } from '../../../../Common/plugins/entity-scope.plugin';
+import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
+import { EntityScopePlugin } from '../../../../Common/plugins/entity-scope-new.plugin';
 
 export type InvoiceDocument = HydratedDocument<Invoice>;
 
@@ -11,7 +11,10 @@ export type InvoiceDocument = HydratedDocument<Invoice>;
   collection: 'invoices' 
 })
 export class Invoice {
-  // This property is defined for TypeScript type safety; the actual schema field is created by EntityBoundPlugin.
+  // This property is defined for TypeScript type safety; the actual schema field is created by AccountScopePlugin.
+  account_id: mongoose.Types.ObjectId;
+  
+  // This property is defined for TypeScript type safety; the actual schema field is created by EntityScopePlugin.
   entity_id: mongoose.Types.ObjectId;
 
   @Prop({ required: true })
@@ -56,5 +59,5 @@ export class Invoice {
 
 export const InvoiceSchema = SchemaFactory.createForClass(Invoice);
 
-InvoiceSchema.plugin(EntityBoundPlugin);
+InvoiceSchema.plugin(AccountScopePlugin);
 InvoiceSchema.plugin(EntityScopePlugin); 

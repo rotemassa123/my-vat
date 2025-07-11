@@ -46,6 +46,7 @@ export class ProfileController {
           email: user.email,
           userType: user.userType,
           accountId: user.accountId,
+          entityId: user.entityId,
           status: user.status,
           last_login: user.last_login,
           profile_image_url: user.profile_image_url,
