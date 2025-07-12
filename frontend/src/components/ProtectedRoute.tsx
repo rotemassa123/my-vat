@@ -1,17 +1,17 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../hooks/auth/useAuth';
-import { useInvoiceLoader } from '../hooks/useInvoiceLoader';
+import { useProfileStore } from '../store/profileStore';
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
-  
-  // Kick-off invoice loading as soon as the user is authenticated.
-  // We don't block the UI here; the hook will populate the cache in the background.
-  useInvoiceLoader({ autoLoad: true });
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { loading: isProfileLoading } = useProfileStore();
 
-  // Show loading spinner while checking authentication
-  if (authLoading) {
+  const isAppBusy = isAuthLoading || isProfileLoading;
+
+  // Show a full-screen loader while auth state is resolving or the
+  // initial profile is being fetched.
+  if (isAppBusy) {
     return (
       <Box
         sx={{
@@ -27,11 +27,11 @@ export default function ProtectedRoute() {
     );
   }
 
-  // Redirect to login if not authenticated
+  // If the app is no longer busy but the user is not authenticated, redirect.
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  // Render protected content when authenticated
+  // Render the protected content.
   return <Outlet />;
 } 

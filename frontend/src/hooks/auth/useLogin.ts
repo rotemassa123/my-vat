@@ -5,51 +5,48 @@ import { authApi, type LoginCredentials, type AuthResponse } from '../../lib/aut
 import { profileApi } from '../../lib/profileApi';
 
 export const useLogin = () => {
-  const { login: loginAuth, setLoading: setAuthLoading, setError: setAuthError } = useAuthStore();
+  const { login: loginUser, setLoading: setAuthLoading, setError: setAuthError } = useAuthStore();
   const { setProfile, clearProfile, setLoading: setProfileLoading, setError: setProfileError } = useProfileStore();
 
   const loginMutation = useMutation<AuthResponse, Error, LoginCredentials>({
     mutationFn: authApi.login,
     onMutate: () => {
-      // Set loading states
       setAuthLoading(true);
       setProfileLoading(true);
-      // Clear any previous errors
       setAuthError(null);
       setProfileError(null);
     },
-    onSuccess: async (authResponse) => {
-      try {        
-        loginAuth(authResponse.token);
-        setAuthLoading(false);
-        
-        const profileData = await profileApi.getCombinedProfile(authResponse.user._id);
-                
+    onSuccess: async (authResponse: AuthResponse) => {
+      // Step 1: Set user state. Session is managed by an HTTP-only cookie.
+      loginUser(authResponse);
+      
+      // Step 2: Fetch profile data
+      try {
+        const profileData = await profileApi.getProfile();
         setProfile(profileData);
-        setProfileLoading(false);
       } catch (profileError) {
-        // Profile loading failed, but user is still authenticated
         console.error('Profile loading failed after successful login:', profileError);
-        setProfileError(profileError instanceof Error ? profileError.message : 'Failed to load profile');
+        const errorMessage = profileError instanceof Error ? profileError.message : 'Failed to load profile';
+        setProfileError(errorMessage);
+        // Also set auth error to reflect the incomplete login
+        setAuthError(errorMessage); 
+      } finally {
+        // Step 3: Finalize loading states
+        setAuthLoading(false);
         setProfileLoading(false);
       }
     },
-    onError: (error) => {
-      // Authentication failed
-      console.error('Login failed:', error);
+    onError: (error: Error) => {
+      console.error('Login mutation failed:', error);
       setAuthError(error.message);
+      clearProfile();
       setAuthLoading(false);
       setProfileLoading(false);
-      clearProfile();
     },
   });
 
-  const login = (credentials: LoginCredentials) => {
-    loginMutation.mutate(credentials);
-  };
-
   return {
-    login,
+    login: loginMutation.mutate,
     isLoading: loginMutation.isPending,
     error: loginMutation.error,
     isSuccess: loginMutation.isSuccess,

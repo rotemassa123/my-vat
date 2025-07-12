@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -16,45 +16,44 @@ import {
   VisibilityOff,
 } from '@mui/icons-material';
 import { useLogin } from '../hooks/auth/useLogin';
-import { useAuthStore } from '../store/authStore';
+import { useAuth } from '../hooks/auth/useAuth';
 import { type LoginCredentials } from '../lib/authApi';
 import styles from '../components/Login.module.scss';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
-  const { login, isLoading, error, isSuccess } = useLogin();
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
+  const { login, isLoading, error } = useLogin();
 
   const [showPassword, setShowPassword] = useState(false);
-  const [form, setForm] = useState<LoginCredentials>({ 
-    email: '', 
-    password: '' 
+  const [form, setForm] = useState<LoginCredentials>({
+    email: '',
+    password: '',
   });
-
-  // Form handlers
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    login(form);
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  // Redirect if already authenticated or login successful
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    login(form);
+  };
+
+  // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated || isSuccess) {
-      navigate('/dashboard');
+    if (isAuthenticated && !isAuthLoading) {
+      navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, isSuccess, navigate]);
+  }, [isAuthenticated, isAuthLoading, navigate]);
 
   // Handle OAuth callback success/error
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const loginSuccess = urlParams.get('login');
     const authError = urlParams.get('error');
-    
+
     if (loginSuccess === 'success') {
       navigate('/dashboard');
     } else if (authError) {

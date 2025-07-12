@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Avatar,
@@ -17,13 +17,13 @@ import {
   KeyboardArrowDown,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { useProfileStore } from '../store/profileStore';
+import { useAuthStore } from '../store/authStore';
 import { useLogout } from '../hooks/auth/useLogout';
 import styles from './UserAvatarMenu.module.scss';
 
 export default function UserAvatarMenu() {
   const navigate = useNavigate();
-  const { user } = useProfileStore();
+  const { user } = useAuthStore();
   const { logout } = useLogout();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);

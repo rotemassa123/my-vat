@@ -16,7 +16,6 @@ const AnalysisPage = lazy(() => import("../pages/AnalysisPage"));
 const ReportingPage = lazy(() => import("../pages/ReportingPage"));
 const ManagePage = lazy(() => import("../pages/ManagePage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
-const AuthTestPage = lazy(() => import("../pages/AuthTestPage"));
 
 // Loading component
 const LoadingSpinner = () => (
@@ -33,11 +32,6 @@ const router = createBrowserRouter(
       <Route path="/login" element={
         <Suspense fallback={<LoadingSpinner />}>
           <LoginPage />
-        </Suspense>
-      } />
-      <Route path="/auth-test" element={
-        <Suspense fallback={<LoadingSpinner />}>
-          <AuthTestPage />
         </Suspense>
       } />
 

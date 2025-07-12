@@ -1,19 +1,21 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { type User } from '../types/user';
 
 interface AuthStore {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
-  token: string | null;
+  user: User | null;
+  isHydrating: boolean;
   
   // Actions
   setAuthenticated: (isAuthenticated: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  setToken: (token: string | null) => void;
+  setUser: (user: User | null) => void;
   clearAuth: () => void;
-  login: (token?: string) => void;
+  login: (user: User) => void;
   logout: () => void;
 }
 
@@ -23,7 +25,8 @@ export const useAuthStore = create(
       isAuthenticated: false,
       loading: false,
       error: null,
-      token: null,
+      user: null,
+      isHydrating: true,
 
       setAuthenticated: (isAuthenticated) => set({ 
         isAuthenticated,
@@ -34,32 +37,36 @@ export const useAuthStore = create(
       
       setError: (error) => set({ error }),
       
-      setToken: (token) => set({ token }),
+      setUser: (user) => set({ user }),
       
       clearAuth: () => set({ 
         isAuthenticated: false, 
         loading: false, 
         error: null,
-        token: null,
+        user: null,
       }),
       
-      login: (token) => set({ 
-        isAuthenticated: true, 
-        loading: false, 
+      login: (user) => set({ 
+        isAuthenticated: true,
         error: null,
-        token: token || null,
+        user: user,
       }),
       
       logout: () => set({ 
         isAuthenticated: false, 
         loading: false, 
         error: null,
-        token: null,
+        user: null,
       }),
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => sessionStorage),
+      onRehydrateStorage: (state) => {
+        if (state) {
+          state.isHydrating = false;
+        }
+      },
     }
   )
 ); 
