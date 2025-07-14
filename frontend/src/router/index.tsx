@@ -62,7 +62,7 @@ const router = createBrowserRouter(
               <ReportingPage />
             </Suspense>
           } />
-          <Route path="/manage" element={
+          <Route path="/manage-account" element={
             <Suspense fallback={<LoadingSpinner />}>
               <ManagePage />
             </Suspense>

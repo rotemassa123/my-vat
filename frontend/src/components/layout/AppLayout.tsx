@@ -33,7 +33,7 @@ const navigationItems = [
     icon: <ReportIcon className={styles.icon} />,
   },
   {
-    path: '/manage',
+    path: '/manage-account',
     label: 'Manage account',
     icon: <AccountCircle className={styles.icon} />,
   },
