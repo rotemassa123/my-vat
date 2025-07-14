@@ -424,14 +424,14 @@ const UserManagement: React.FC = () => {
       {/* Users Table */}
       <TableContainer component={Paper} className={styles.tableContainer}>
         <Table>
-          <TableHead>
+          <TableHead className={styles.stickyTableHead}>
             <TableRow>
-              <TableCell>User</TableCell>
-              <TableCell>Role</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Entity</TableCell>
-              <TableCell>Last Login</TableCell>
-              <TableCell>Actions</TableCell>
+              <TableCell className={styles.stickyTableCell}>User</TableCell>
+              <TableCell className={styles.stickyTableCell}>Role</TableCell>
+              <TableCell className={styles.stickyTableCell}>Status</TableCell>
+              <TableCell className={styles.stickyTableCell}>Entity</TableCell>
+              <TableCell className={styles.stickyTableCell}>Last Login</TableCell>
+              <TableCell className={styles.stickyTableCell}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

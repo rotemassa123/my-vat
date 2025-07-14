@@ -261,59 +261,59 @@
   text-overflow: ellipsis;
 }
 
-// Global styles for sticky table headers
-:global(.MuiTableHead-root) {
+// Sticky table headers
+.stickyTableHead {
   position: sticky !important;
   top: 0 !important;
   z-index: 100 !important;
   background-color: white !important;
 }
 
-:global(.MuiTableHead-root .MuiTableCell-root) {
+.stickyTableCell {
   background-color: white !important;
   position: sticky !important;
   top: 0 !important;
   z-index: 100 !important;
 }
 
-// Global styles for dropdown menus
-:global(.MuiMenu-paper) {
+// Dropdown menu styles
+.dropdownMenu {
   border-radius: 12px !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
   margin-top: 4px !important;
+}
+
+.dropdownMenuItem {
+  font-family: 'Roboto', sans-serif !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
+  padding: 10px 16px !important;
+  margin: 4px 8px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
   
-  .MuiMenuItem-root {
-    font-family: 'Roboto', sans-serif !important;
-    font-weight: 500 !important;
-    font-size: 0.875rem !important;
-    padding: 10px 16px !important;
-    margin: 4px 8px !important;
-    border-radius: 8px !important;
-    transition: all 0.2s ease !important;
+  &:hover {
+    background-color: rgba(1, 49, 255, 0.08) !important;
+    color: #0131ff !important;
+  }
+  
+  &.selected {
+    background-color: rgba(1, 49, 255, 0.12) !important;
+    color: #0131ff !important;
+    font-weight: 600 !important;
     
     &:hover {
-      background-color: rgba(1, 49, 255, 0.08) !important;
-      color: #0131ff !important;
+      background-color: rgba(1, 49, 255, 0.16) !important;
     }
-    
-    &.Mui-selected {
-      background-color: rgba(1, 49, 255, 0.12) !important;
-      color: #0131ff !important;
-      font-weight: 600 !important;
-      
-      &:hover {
-        background-color: rgba(1, 49, 255, 0.16) !important;
-      }
-    }
-    
-    &:first-child {
-      margin-top: 8px !important;
-    }
-    
-    &:last-child {
-      margin-bottom: 8px !important;
-    }
+  }
+  
+  &:first-child {
+    margin-top: 8px !important;
+  }
+  
+  &:last-child {
+    margin-bottom: 8px !important;
   }
 }
 
