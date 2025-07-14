@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   Box,
   Typography,
@@ -7,7 +7,6 @@ import {
   Chip,
   Button,
   IconButton,
-  InputAdornment,
   Paper,
   CircularProgress,
   Alert,
@@ -18,7 +17,6 @@ import {
   Stack,
 } from '@mui/material';
 import {
-  Search as SearchIcon,
   FilterList as FilterIcon,
   Download as DownloadIcon,
   Refresh as RefreshIcon,
@@ -32,23 +30,13 @@ import {
 } from '@mui/icons-material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { format } from 'date-fns';
-import { useInvoiceStore } from '../lib/invoiceStore';
-import { useInvoiceLoader } from '../hooks/useInvoiceLoader';
+import { useReporting } from '../hooks/useReporting';
 import { InvoiceApiService } from '../lib/invoiceApi';
 import type { InvoiceStatus } from '../types/api';
+import type { ReportingFilters } from '../types/reporting';
 import styles from './ReportingPage.module.scss';
 
 const ROW_HEIGHT = 60;
-
-interface FilterState {
-  search: string;
-  status: string[];
-  filename: string;
-  vat_scheme: string;
-  currency: string;
-  date_from: string;
-  date_to: string;
-}
 
 // Status configuration with beautiful styling
 const STATUS_CONFIG = {
@@ -104,134 +92,107 @@ const STATUS_CONFIG = {
 };
 
 const CURRENCY_OPTIONS = ['EUR', 'USD', 'GBP', 'CAD', 'AUD'];
-const VAT_SCHEMES = ['Standard', 'Reduced', 'Zero', 'Exempt'];
+const VAT_SCHEMES = ['standard', 'reduced', 'zero', 'exempt', 'reverse_charge', 'margin_scheme', 'import_vat', 'export_vat'];
 
 const ReportingPage: React.FC = () => {
-  const [filters, setFilters] = useState<FilterState>({
-    search: '',
-    status: [],
-    filename: '',
-    vat_scheme: '',
-    currency: '',
-    date_from: '',
-    date_to: '',
-  });
-  
-  const [sortBy, setSortBy] = useState<string>('submitted_date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportSuccess, setExportSuccess] = useState(false);
   const [filterAnchorEl, setFilterAnchorEl] = useState<HTMLButtonElement | null>(null);
 
-  // Load invoices with cache awareness
+  // Use the new reporting hook with infinite query
   const {
-    isLoading: invoicesLoading,
-    loadingProgress,
-    error: loadingError,
-    refreshInvoices
-  } = useInvoiceLoader();
-
-  // Get data from Zustand store (all invoices are already in memory)
-  const {
-    filteredInvoices,
-    isLoading: storeLoading,
-    error: storeError,
-    setFilters: setStoreFilters,
-    setSearchTerm,
-    setSorting,
-    getTotalCount
-  } = useInvoiceStore();
-
-  // Combine loading states
-  const isLoading = invoicesLoading || storeLoading;
-  const error = loadingError || storeError;
-
-  // Apply filters to store when local filters change
-  useEffect(() => {
-    setStoreFilters({
-      status: filters.status.length > 0 ? filters.status : undefined,
-      filename: filters.filename || undefined,
-      vat_scheme: filters.vat_scheme || undefined,
-      currency: filters.currency || undefined,
-      date_from: filters.date_from || undefined,
-      date_to: filters.date_to || undefined,
-    });
-    setSearchTerm(filters.search);
-    setSorting(sortBy, sortOrder);
-  }, [filters, sortBy, sortOrder, setStoreFilters, setSearchTerm, setSorting]);
-
-  // All invoices are already filtered by the store
-  const allInvoices = filteredInvoices;
-  const totalCount = getTotalCount();
-
-  // Virtual scrolling setup
-  const parentRef = React.useRef<HTMLDivElement>(null);
-  
-  const virtualizer = useVirtualizer({
-    count: allInvoices.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 10,
+    invoices: allInvoices,
+    totalCount,
+    isLoading,
+    isFetchingNextPage,
+    isError,
+    error,
+    hasMore,
+    loadMore,
+    prefetchNext,
+    filters,
+    updateFilters,
+    clearFilters,
+    sortConfig,
+    refresh: refreshInvoices,
+  } = useReporting({
+    pageSize: 100,
+    enabled: true,
   });
 
-  // No need for infinite scroll - all data is already in memory
+  // Virtual scrolling setup
+  const parentRef = useRef<HTMLDivElement>(null);
+  
+  const virtualizer = useVirtualizer({
+    count: hasMore ? allInvoices.length + 1 : allInvoices.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 20,
+  });
+
+  // Auto-load more when near bottom
+  useEffect(() => {
+    const virtualItems = virtualizer.getVirtualItems();
+    const [lastItem] = [...virtualItems].reverse();
+
+    if (!lastItem) return;
+
+    if (
+      lastItem.index >= allInvoices.length - 10 && // Load more when 10 items from end
+      hasMore &&
+      !isFetchingNextPage
+    ) {
+      loadMore();
+    }
+  }, [hasMore, loadMore, isFetchingNextPage, virtualizer, allInvoices.length]);
+
+  // Prefetch next page when scrolling
+  useEffect(() => {
+    const virtualItems = virtualizer.getVirtualItems();
+    const [lastItem] = [...virtualItems].reverse();
+
+    if (!lastItem) return;
+
+    if (
+      lastItem.index >= allInvoices.length - 50 && // Prefetch when 50 items from end
+      hasMore &&
+      !isFetchingNextPage
+    ) {
+      prefetchNext();
+    }
+  }, [prefetchNext, hasMore, isFetchingNextPage, virtualizer, allInvoices.length]);
 
   // Event handlers
-  const handleFilterChange = useCallback((key: keyof FilterState, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-  }, []);
+  const handleFilterChange = useCallback((key: keyof ReportingFilters, value: string | string[]) => {
+    updateFilters({ [key]: value });
+  }, [updateFilters]);
 
   const handleStatusToggle = useCallback((status: string) => {
-    setFilters(prev => ({
-      ...prev,
-      status: prev.status.includes(status)
-        ? prev.status.filter(s => s !== status)
-        : [...prev.status, status]
-    }));
-  }, []);
+    const currentStatus = filters.status || [];
+    const newStatus = currentStatus.includes(status)
+      ? currentStatus.filter(s => s !== status)
+      : [...currentStatus, status];
+    updateFilters({ status: newStatus.length > 0 ? newStatus : undefined });
+  }, [filters.status, updateFilters]);
 
-  const handleSort = useCallback((column: string) => {
-    if (sortBy === column) {
-      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('desc');
-    }
-  }, [sortBy]);
+
 
   const handleClearFilters = useCallback(() => {
-    setFilters({
-      search: '',
-      status: [],
-      filename: '',
-      vat_scheme: '',
-      currency: '',
-      date_from: '',
-      date_to: '',
-    });
-  }, []);
+    clearFilters();
+  }, [clearFilters]);
 
   const getActiveFiltersText = useCallback(() => {
     const activeFilters = [];
     
-    if (filters.status.length > 0) {
+    if (filters.status && filters.status.length > 0) {
       activeFilters.push(`Status: ${filters.status.length} selected`);
     }
-    if (filters.search) {
-      activeFilters.push(`Search: "${filters.search}"`);
+    if (filters.vat_scheme && filters.vat_scheme.length > 0) {
+      activeFilters.push(`VAT Scheme: ${filters.vat_scheme.length} selected`);
     }
-    if (filters.filename) {
-      activeFilters.push(`Filename: "${filters.filename}"`);
-    }
-    if (filters.vat_scheme) {
-      activeFilters.push(`VAT Scheme: ${filters.vat_scheme}`);
-    }
-    if (filters.currency) {
-      activeFilters.push(`Currency: ${filters.currency}`);
-    }
-    if (filters.date_from || filters.date_to) {
-      activeFilters.push('Date range');
+    if (filters.currency && filters.currency.length > 0) {
+      activeFilters.push(`Currency: ${filters.currency.length} selected`);
     }
     
     return activeFilters.length > 0 ? ` (filtered by: ${activeFilters.join(', ')})` : '';
@@ -239,12 +200,9 @@ const ReportingPage: React.FC = () => {
 
   const getActiveFiltersCount = useCallback(() => {
     let count = 0;
-    if (filters.status.length > 0) count++;
-    if (filters.search) count++;
-    if (filters.filename) count++;
-    if (filters.vat_scheme) count++;
-    if (filters.currency) count++;
-    if (filters.date_from || filters.date_to) count++;
+    if (filters.status && filters.status.length > 0) count++;
+    if (filters.vat_scheme && filters.vat_scheme.length > 0) count++;
+    if (filters.currency && filters.currency.length > 0) count++;
     return count;
   }, [filters]);
 
@@ -263,12 +221,22 @@ const ReportingPage: React.FC = () => {
     setExportError(null);
     
     try {
-      // Build export params with current filters and sorting
-      const exportParams = {
-        ...filters,
-        sort_by: sortBy,
-        sort_order: sortOrder,
+      // Convert ReportingFilters to InvoiceQueryParams format
+      const exportParams: Record<string, unknown> = {
+        sort_by: sortConfig.field,
+        sort_order: sortConfig.order,
       };
+      
+      // Convert multi-select arrays to single values for the old API
+      if (filters.status && filters.status.length > 0) {
+        exportParams.status = filters.status;
+      }
+      if (filters.vat_scheme && filters.vat_scheme.length > 0) {
+        exportParams.vat_scheme = filters.vat_scheme[0]; // Take first value
+      }
+      if (filters.currency && filters.currency.length > 0) {
+        exportParams.currency = filters.currency[0]; // Take first value
+      }
       
       console.log('Exporting with filters:', exportParams);
       
@@ -290,9 +258,8 @@ const ReportingPage: React.FC = () => {
       
       // Create filename with current filters info
       const timestamp = format(new Date(), 'yyyyMMdd_HHmmss');
-      const statusFilter = filters.status.length > 0 ? `_${filters.status.join('-')}` : '';
-      const searchFilter = filters.search ? `_${filters.search.replace(/[^a-zA-Z0-9]/g, '')}` : '';
-      a.download = `invoice-claims${statusFilter}${searchFilter}_${timestamp}.csv`;
+      const statusFilter = filters.status && filters.status.length > 0 ? `_${filters.status.join('-')}` : '';
+      a.download = `invoice-claims${statusFilter}_${timestamp}.csv`;
       
       document.body.appendChild(a);
       a.click();
@@ -310,7 +277,7 @@ const ReportingPage: React.FC = () => {
     } finally {
       setIsExporting(false);
     }
-  }, [filters, sortBy, sortOrder]);
+  }, [filters, sortConfig]);
 
   const formatCurrency = useCallback((amount: string | null | undefined, currency: string | null | undefined) => {
     if (!amount || !currency) return '-';
@@ -394,6 +361,16 @@ const ReportingPage: React.FC = () => {
     );
   }, []);
 
+  if (isError) {
+    return (
+      <Box className={styles.container}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Failed to load reporting data: {error?.message}
+        </Alert>
+      </Box>
+    );
+  }
+
   return (
     <Box className={styles.container}>
       {/* Header */}
@@ -456,7 +433,7 @@ const ReportingPage: React.FC = () => {
             title={
               allInvoices.length === 0 
                 ? "No invoices to export" 
-                : `Export ${totalCount} invoice${totalCount !== 1 ? 's' : ''} ${filters.status.length > 0 ? `(filtered by: ${filters.status.join(', ')})` : ''}`
+                : `Export ${totalCount} invoice${totalCount !== 1 ? 's' : ''} ${filters.status && filters.status.length > 0 ? `(filtered by: ${filters.status.join(', ')})` : ''}`
             }
             arrow
           >
@@ -474,7 +451,7 @@ const ReportingPage: React.FC = () => {
               </Button>
             </span>
           </Tooltip>
-          <IconButton onClick={refreshInvoices} disabled={isLoading}>
+          <IconButton onClick={() => refreshInvoices()} disabled={isLoading}>
             <RefreshIcon />
           </IconButton>
         </Box>
@@ -517,7 +494,7 @@ const ReportingPage: React.FC = () => {
           }
         }}
       >
-                <Box sx={{ p: 2 }}>
+        <Box sx={{ p: 2 }}>
           {/* Header */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, px: 1 }}>
             <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '16px', color: '#333' }}>
@@ -542,498 +519,206 @@ const ReportingPage: React.FC = () => {
             </Button>
           </Box>
 
-          <Stack spacing={0}>
-            {/* Search Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              py: 2, 
-              px: 1,
-              borderBottom: '1px solid #f0f0f0',
-              '&:hover': {
-                backgroundColor: '#fafafa',
-              }
-            }}>
-              <Box sx={{ width: 100, flexShrink: 0 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                  Search
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <TextField
-                  placeholder="Search for a filename..."
-                  value={filters.search}
-                  onChange={(e) => handleFilterChange('search', e.target.value)}
-                  fullWidth
-                  size="small"
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon sx={{ color: '#999', fontSize: 18 }} />
-                      </InputAdornment>
-                    ),
-                  }}
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '6px',
-                      fontSize: '14px',
+          <Stack spacing={2}>
+            {/* Status Filter */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', mb: 1 }}>
+                Status
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+                  <Chip
+                    key={status}
+                    label={config.label}
+                    onClick={() => handleStatusToggle(status)}
+                    variant={filters.status?.includes(status) ? 'filled' : 'outlined'}
+                    color={filters.status?.includes(status) ? 'primary' : 'default'}
+                    size="small"
+                    sx={{
+                      borderColor: config.color,
+                      color: filters.status?.includes(status) ? 'white' : config.color,
+                      backgroundColor: filters.status?.includes(status) ? config.color : 'transparent',
                       '&:hover': {
-                        borderColor: '#d0d0d0',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: '#1976d2',
-                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
-                      },
-                      '& fieldset': {
-                        border: 'none',
+                        backgroundColor: config.color,
+                        color: 'white',
                       }
-                    }
-                  }}
-                />
+                    }}
+                  />
+                ))}
               </Box>
             </Box>
 
-            {/* Status Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'flex-start', 
-              py: 2, 
-              px: 1,
-              borderBottom: '1px solid #f0f0f0',
-              '&:hover': {
-                backgroundColor: '#fafafa',
-              }
-            }}>
-              <Box sx={{ width: 100, flexShrink: 0, pt: 0.5 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                  Status
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                  {Object.entries(STATUS_CONFIG).map(([value, config]) => {
-                    const IconComponent = config.icon;
-                    const isSelected = filters.status.includes(value);
-                    return (
-                      <Chip
-                        key={value}
-                        label={config.label}
-                        icon={<IconComponent sx={{ fontSize: '14px !important' }} />}
-                        onClick={() => handleStatusToggle(value)}
-                        variant={isSelected ? 'filled' : 'outlined'}
-                        size="small"
-                        sx={{
-                          borderColor: config.color,
-                          backgroundColor: isSelected ? config.color : 'transparent',
-                          color: isSelected ? 'white' : config.color,
-                          fontSize: '12px',
-                          height: '28px',
-                          '& .MuiChip-icon': {
-                            color: isSelected ? 'white' : config.color,
-                          },
-                          '&:hover': {
-                            backgroundColor: isSelected ? config.color : config.backgroundColor,
-                            color: isSelected ? 'white' : config.color,
-                          }
-                        }}
-                      />
-                    );
-                  })}
-                </Box>
-              </Box>
+            {/* VAT Scheme Filter */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', mb: 1 }}>
+                VAT Scheme
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                value={filters.vat_scheme?.[0] || ''}
+                onChange={(e) => handleFilterChange('vat_scheme', e.target.value ? [e.target.value] : [])}
+                SelectProps={{
+                  multiple: false,
+                }}
+              >
+                <MenuItem value="">All</MenuItem>
+                {VAT_SCHEMES.map((scheme) => (
+                  <MenuItem key={scheme} value={scheme}>
+                    {scheme}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Box>
 
-            {/* Filename Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              py: 2, 
-              px: 1,
-              borderBottom: '1px solid #f0f0f0',
-              '&:hover': {
-                backgroundColor: '#fafafa',
-              }
-            }}>
-              <Box sx={{ width: 100, flexShrink: 0 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                  Filename
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <TextField
-                  placeholder="Filter by filename"
-                  value={filters.filename}
-                  onChange={(e) => handleFilterChange('filename', e.target.value)}
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      '&:hover': {
-                        borderColor: '#d0d0d0',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: '#1976d2',
-                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
-                      },
-                      '& fieldset': {
-                        border: 'none',
-                      }
-                    }
-                  }}
-                />
-              </Box>
-            </Box>
-
-            {/* VAT Scheme Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              py: 2, 
-              px: 1,
-              borderBottom: '1px solid #f0f0f0',
-              '&:hover': {
-                backgroundColor: '#fafafa',
-              }
-            }}>
-              <Box sx={{ width: 100, flexShrink: 0 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                  VAT Scheme
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <TextField
-                  select
-                  value={filters.vat_scheme}
-                  onChange={(e) => handleFilterChange('vat_scheme', e.target.value)}
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      '&:hover': {
-                        borderColor: '#d0d0d0',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: '#1976d2',
-                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
-                      },
-                      '& fieldset': {
-                        border: 'none',
-                      }
-                    }
-                  }}
-                >
-                  <MenuItem value="">All VAT Schemes</MenuItem>
-                  {VAT_SCHEMES.map((scheme) => (
-                    <MenuItem key={scheme} value={scheme}>
-                      {scheme}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-            </Box>
-
-            {/* Currency Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              py: 2, 
-              px: 1,
-              borderBottom: '1px solid #f0f0f0',
-              '&:hover': {
-                backgroundColor: '#fafafa',
-              }
-            }}>
-              <Box sx={{ width: 100, flexShrink: 0 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                  Currency
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <TextField
-                  select
-                  value={filters.currency}
-                  onChange={(e) => handleFilterChange('currency', e.target.value)}
-                  fullWidth
-                  size="small"
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      '&:hover': {
-                        borderColor: '#d0d0d0',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: '#1976d2',
-                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
-                      },
-                      '& fieldset': {
-                        border: 'none',
-                      }
-                    }
-                  }}
-                >
-                  <MenuItem value="">All Currencies</MenuItem>
-                  {CURRENCY_OPTIONS.map((curr) => (
-                    <MenuItem key={curr} value={curr}>
-                      {curr}
-                    </MenuItem>
-                  ))}
-                </TextField>
-              </Box>
-            </Box>
-
-            {/* Date Range Row */}
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              py: 2, 
-              px: 1,
-              '&:hover': {
-                backgroundColor: '#fafafa',
-              }
-            }}>
-              <Box sx={{ width: 100, flexShrink: 0 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#333' }}>
-                  Date Range
-                </Typography>
-              </Box>
-              <Box sx={{ flex: 1, display: 'flex', gap: 1 }}>
-                <TextField
-                  placeholder="From"
-                  type="date"
-                  value={filters.date_from}
-                  onChange={(e) => handleFilterChange('date_from', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                  sx={{
-                    flex: 1,
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      '&:hover': {
-                        borderColor: '#d0d0d0',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: '#1976d2',
-                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
-                      },
-                      '& fieldset': {
-                        border: 'none',
-                      }
-                    }
-                  }}
-                />
-                <TextField
-                  placeholder="To"
-                  type="date"
-                  value={filters.date_to}
-                  onChange={(e) => handleFilterChange('date_to', e.target.value)}
-                  InputLabelProps={{ shrink: true }}
-                  size="small"
-                  sx={{
-                    flex: 1,
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: 'white',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      '&:hover': {
-                        borderColor: '#d0d0d0',
-                      },
-                      '&.Mui-focused': {
-                        borderColor: '#1976d2',
-                        boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
-                      },
-                      '& fieldset': {
-                        border: 'none',
-                      }
-                    }
-                  }}
-                />
-              </Box>
+            {/* Currency Filter */}
+            <Box>
+              <Typography variant="body2" sx={{ fontWeight: 600, color: '#333', mb: 1 }}>
+                Currency
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                size="small"
+                value={filters.currency?.[0] || ''}
+                onChange={(e) => handleFilterChange('currency', e.target.value ? [e.target.value] : [])}
+                SelectProps={{
+                  multiple: false,
+                }}
+              >
+                <MenuItem value="">All</MenuItem>
+                {CURRENCY_OPTIONS.map((currency) => (
+                  <MenuItem key={currency} value={currency}>
+                    {currency}
+                  </MenuItem>
+                ))}
+              </TextField>
             </Box>
           </Stack>
         </Box>
       </Popover>
 
-      {/* Table */}
-      <Paper className={styles.tableContainer}>
-        {/* Table Header */}
-        <Box className={styles.tableHeader}>
-          <Box className={styles.headerCell} onClick={() => handleSort('file_name')}>
-            Filename
-            {sortBy === 'file_name' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('status')}>
-            Status
-            {sortBy === 'status' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('vat_scheme')}>
-            VAT Scheme
-            {sortBy === 'vat_scheme' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('submitted_date')}>
-            Submitted Date
-            {sortBy === 'submitted_date' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('currency')}>
-            Currency
-            {sortBy === 'currency' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('claim_amount')}>
-            Claim Amount
-            {sortBy === 'claim_amount' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-          <Box className={styles.headerCell} onClick={() => handleSort('refund_amount')}>
-            Refund Amount
-            {sortBy === 'refund_amount' && (
-              <span className={styles.sortIndicator}>
-                {sortOrder === 'asc' ? '↑' : '↓'}
-              </span>
-            )}
-          </Box>
-        </Box>
-
-        {/* Table Body */}
-        {error && (
-          <Alert severity="error" className={styles.errorAlert}>
-            Failed to load invoice data: {error}
-          </Alert>
-        )}
-
-        {isLoading && allInvoices.length === 0 && (
-          <Box className={styles.loadingContainer}>
-            <CircularProgress />
-            <Typography>
-              {invoicesLoading ? 'Loading invoice claims...' : 'Processing invoices...'}
-            </Typography>
-            {invoicesLoading && loadingProgress > 0 && (
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                {loadingProgress}% complete
-              </Typography>
-            )}
-          </Box>
-        )}
-
-        {!isLoading && !error && allInvoices.length === 0 && (
-          <Box className={styles.loadingContainer}>
-            <Typography>No invoice claims found</Typography>
-          </Box>
-        )}
-
-        {allInvoices.length > 0 && (
-          <Box
-            ref={parentRef}
-            className={styles.virtualContainer}
-            style={{ height: '600px', overflow: 'auto' }}
-          >
+      {/* Virtual Scrolling Table */}
+      <Paper sx={{ mt: 2 }}>
+        <Box
+          ref={parentRef}
+          sx={{
+            height: 600,
+            overflow: 'auto',
+            border: '1px solid',
+            borderColor: 'divider',
+          }}
+        >
+          {isLoading && allInvoices.length === 0 ? (
+            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+              <CircularProgress />
+            </Box>
+          ) : (
             <Box
-              style={{
+              sx={{
                 height: `${virtualizer.getTotalSize()}px`,
                 width: '100%',
                 position: 'relative',
               }}
             >
-              {virtualizer.getVirtualItems().map((virtualRow) => {
-                const invoice = allInvoices[virtualRow.index];
-                if (!invoice) return null;
+              {virtualizer.getVirtualItems().map((virtualItem) => {
+                const isLoaderRow = virtualItem.index > allInvoices.length - 1;
+                const invoice = allInvoices[virtualItem.index];
 
                 return (
                   <Box
-                    key={virtualRow.key}
-                    className={styles.tableRow}
-                    style={{
+                    key={virtualItem.index}
+                    sx={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
                       width: '100%',
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start}px)`,
+                      height: `${virtualItem.size}px`,
+                      transform: `translateY(${virtualItem.start}px)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2,
+                      borderBottom: '1px solid #f0f0f0',
+                      '&:hover': {
+                        backgroundColor: '#f9f9f9',
+                      }
                     }}
                   >
-                    <Box className={styles.cell}>
-                      {invoice.name || '-'}
-                    </Box>
-                    <Box className={styles.cell}>
-                      {renderStatusChip(invoice.status, invoice.reason || undefined)}
-                    </Box>
-                    <Box className={styles.cell}>
-                      {invoice.vat_rate || '-'}
-                    </Box>
-                    <Box className={styles.cell}>
-                      {formatDate(invoice.status_updated_at)}
-                    </Box>
-                    <Box className={styles.cell}>
-                      {invoice.currency || '-'}
-                    </Box>
-                    <Box className={styles.cell}>
-                      {formatCurrency(invoice.claim_amount?.toString() || null, invoice.currency)}
-                    </Box>
-                    <Box className={styles.cell}>
-                      {formatCurrency(invoice.claim_amount?.toString() || null, invoice.currency)}
-                    </Box>
+                    {isLoaderRow ? (
+                      hasMore ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" width="100%">
+                          <CircularProgress size={24} />
+                          <Typography variant="body2" ml={1}>
+                            Loading more invoices...
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Box display="flex" justifyContent="center" alignItems="center" width="100%">
+                          <Typography variant="body2" color="text.secondary">
+                            No more invoices to load
+                          </Typography>
+                        </Box>
+                      )
+                    ) : (
+                      <>
+                        <Box sx={{ width: 200, flexShrink: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                            {invoice.name || 'Unnamed Invoice'}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ width: 150, flexShrink: 0 }}>
+                          <Typography variant="body2">
+                            {invoice.supplier || '-'}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ width: 120, flexShrink: 0 }}>
+                          {renderStatusChip(invoice.status as InvoiceStatus)}
+                        </Box>
+                        <Box sx={{ width: 100, flexShrink: 0 }}>
+                          <Typography variant="body2">
+                            {formatCurrency(invoice.net_amount, invoice.currency)}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ width: 100, flexShrink: 0 }}>
+                          <Typography variant="body2">
+                            {invoice.currency || '-'}
+                          </Typography>
+                        </Box>
+                        <Box sx={{ width: 120, flexShrink: 0 }}>
+                          <Typography variant="body2">
+                            {formatDate(invoice.created_at)}
+                          </Typography>
+                        </Box>
+                      </>
+                    )}
                   </Box>
                 );
               })}
-              
-              {/* No need for loading indicator - all data is in memory */}
             </Box>
+          )}
+        </Box>
+
+        {/* Loading indicator at bottom */}
+        {isFetchingNextPage && (
+          <Box display="flex" justifyContent="center" p={2}>
+            <CircularProgress size={24} />
+            <Typography variant="body2" ml={1}>
+              Loading more invoices...
+            </Typography>
           </Box>
         )}
       </Paper>
-      
-      {/* Success Snackbar */}
+
+      {/* Export Success Snackbar */}
       <Snackbar
         open={exportSuccess}
-        autoHideDuration={4000}
+        autoHideDuration={6000}
         onClose={() => setExportSuccess(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Alert 
-          onClose={() => setExportSuccess(false)} 
-          severity="success" 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          CSV export completed successfully!
+        <Alert onClose={() => setExportSuccess(false)} severity="success" sx={{ width: '100%' }}>
+          Export completed successfully!
         </Alert>
       </Snackbar>
     </Box>

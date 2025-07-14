@@ -8,7 +8,7 @@ export const useUploadInvoice = () => {
   const { mutateAsync, isPending, isError, error } = useMutation<
     Invoice,
     Error,
-    { file: File; metadata?: Record<string, any> }
+    { file: File; metadata?: Record<string, unknown> }
   >({
     mutationFn: async ({ file, metadata }) => {
       return invoiceApi.uploadInvoice(file, metadata);
@@ -46,12 +46,8 @@ export const useUploadInvoice = () => {
     event.target.value = '';
   };
 
-  const uploadFile = async (file: File, metadata?: Record<string, any>) => {
-    try {
-      return await mutateAsync({ file, metadata });
-    } catch (error) {
-      throw error;
-    }
+  const uploadFile = async (file: File, metadata?: Record<string, unknown>) => {
+    return await mutateAsync({ file, metadata });
   };
 
   return {
