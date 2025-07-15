@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import mongoose from 'mongoose';
 import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
-import { EntityScopePlugin } from '../../../../Common/plugins/entity-scope-new.plugin';
+import { EntityScopePlugin } from '../../../plugins/entity-scope.plugin';
 
 export type InvoiceDocument = HydratedDocument<Invoice>;
 

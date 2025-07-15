@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as MongooseSchema, default as mongoose } from 'mongoose';
 import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
-import { EntityScopePlugin } from '../../../../Common/plugins/entity-scope-new.plugin';
+import { EntityScopePlugin } from '../../../plugins/entity-scope.plugin';
 
 export type SummaryDocument = HydratedDocument<Summary>;
 

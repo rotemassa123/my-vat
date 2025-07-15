@@ -7,22 +7,21 @@ import mongoose from 'mongoose';
  * -----------------
  * Automatically restricts every query / save / aggregate operation to the
  * current entity (entity_id) kept on `express-http-context`.
- * Also adds a required entity_id field to the schema.
+ * Also adds an entity_id field to the schema (required or optional based on options).
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function EntityScopePlugin(schema: Schema) {
-  // Add the entity_id field if it doesn't exist
-  if (!schema.path('entity_id')) {
+export function EntityScopePlugin(schema: Schema, options?: { is_required?: boolean }) {
+  const isRequired = options?.is_required ?? true;
     schema.add({
       entity_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Entity',
-        required: true,
+        required: isRequired,
         index: true,
         alias: 'entityId',
       },
     });
-  }
+  
 
   /* -------------------------------------------------------------------------- */
   /* Helpers                                                                    */

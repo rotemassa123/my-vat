@@ -36,7 +36,7 @@ export class ProfileMongoService implements IProfileRepository {
 
   private mapDocumentToAccountData(doc: AccountDocument): AccountData {
     return {
-      _id: `ObjectId('${doc._id.toString()}')`,
+      _id: doc._id.toString(),
       email: doc.email,
       account_type: doc.account_type as 'individual' | 'business',
       status: doc.status as 'active' | 'inactive' | 'suspended',
@@ -93,7 +93,7 @@ export class ProfileMongoService implements IProfileRepository {
 
   private mapDocumentToUserData(doc: UserDocument): UserData {
     return {
-      _id: `ObjectId('${doc._id.toString()}')`,
+      _id: doc._id.toString(),
       fullName: doc.fullName,
       email: doc.email,
       hashedPassword: doc.hashedPassword,
@@ -192,7 +192,7 @@ export class ProfileMongoService implements IProfileRepository {
 
   private mapDocumentToEntityData(doc: EntityDocument): EntityData {
     return {
-      _id: `ObjectId('${doc._id.toString()}')`,
+      _id: doc._id.toString(),
       accountId: doc.get('account_id').toString(),
       name: doc.name,
       entity_type: doc.entity_type as 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship',

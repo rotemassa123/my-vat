@@ -1,20 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { UserType } from 'src/Common/consts/userType';
+import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
 import mongoose from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' } })
 export class User {
-  @Prop({ 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: 'Account',
-    required: false,
-    index: true,
-    alias: 'accountId'
-  })
-  account_id?: mongoose.Types.ObjectId;
+  // account_id field will be added by AccountScopePlugin as optional
 
   @Prop({ 
     type: mongoose.Schema.Types.ObjectId, 
@@ -52,9 +46,8 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.static('forAccount', function (accountId: string | mongoose.Types.ObjectId) {
-  return this.find({ account_id: accountId });
-});
+// Apply account scope plugin with optional field
+UserSchema.plugin(AccountScopePlugin, { is_required: false });
 
 UserSchema.static('forEntity', function (entityId: string | mongoose.Types.ObjectId) {
   return this.find({ entity_id: entityId });

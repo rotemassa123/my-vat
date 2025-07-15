@@ -7,22 +7,20 @@ import mongoose from 'mongoose';
  * ------------------
  * Automatically restricts every query / save / aggregate operation to the
  * current account (account_id) kept on `express-http-context`.
- * Also adds a required account_id field to the schema.
+ * Also adds an account_id field to the schema (required or optional based on options).
  */
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export function AccountScopePlugin(schema: Schema) {
-  // Add the account_id field if it doesn't exist
-  if (!schema.path('account_id')) {
+export function AccountScopePlugin(schema: Schema, options?: { is_required?: boolean }) {
+  const isRequired = options?.is_required ?? true;
     schema.add({
       account_id: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Account',
-        required: true,
+        required: isRequired,
         index: true,
         alias: 'accountId',
       },
     });
-  }
 
   /* -------------------------------------------------------------------------- */
   /* Helpers                                                                    */
