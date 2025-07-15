@@ -115,6 +115,7 @@ export interface UpdateUserData {
   accountId?: string;
   entityId?: string;
   status?: string;
+  last_login?: Date;
   profile_image_url?: string;
   phone?: string;
 }

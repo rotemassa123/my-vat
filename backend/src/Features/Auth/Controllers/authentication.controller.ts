@@ -60,6 +60,10 @@ export class AuthenticationController {
       throw new UnauthorizedException("Invalid credentials");
     }
 
+    await this.userService.updateUser(user._id, {
+      last_login: new Date(),
+    });
+
     // Create JWT payload (without password)
     const payload = {
       userId: user._id,
