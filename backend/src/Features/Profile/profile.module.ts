@@ -5,12 +5,13 @@ import { UserController } from './Controllers/user.controller';
 import { AccountController } from './Controllers/account.controller';
 import { EntityController } from './Controllers/entity.controller';
 import { ProfileController } from './Controllers/profile.controller';
+import { EmailController } from './Controllers/email.controller';
 
 @Module({
     imports: [
         ProfileInfraModule,
     ],
-    controllers: [UserController, AccountController, EntityController, ProfileController],
+    controllers: [UserController, AccountController, EntityController, ProfileController, EmailController],
     providers: [PasswordService]
 })
 export class ProfileModule {}

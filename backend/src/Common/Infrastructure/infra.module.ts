@@ -10,6 +10,8 @@ import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfile
 import { ProfileMongoService } from "src/Common/Infrastructure/Services/profile-mongo-service";
 import { IGCSService } from "src/Common/ApplicationCore/Services/IGCSService";
 import { GCSService } from "src/Common/Infrastructure/Services/GCSService";
+import { IGmailService } from "src/Common/ApplicationCore/Services/IGmailService";
+import { GmailService } from "src/Common/Infrastructure/Services/gmail.service";
 import { User, UserSchema } from "./DB/schemas/user.schema";
 import { TenantContextInterceptor } from "../interceptors/context.interceptor";
 import { APP_INTERCEPTOR } from "@nestjs/core";
@@ -38,8 +40,9 @@ import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
     DatabaseInitializationService,
     { provide: IProfileRepository, useExisting: ProfileMongoService },
     { provide: IGCSService, useClass: GCSService },
+    { provide: IGmailService, useClass: GmailService },
     { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },
   ],
-  exports: [MongooseModule, JwtModule, IProfileRepository, IGCSService],
+  exports: [MongooseModule, JwtModule, IProfileRepository, IGCSService, IGmailService],
 })
 export class InfraModule {}
