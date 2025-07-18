@@ -1,0 +1,238 @@
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { IGmailService, BatchEmailOptions, BatchEmailResult } from 'src/Common/ApplicationCore/Services/IGmailService';
+import { IProfileRepository } from 'src/Common/ApplicationCore/Services/IProfileRepository';
+import { UserType } from 'src/Common/consts/userType';
+import { SendInvitationRequest, InvitationResult, SendInvitationResponse } from '../Requests/invitation.requests';
+import * as httpContext from 'express-http-context';
+
+interface InvitationEmailData {
+  email: string;
+  inviterName: string;
+  accountName: string;
+  entityName?: string;
+  personalMessage?: string;
+  inviteUrl: string;
+}
+
+@Injectable()
+export class InvitationService {
+  private readonly logger = new Logger(InvitationService.name);
+
+  constructor(
+    private readonly gmailService: IGmailService,
+    private readonly profileRepository: IProfileRepository
+  ) {}
+
+  async sendInvitations(request: SendInvitationRequest): Promise<SendInvitationResponse> {
+    try {
+      // Get context information
+      const accountId = httpContext.get('account_id') as string;
+      const userId = httpContext.get('user_id') as string;
+
+      if (!accountId || !userId) {
+        throw new BadRequestException('Missing account or user context');
+      }
+
+      // Validate request requirements
+      await this.validateRequestRequirements(request);
+
+      // Get account and user information
+      const [account, inviter] = await Promise.all([
+        this.profileRepository.findAccountById(accountId),
+        this.profileRepository.findUserById(userId)
+      ]);
+
+      if (!account || !inviter) {
+        throw new BadRequestException('Account or user not found');
+      }
+
+      // Get entity information (required for member invitations)
+      const entity = await this.profileRepository.findEntityById(request.entityId);
+      if (!entity) {
+        throw new BadRequestException('Entity not found');
+      }
+
+      // Process invitations using batch emails (all invitations are for members)
+      const invitationResults = await this.processInvitationsBatch(request, account, inviter, entity);
+
+      // Calculate statistics
+      const successful = invitationResults.filter(r => r.success).length;
+      const failed = invitationResults.filter(r => !r.success).length;
+
+      this.logger.log(`Invitation batch completed: ${successful} successful, ${failed} failed`);
+
+      return {
+        totalProcessed: request.emails.length,
+        successful,
+        failed,
+        results: invitationResults
+      };
+
+    } catch (error) {
+      this.logger.error('Failed to send invitations', error);
+      throw error;
+    }
+  }
+
+  private async validateRequestRequirements(request: SendInvitationRequest): Promise<void> {
+    // Entity ID is required for member/guest roles (default role is member)
+    if (!request.entityId) {
+      throw new BadRequestException('Entity ID is required when inviting members');
+    }
+  }
+
+  private async processInvitationsBatch(
+    request: SendInvitationRequest,
+    account: any,
+    inviter: any,
+    entity: any
+  ): Promise<InvitationResult[]> {
+    try {
+      // Prepare batch emails for all users (no existing user checks)
+      const batchEmails: BatchEmailOptions[] = request.emails.map((email, index) => {
+        const emailData: InvitationEmailData = {
+          email,
+          inviterName: inviter.fullName,
+          accountName: account.name,
+          entityName: entity?.name,
+          personalMessage: request.personalMessage,
+          inviteUrl: this.generateInviteUrl(email, account._id, entity?._id)
+        };
+
+        return {
+          to: email,
+          subject: `Invitation to join ${account.name} on MyVAT`,
+          html: this.generateInvitationEmailHtml(emailData),
+          text: this.generateInvitationEmailText(emailData),
+          batchId: `invitation_${index}_${Date.now()}`
+        };
+      });
+
+      // Send batch emails
+      this.logger.log(`Sending batch of ${batchEmails.length} invitation emails`);
+      const batchResults = await this.gmailService.sendBatchEmails(batchEmails);
+
+      // Map batch results to invitation results
+      const invitationResults: InvitationResult[] = batchResults.map(result => ({
+        email: result.email,
+        success: result.success,
+        message: result.success ? 'Invitation sent successfully' : result.error || 'Failed to send invitation',
+        errorCode: result.success ? undefined : 'send_failed',
+        messageId: result.messageId
+      }));
+
+      return invitationResults;
+
+    } catch (error) {
+      this.logger.error('Failed to process invitations batch', error);
+      
+      // Return failed results for all emails
+      return request.emails.map(email => ({
+        email,
+        success: false,
+        message: error.message || 'Failed to send invitation',
+        errorCode: 'send_failed'
+      }));
+    }
+  }
+
+  private async sendInvitationEmail(data: InvitationEmailData): Promise<void> {
+    const subject = `Invitation to join ${data.accountName} on MyVAT`;
+    const htmlContent = this.generateInvitationEmailHtml(data);
+    const textContent = this.generateInvitationEmailText(data);
+
+    await this.gmailService.sendEmail({
+      to: data.email,
+      subject,
+      html: htmlContent,
+      text: textContent
+    });
+  }
+
+  private generateInvitationEmailHtml(data: InvitationEmailData): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+            .content { padding: 20px; }
+            .button { display: inline-block; padding: 12px 24px; background-color: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 20px 0; }
+            .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; font-size: 12px; color: #666; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h2>You're invited to join ${data.accountName}</h2>
+            </div>
+            <div class="content">
+              <p>Hello!</p>
+              <p>${data.inviterName} has invited you to join <strong>${data.accountName}</strong> on MyVAT as a <strong>Member</strong>${data.entityName ? ` for ${data.entityName}` : ''}.</p>
+              
+              ${data.personalMessage ? `
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0;">
+                  <h4>Personal message from ${data.inviterName}:</h4>
+                  <p><em>${data.personalMessage}</em></p>
+                </div>
+              ` : ''}
+              
+              <p>Click the button below to accept the invitation and set up your account:</p>
+              
+              <a href="${data.inviteUrl}" class="button">Accept Invitation</a>
+              
+              <p>If the button doesn't work, copy and paste this link into your browser:</p>
+              <p><a href="${data.inviteUrl}">${data.inviteUrl}</a></p>
+              
+              <p>This invitation will expire in 7 days.</p>
+            </div>
+            <div class="footer">
+              <p>This invitation was sent by ${data.inviterName} from ${data.accountName}.</p>
+              <p>If you weren't expecting this invitation, you can safely ignore this email.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  private generateInvitationEmailText(data: InvitationEmailData): string {
+    return `
+You're invited to join ${data.accountName}
+
+Hello!
+
+${data.inviterName} has invited you to join ${data.accountName} on MyVAT as a Member${data.entityName ? ` for ${data.entityName}` : ''}.
+
+${data.personalMessage ? `
+Personal message from ${data.inviterName}:
+${data.personalMessage}
+` : ''}
+
+To accept the invitation and set up your account, visit:
+${data.inviteUrl}
+
+This invitation will expire in 7 days.
+
+---
+This invitation was sent by ${data.inviterName} from ${data.accountName}.
+If you weren't expecting this invitation, you can safely ignore this email.
+    `;
+  }
+
+  private generateInviteUrl(email: string, accountId: string, entityId?: string): string {
+    // TODO: Replace with actual frontend URL from config
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const params = new URLSearchParams({
+      email,
+      role: UserType.member.toString(),
+      accountId,
+      ...(entityId && { entityId })
+    });
+    
+    return `${baseUrl}/accept-invitation?${params.toString()}`;
+  }
+} 

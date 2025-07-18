@@ -24,22 +24,22 @@ import {
   Google 
 } from '@mui/icons-material';
 import { useInviteModalStore } from '../../store/modalStore';
+import { useProfileStore } from '../../store/profileStore';
 import styles from './InviteModal.module.scss';
 
 interface InviteModalProps {
   // Optional props for customization
   title?: string;
-  productOptions?: string[];
 }
 
 const InviteModal: React.FC<InviteModalProps> = ({ 
-  title = "Invite to users MyVat",
-  productOptions = ["Entity A", "Entity B", "Entity C"]
+  title = "Invite to users MyVat"
 }) => {
   const { isModalOpen, closeModal } = useInviteModalStore();
+  const { entities } = useProfileStore();
   
   // State management
-  const [selectedProduct, setSelectedProduct] = useState<string>('');
+  const [selectedEntity, setSelectedEntity] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('member');
   interface EmailTag {
     id: string;
@@ -60,8 +60,8 @@ const InviteModal: React.FC<InviteModalProps> = ({
   };
 
   // Event handlers
-  const handleProductChange = (event: SelectChangeEvent<string>) => {
-    setSelectedProduct(event.target.value);
+  const handleEntityChange = (event: SelectChangeEvent<string>) => {
+    setSelectedEntity(event.target.value);
   };
 
   const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,7 +128,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
   const handleInviteSubmit = () => {
     // TODO: Implement invite functionality
     console.log('Invite submitted:', {
-      selectedProduct,
+      selectedEntity,
       selectedRole,
       emailTags,
       personalMessage
@@ -156,8 +156,8 @@ const InviteModal: React.FC<InviteModalProps> = ({
             </Typography>
             <FormControl fullWidth>
               <Select
-                value={selectedProduct}
-                onChange={handleProductChange}
+                value={selectedEntity}
+                onChange={handleEntityChange}
                 className={styles.select}
                 displayEmpty
                 disabled={selectedRole === 'admin'}
@@ -165,12 +165,17 @@ const InviteModal: React.FC<InviteModalProps> = ({
                   if (selectedRole === 'admin') {
                     return "Admins are automatically assigned to all account entities";
                   }
-                  return value || "Select entity...";
+                  if (!value) {
+                    return "Select entity...";
+                  }
+                  // Find the entity by ID and return its name
+                  const selectedEntityData = entities.find(entity => entity._id === value);
+                  return selectedEntityData ? selectedEntityData.name : "Select entity...";
                 }}
               >
-                {productOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
+                {entities.map((entity) => (
+                  <MenuItem key={entity._id} value={entity._id}>
+                    {entity.name}
                   </MenuItem>
                 ))}
               </Select>

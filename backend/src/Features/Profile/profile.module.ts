@@ -6,12 +6,14 @@ import { AccountController } from './Controllers/account.controller';
 import { EntityController } from './Controllers/entity.controller';
 import { ProfileController } from './Controllers/profile.controller';
 import { EmailController } from './Controllers/email.controller';
+import { InvitationController } from './Controllers/invitation.controller';
+import { InvitationService } from './Services/invitation.service';
 
 @Module({
     imports: [
         ProfileInfraModule,
     ],
-    controllers: [UserController, AccountController, EntityController, ProfileController, EmailController],
-    providers: [PasswordService]
+    controllers: [UserController, AccountController, EntityController, ProfileController, EmailController, InvitationController],
+    providers: [PasswordService, InvitationService]
 })
 export class ProfileModule {}

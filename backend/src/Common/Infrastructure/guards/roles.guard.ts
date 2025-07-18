@@ -1,7 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { UserType } from 'src/Common/consts/userType';
-import {ConfigService} from "@nestjs/config";
+import { ConfigService } from "@nestjs/config";
+import * as httpContext from 'express-http-context';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -14,9 +15,9 @@ export class RolesGuard implements CanActivate {
         }
 
         const requiredRoles: UserType[] = this.reflector.get<UserType[]>('roles', context.getHandler()) || [];
-        const request = context.switchToHttp().getRequest();
+        const userType = httpContext.get('user_type') as UserType;
 
-        if (!requiredRoles.includes(request.user?.userType)) {
+        if (!userType || !requiredRoles.includes(userType)) {
             throw new ForbiddenException("You do not have permission to access this resource.");
         }
 
