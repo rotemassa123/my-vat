@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Modal, 
   Typography, 
   IconButton, 
-  TextField, 
   MenuItem, 
   Select, 
   FormControl, 
@@ -15,16 +14,20 @@ import {
   Collapse, 
   TextareaAutosize,
   Button,
+  Alert,
+  CircularProgress,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { 
   Close, 
   ExpandMore, 
-  ExpandLess, 
-  Google 
+  ExpandLess,
+  CheckCircle,
+  Email,
 } from '@mui/icons-material';
 import { useInviteModalStore } from '../../store/modalStore';
 import { useProfileStore } from '../../store/profileStore';
+import { useInviteUsers } from '../../hooks/invitation/useInviteUsers';
 import styles from './InviteModal.module.scss';
 
 interface InviteModalProps {
@@ -37,6 +40,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
 }) => {
   const { isModalOpen, closeModal } = useInviteModalStore();
   const { entities } = useProfileStore();
+  const { sendInvitations, isLoading, isError, error, data } = useInviteUsers();
   
   // State management
   const [selectedEntity, setSelectedEntity] = useState<string>('');
@@ -52,6 +56,34 @@ const InviteModal: React.FC<InviteModalProps> = ({
   const [emailError, setEmailError] = useState<string>('');
   const [isPersonalExpanded, setIsPersonalExpanded] = useState<boolean>(false);
   const [personalMessage, setPersonalMessage] = useState<string>('');
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
+
+  // Reset form state when modal is closed
+  useEffect(() => {
+    if (!isModalOpen) {
+      setShowSuccess(false);
+      setEmailTags([]);
+      setNewEmail('');
+      setSelectedEntity('');
+      setSelectedRole('member');
+      setPersonalMessage('');
+      setEmailError('');
+      setIsPersonalExpanded(false);
+    }
+  }, [isModalOpen]);
+
+  // Custom close handler that resets form
+  const handleCloseModal = () => {
+    setShowSuccess(false);
+    setEmailTags([]);
+    setNewEmail('');
+    setSelectedEntity('');
+    setSelectedRole('member');
+    setPersonalMessage('');
+    setEmailError('');
+    setIsPersonalExpanded(false);
+    closeModal();
+  };
 
   // Email validation function
   const isValidEmail = (email: string): boolean => {
@@ -125,31 +157,107 @@ const InviteModal: React.FC<InviteModalProps> = ({
 
 
 
-  const handleInviteSubmit = () => {
-    // TODO: Implement invite functionality
-    console.log('Invite submitted:', {
-      selectedEntity,
-      selectedRole,
-      emailTags,
-      personalMessage
-    });
-    closeModal();
+  const handleInviteSubmit = async () => {
+    // Validate form
+    if (!selectedEntity) {
+      setEmailError('Please select an entity');
+      return;
+    }
+    
+    if (emailTags.length === 0) {
+      setEmailError('Please add at least one email address');
+      return;
+    }
+    
+    // Check for invalid emails
+    const invalidEmails = emailTags.filter(tag => !tag.isValid);
+    if (invalidEmails.length > 0) {
+      setEmailError('Please fix invalid email addresses');
+      return;
+    }
+    
+    try {
+      const validEmails = emailTags.map(tag => tag.email);
+      
+      await sendInvitations({
+        emails: validEmails,
+        entityId: selectedEntity,
+        personalMessage: personalMessage || undefined,
+      });
+      
+      // Show success message
+      setShowSuccess(true);
+    } catch (err) {
+      // Error is handled by the hook
+      console.error('Failed to send invitations:', err);
+    }
   };
 
-  return (
-    <Modal open={isModalOpen} onClose={closeModal}>
-      <Box className={styles.modalContainer}>
-        <Box className={styles.modalHeader}>
-          <Typography variant="h6" className={styles.modalTitle}>
-            {title}
-          </Typography>
-          <IconButton onClick={closeModal} className={styles.closeButton}>
-            <Close />
-          </IconButton>
-        </Box>
+  // Success state component
+  const renderSuccessState = () => (
+    <Box className={styles.modalContainer}>
+      <Box className={styles.modalHeader}>
+        <IconButton onClick={handleCloseModal} className={styles.closeButton}>
+          <Close />
+        </IconButton>
+      </Box>
 
-        <Box className={styles.modalContent}>
-          {/* Entity Selection */}
+      <Box className={styles.successContent}>
+        <Box className={styles.successIcon}>
+          <CheckCircle sx={{ fontSize: 64, color: '#4CAF50' }} />
+        </Box>
+        
+        <Typography variant="h5" className={styles.successTitle}>
+          Invitations sent successfully!
+        </Typography>
+        
+        <Typography variant="body1" className={styles.successSubtitle}>
+          {data?.successful} invitation{data?.successful !== 1 ? 's' : ''} sent
+          {data?.failed && data.failed > 0 ? ` • ${data.failed} failed` : ''}
+        </Typography>
+        
+        <Box className={styles.successEmails}>
+          <Email sx={{ fontSize: 20, color: '#666', mb: 1 }} />
+          <Typography variant="body2" className={styles.successEmailText}>
+            Invitation emails are on their way to your selected recipients.
+            They'll receive instructions on how to join your account.
+          </Typography>
+        </Box>
+        
+        <Button
+          variant="contained"
+          onClick={handleCloseModal}
+          className={styles.successButton}
+          size="large"
+        >
+          Done
+        </Button>
+      </Box>
+    </Box>
+  );
+
+  return (
+    <Modal open={isModalOpen} onClose={handleCloseModal}>
+      {showSuccess ? renderSuccessState() : (
+        <Box className={styles.modalContainer}>
+          <Box className={styles.modalHeader}>
+            <Typography variant="h6" className={styles.modalTitle}>
+              {title}
+            </Typography>
+            <IconButton onClick={handleCloseModal} className={styles.closeButton}>
+              <Close />
+            </IconButton>
+          </Box>
+
+          <Box className={styles.modalContent}>
+            {/* Error Display */}
+            {isError && error && (
+              <Alert severity="error" sx={{ mb: 2 }}>
+                {error.message || 'Failed to send invitations. Please try again.'}
+              </Alert>
+            )}
+
+            {/* Entity Selection */}
           <Box className={styles.formGroup}>
             <Typography className={styles.label}>
               Choose entity
@@ -292,11 +400,14 @@ const InviteModal: React.FC<InviteModalProps> = ({
             className={styles.inviteButton}
             size="large"
             onClick={handleInviteSubmit}
+            disabled={isLoading || emailTags.length === 0 || !selectedEntity}
+            startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
           >
-            Invite
+            {isLoading ? 'Sending...' : 'Invite'}
           </Button>
         </Box>
       </Box>
+      )}
     </Modal>
   );
 };

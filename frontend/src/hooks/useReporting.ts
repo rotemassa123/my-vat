@@ -163,7 +163,7 @@ export const useReporting = ({
     // User context
     userScope: metadata?.user_scope,
     cacheHit: metadata?.cache_hit,
-    canViewAllEntities: user?.userType === 'admin',
+    canViewAllEntities: user?.userType === 1, // 1 = admin
     
     // Actions
     refresh: refetch,

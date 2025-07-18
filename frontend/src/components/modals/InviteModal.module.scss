@@ -413,6 +413,92 @@
   }
 }
 
+// Success State
+.successContent {
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  min-height: 320px;
+  justify-content: center;
+}
+
+.successIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  animation: successPulse 1.5s ease-in-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.successTitle {
+  font-weight: 600 !important;
+  font-size: 24px !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.successSubtitle {
+  font-size: 16px !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+}
+
+.successEmails {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  max-width: 380px;
+  margin: 12px 0;
+}
+
+.successEmailText {
+  font-size: 14px !important;
+  color: #6b7280 !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+}
+
+.successButton {
+  background-color: #2563eb !important;
+  color: #fff !important;
+  padding: 12px 48px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  min-width: 140px !important;
+  margin-top: 12px !important;
+  
+  &:hover {
+    background-color: #1d4ed8 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+  }
+  
+  transition: all 0.2s ease !important;
+}
+
 // Responsive Design
 @media (max-width: 768px) {
   .modalContainer {
@@ -440,5 +526,29 @@
   
   .googleWorkspace {
     align-self: flex-start;
+  }
+  
+  // Success state responsive
+  .successContent {
+    padding: 32px 20px;
+    min-height: 350px;
+    gap: 20px;
+  }
+  
+  .successTitle {
+    font-size: 24px !important;
+  }
+  
+  .successSubtitle {
+    font-size: 14px !important;
+  }
+  
+  .successEmailText {
+    font-size: 13px !important;
+  }
+  
+  .successButton {
+    padding: 10px 32px !important;
+    font-size: 14px !important;
   }
 } 
