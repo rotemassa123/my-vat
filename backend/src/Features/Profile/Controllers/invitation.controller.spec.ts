@@ -21,6 +21,7 @@ describe('InvitationController', () => {
   const mockProfileRepository = {
     createUser: jest.fn(),
     createUsersBatch: jest.fn(),
+    getUsersForAccount: jest.fn(),
   };
 
   const mockConfigService = {
@@ -81,6 +82,8 @@ describe('InvitationController', () => {
         { _id: 'user-1', email: 'test@example.com' },
         { _id: 'user-2', email: 'user@example.com' }
       ]);
+      // Default mock for getUsersForAccount - no existing users
+      mockProfileRepository.getUsersForAccount.mockResolvedValue([]);
     });
 
     it('should send invitations successfully and create users in batch', async () => {
@@ -125,11 +128,16 @@ describe('InvitationController', () => {
       expect(mockProfileRepository.createUser).not.toHaveBeenCalled();
     });
 
-    it('should remove duplicate emails', async () => {
+    it('should remove duplicate emails from request and check against existing users', async () => {
       const requestWithDuplicates: SendInvitationRequest = {
         emails: ['test@example.com', 'TEST@EXAMPLE.COM', 'user@example.com', 'test@example.com'],
         entityId: '507f1f77bcf86cd799439011'
       };
+
+      // Mock existing users in account
+      mockProfileRepository.getUsersForAccount.mockResolvedValue([
+        { _id: 'existing-user', email: 'existing@example.com', fullName: 'Existing User' }
+      ]);
 
       const expectedResponse: SendInvitationResponse = {
         totalProcessed: 2,
@@ -153,7 +161,7 @@ describe('InvitationController', () => {
 
       const result = await controller.sendInvitations(requestWithDuplicates);
 
-      // Should call service with deduplicated emails
+      // Should call service with deduplicated emails (no existing users match)
       expect(invitationService.sendInvitations).toHaveBeenCalledWith({
         emails: ['test@example.com', 'user@example.com'],
         entityId: '507f1f77bcf86cd799439011'
@@ -183,6 +191,100 @@ describe('InvitationController', () => {
           profile_image_url: 'https://via.placeholder.com/150x150/cccccc/ffffff?text=User'
         }
       ]);
+    });
+
+    it('should reject emails that already exist in the account', async () => {
+      const request: SendInvitationRequest = {
+        emails: ['existing@example.com', 'new@example.com'],
+        entityId: '507f1f77bcf86cd799439011'
+      };
+
+      // Mock existing users in account
+      mockProfileRepository.getUsersForAccount.mockResolvedValue([
+        { _id: 'existing-user', email: 'existing@example.com', fullName: 'Existing User' }
+      ]);
+
+      const expectedResponse: SendInvitationResponse = {
+        totalProcessed: 1,
+        successful: 1,
+        failed: 0,
+        results: [
+          {
+            email: 'new@example.com',
+            success: true,
+            message: 'Invitation sent successfully'
+          }
+        ]
+      };
+
+      mockInvitationService.sendInvitations.mockResolvedValue(expectedResponse);
+
+      const result = await controller.sendInvitations(request);
+
+      // Should call service with only new emails
+      expect(invitationService.sendInvitations).toHaveBeenCalledWith({
+        emails: ['new@example.com'],
+        entityId: '507f1f77bcf86cd799439011'
+      });
+
+      // Should return combined results
+      expect(result).toEqual({
+        totalProcessed: 2,
+        successful: 1,
+        failed: 1,
+        results: [
+          {
+            email: 'existing@example.com',
+            success: false,
+            message: 'User already exists in this account',
+            errorCode: 'user_already_exists'
+          },
+          {
+            email: 'new@example.com',
+            success: true,
+            message: 'Invitation sent successfully'
+          }
+        ]
+      });
+    });
+
+    it('should handle case where all emails already exist in account', async () => {
+      const request: SendInvitationRequest = {
+        emails: ['existing1@example.com', 'existing2@example.com'],
+        entityId: '507f1f77bcf86cd799439011'
+      };
+
+      // Mock existing users in account
+      mockProfileRepository.getUsersForAccount.mockResolvedValue([
+        { _id: 'user1', email: 'existing1@example.com', fullName: 'User 1' },
+        { _id: 'user2', email: 'existing2@example.com', fullName: 'User 2' }
+      ]);
+
+      const result = await controller.sendInvitations(request);
+
+      // Should not call invitation service since all emails are duplicates
+      expect(invitationService.sendInvitations).not.toHaveBeenCalled();
+
+      // Should return all failed results
+      expect(result).toEqual({
+        totalProcessed: 2,
+        successful: 0,
+        failed: 2,
+        results: [
+          {
+            email: 'existing1@example.com',
+            success: false,
+            message: 'User already exists in this account',
+            errorCode: 'user_already_exists'
+          },
+          {
+            email: 'existing2@example.com',
+            success: false,
+            message: 'User already exists in this account',
+            errorCode: 'user_already_exists'
+          }
+        ]
+      });
     });
 
     it('should create user records with correct status based on email success', async () => {

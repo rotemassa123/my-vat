@@ -18,12 +18,23 @@ export class SendInvitationRequest {
 
   @ApiProperty({
     example: '686174a98307686bff647c0d',
-    description: 'ID of the entity to invite users to (required for member/guest roles)',
+    description: 'ID of the entity to invite users to (required for member/guest roles, optional for admin)',
     required: false
   })
   @IsOptional()
   @IsMongoId()
   entityId?: string;
+
+  @ApiProperty({
+    example: 'member',
+    description: 'Role to assign to the invited users (admin, member, viewer)',
+    enum: ['admin', 'member', 'viewer'],
+    required: false,
+    default: 'member'
+  })
+  @IsOptional()
+  @IsEnum(['admin', 'member', 'viewer'])
+  role?: 'admin' | 'member' | 'viewer';
 
   @ApiProperty({
     example: 'Welcome to our VAT processing platform!',

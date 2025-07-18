@@ -220,5 +220,52 @@ describe('InvitationService', () => {
         ],
       });
     });
+
+    it('should send admin invitations without entity', async () => {
+      // Clear previous mock calls
+      mockProfileRepository.findEntityById.mockClear();
+      
+      const adminRequest: SendInvitationRequest = {
+        emails: ['admin@example.com'],
+        role: 'admin',
+        personalMessage: 'Welcome to the admin team!',
+      };
+
+      // Mock successful batch email sending
+      mockGmailService.sendBatchEmails.mockResolvedValue([
+        {
+          success: true,
+          messageId: 'msg_123',
+          email: 'admin@example.com',
+        },
+      ]);
+
+      const result = await service.sendInvitations(adminRequest);
+
+      expect(result).toEqual({
+        totalProcessed: 1,
+        successful: 1,
+        failed: 0,
+        results: [
+          {
+            email: 'admin@example.com',
+            success: true,
+            message: 'Invitation sent successfully',
+            messageId: 'msg_123',
+          },
+        ],
+      });
+
+      // Should not call findEntityById for admin invitations
+      expect(mockProfileRepository.findEntityById).not.toHaveBeenCalled();
+
+      // Should send email with admin role
+      expect(mockGmailService.sendBatchEmails).toHaveBeenCalledWith([
+        expect.objectContaining({
+          to: 'admin@example.com',
+          subject: 'Invitation to join Test Account on MyVAT',
+        }),
+      ]);
+    });
   });
 }); 

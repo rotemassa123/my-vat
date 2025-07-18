@@ -159,7 +159,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
 
   const handleInviteSubmit = async () => {
     // Validate form
-    if (!selectedEntity) {
+    if (selectedRole !== 'admin' && !selectedEntity) {
       setEmailError('Please select an entity');
       return;
     }
@@ -181,7 +181,8 @@ const InviteModal: React.FC<InviteModalProps> = ({
       
       await sendInvitations({
         emails: validEmails,
-        entityId: selectedEntity,
+        entityId: selectedRole === 'admin' ? undefined : selectedEntity,
+        role: selectedRole as 'admin' | 'member' | 'viewer',
         personalMessage: personalMessage || undefined,
       });
       
@@ -400,7 +401,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
             className={styles.inviteButton}
             size="large"
             onClick={handleInviteSubmit}
-            disabled={isLoading || emailTags.length === 0 || !selectedEntity}
+            disabled={isLoading || emailTags.length === 0 || (selectedRole !== 'admin' && !selectedEntity)}
             startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
           >
             {isLoading ? 'Sending...' : 'Invite'}

@@ -46,13 +46,16 @@ export class InvitationService {
         throw new BadRequestException('Account or user not found');
       }
 
-      // Get entity information (required for member invitations)
-      const entity = await this.profileRepository.findEntityById(request.entityId);
-      if (!entity) {
-        throw new BadRequestException('Entity not found');
+      // Get entity information (required for member invitations, optional for admin)
+      let entity = null;
+      if (request.entityId) {
+        entity = await this.profileRepository.findEntityById(request.entityId);
+        if (!entity) {
+          throw new BadRequestException('Entity not found');
+        }
       }
 
-      // Process invitations using batch emails (all invitations are for members)
+      // Process invitations using batch emails
       const invitationResults = await this.processInvitationsBatch(request, account, inviter, entity);
 
       // Calculate statistics
@@ -75,9 +78,11 @@ export class InvitationService {
   }
 
   private async validateRequestRequirements(request: SendInvitationRequest): Promise<void> {
-    // Entity ID is required for member/guest roles (default role is member)
-    if (!request.entityId) {
-      throw new BadRequestException('Entity ID is required when inviting members');
+    const role = request.role || 'member';
+    
+    // Entity ID is required for member/viewer roles, optional for admin
+    if (role !== 'admin' && !request.entityId) {
+      throw new BadRequestException('Entity ID is required when inviting members or viewers');
     }
   }
 
@@ -88,6 +93,8 @@ export class InvitationService {
     entity: any
   ): Promise<InvitationResult[]> {
     try {
+      const role = request.role || 'member';
+      
       // Prepare batch emails for all users (no existing user checks)
       const batchEmails: BatchEmailOptions[] = request.emails.map((email, index) => {
         const emailData: InvitationEmailData = {
@@ -96,14 +103,14 @@ export class InvitationService {
           accountName: account.company_name,
           entityName: entity?.name,
           personalMessage: request.personalMessage,
-          inviteUrl: this.generateInviteUrl(email, account._id, entity?._id)
+          inviteUrl: this.generateInviteUrl(email, account._id, entity?._id, role)
         };
 
         return {
           to: email,
           subject: `Invitation to join ${account.company_name} on MyVAT`,
-          html: this.generateInvitationEmailHtml(emailData),
-          text: this.generateInvitationEmailText(emailData),
+          html: this.generateInvitationEmailHtml(emailData, role),
+          text: this.generateInvitationEmailText(emailData, role),
           batchId: `invitation_${index}_${Date.now()}`
         };
       });
@@ -149,7 +156,7 @@ export class InvitationService {
     });
   }
 
-  private generateInvitationEmailHtml(data: InvitationEmailData): string {
+  private generateInvitationEmailHtml(data: InvitationEmailData, role: string = 'member'): string {
     return `
       <!DOCTYPE html>
       <html>
@@ -171,7 +178,7 @@ export class InvitationService {
             </div>
             <div class="content">
               <p>Hello!</p>
-              <p>${data.inviterName} has invited you to join <strong>${data.accountName}</strong> on MyVAT as a <strong>Member</strong>${data.entityName ? ` for ${data.entityName}` : ''}.</p>
+              <p>${data.inviterName} has invited you to join <strong>${data.accountName}</strong> on MyVAT as a <strong>${role.charAt(0).toUpperCase() + role.slice(1)}</strong>${data.entityName ? ` for ${data.entityName}` : ''}.</p>
               
               ${data.personalMessage ? `
                 <div style="background-color: #f8f9fa; padding: 15px; border-radius: 4px; margin: 20px 0;">
@@ -199,13 +206,13 @@ export class InvitationService {
     `;
   }
 
-  private generateInvitationEmailText(data: InvitationEmailData): string {
+  private generateInvitationEmailText(data: InvitationEmailData, role: string = 'member'): string {
     return `
 You're invited to join ${data.accountName}
 
 Hello!
 
-${data.inviterName} has invited you to join ${data.accountName} on MyVAT as a Member${data.entityName ? ` for ${data.entityName}` : ''}.
+${data.inviterName} has invited you to join ${data.accountName} on MyVAT as a ${role.charAt(0).toUpperCase() + role.slice(1)}${data.entityName ? ` for ${data.entityName}` : ''}.
 
 ${data.personalMessage ? `
 Personal message from ${data.inviterName}:
@@ -223,12 +230,22 @@ If you weren't expecting this invitation, you can safely ignore this email.
     `;
   }
 
-  private generateInviteUrl(email: string, accountId: string, entityId?: string): string {
+  private generateInviteUrl(email: string, accountId: string, entityId?: string, role: string = 'member'): string {
     // TODO: Replace with actual frontend URL from config
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    
+    // Map role string to UserType enum
+    const roleMap: { [key: string]: number } = {
+      'admin': UserType.admin,
+      'member': UserType.member,
+      'viewer': UserType.guest
+    };
+    
+    const userType = roleMap[role] || UserType.member;
+    
     const params = new URLSearchParams({
       email,
-      role: UserType.member.toString(),
+      role: userType.toString(),
       accountId,
       ...(entityId && { entityId })
     });

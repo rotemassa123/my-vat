@@ -20,32 +20,92 @@ export class InvitationController {
   @RequireRoles(UserType.admin, UserType.operator)
   @Post('send')
   async sendInvitations(@Body() request: SendInvitationRequest): Promise<SendInvitationResponse> {
-    // Remove duplicate emails (case-insensitive)
-    const uniqueEmails = [...new Set(request.emails.map(email => email.toLowerCase()))];
-    const deduplicatedRequest = { ...request, emails: uniqueEmails };
+    // Get context information for user creation
+    const accountId = httpContext.get('account_id') as string;
+
+    // Remove duplicate emails (case-insensitive) from the request
+    const uniqueRequestEmails = [...new Set(request.emails.map(email => email.toLowerCase()))];
+    
+    // Get existing users for this account to check for duplicates
+    const existingUsers = await this.profileRepository.getUsersForAccount();
+    const existingEmails = new Set(existingUsers.map(user => user.email.toLowerCase()));
+    
+    // Filter out emails that already exist in the account
+    const newEmails = uniqueRequestEmails.filter(email => !existingEmails.has(email));
+    const duplicateEmails = uniqueRequestEmails.filter(email => existingEmails.has(email));
+    
+    // Log duplicate detection
+    if (duplicateEmails.length > 0) {
+      this.logger.log(`Found ${duplicateEmails.length} duplicate emails in account: ${duplicateEmails.join(', ')}`);
+    }
+    
+    if (newEmails.length === 0) {
+      this.logger.warn('All emails are already users in this account');
+      return {
+        totalProcessed: uniqueRequestEmails.length,
+        successful: 0,
+        failed: uniqueRequestEmails.length,
+        results: uniqueRequestEmails.map(email => ({
+          email,
+          success: false,
+          message: 'User already exists in this account',
+          errorCode: 'user_already_exists'
+        }))
+      };
+    }
+
+    // Create deduplicated request with only new emails
+    const deduplicatedRequest = { ...request, emails: newEmails };
 
     // Send invitations using the service
     const invitationResponse = await this.invitationService.sendInvitations(deduplicatedRequest);
 
-    // Get context information for user creation
-    const accountId = httpContext.get('account_id') as string;
-
     // Create user records based on invitation results
-    await this.createUserRecordsFromInvitations(invitationResponse, accountId, request.entityId);
+    const role = request.role || 'member';
+    await this.createUserRecordsFromInvitations(invitationResponse, accountId, request.entityId, role);
 
-    // Return response with deduplicated count
+    // Combine results: existing duplicates (failed) + new invitations (success/failed)
+    const allResults = [
+      // Add failed results for duplicate emails
+      ...duplicateEmails.map(email => ({
+        email,
+        success: false,
+        message: 'User already exists in this account',
+        errorCode: 'user_already_exists'
+      })),
+      // Add results from new invitations
+      ...invitationResponse.results
+    ];
+
+    // Calculate total statistics
+    const totalSuccessful = invitationResponse.successful;
+    const totalFailed = duplicateEmails.length + invitationResponse.failed;
+
+    // Return response with all results
     return {
-      ...invitationResponse,
-      totalProcessed: uniqueEmails.length,
+      totalProcessed: uniqueRequestEmails.length,
+      successful: totalSuccessful,
+      failed: totalFailed,
+      results: allResults
     };
   }
 
   private async createUserRecordsFromInvitations(
     invitationResponse: SendInvitationResponse,
     accountId: string,
-    entityId: string
+    entityId: string | undefined,
+    role: string = 'member'
   ): Promise<void> {
     try {
+      // Map role string to UserType enum
+      const roleMap: { [key: string]: number } = {
+        'admin': UserType.admin,
+        'member': UserType.member,
+        'viewer': UserType.guest
+      };
+      
+      const userType = roleMap[role] || UserType.member;
+      
       // Prepare user data for batch creation
       const usersData: CreateUserData[] = invitationResponse.results.map((result) => {
         const status = result.success ? 'pending' : 'failed to send request';
@@ -53,9 +113,9 @@ export class InvitationController {
         return {
           fullName: result.email.split('@')[0],
           email: result.email,
-          userType: UserType.member,
+          userType,
           accountId,
-          entityId,
+          entityId: entityId || undefined, // Handle undefined entityId for admin users
           status,
           profile_image_url: 'https://via.placeholder.com/150x150/cccccc/ffffff?text=User' // Placeholder profile picture
         };
@@ -78,22 +138,32 @@ export class InvitationController {
       
       // Fallback to individual creation if batch fails
       this.logger.log('Falling back to individual user creation...');
-      await this.createUserRecordsIndividually(invitationResponse, accountId, entityId);
+      await this.createUserRecordsIndividually(invitationResponse, accountId, entityId, role);
     }
   }
 
   private async createUserRecordsIndividually(
     invitationResponse: SendInvitationResponse,
     accountId: string,
-    entityId: string
+    entityId: string | undefined,
+    role: string = 'member'
   ): Promise<void> {
+    // Map role string to UserType enum
+    const roleMap: { [key: string]: number } = {
+      'admin': UserType.admin,
+      'member': UserType.member,
+      'viewer': UserType.guest
+    };
+    
+    const userType = roleMap[role] || UserType.member;
+    
     const userCreationPromises = invitationResponse.results.map(async (result) => {
       const userData: CreateUserData = {
         fullName: result.email.split('@')[0],
         email: result.email,
-        userType: UserType.member,
+        userType,
         accountId,
-        entityId,
+        entityId: entityId || undefined, // Handle undefined entityId for admin users
         profile_image_url: 'https://via.placeholder.com/150x150/cccccc/ffffff?text=User' // Placeholder profile picture
       };
 
