@@ -25,13 +25,13 @@ export class User {
   @Prop({ required: true })
   email: string;
 
-  @Prop({ required: true })
-  hashedPassword: string;
+  @Prop({ required: false })
+  hashedPassword?: string;
 
   @Prop({ required: true, enum: UserType })
   userType: UserType;
 
-  @Prop({ enum: ['active', 'inactive', 'pending'], default: 'pending' })
+  @Prop({ enum: ['active', 'inactive', 'pending', 'failed to send request'], default: 'pending' })
   status: string;
 
   @Prop()

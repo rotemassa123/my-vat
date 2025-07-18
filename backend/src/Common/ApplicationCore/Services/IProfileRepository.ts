@@ -84,7 +84,7 @@ export interface UserData {
   _id: string;
   fullName: string;
   email: string;
-  hashedPassword: string;
+  hashedPassword?: string;
   userType: UserType;
   accountId?: string;
   entityId?: string;
@@ -99,12 +99,13 @@ export interface UserData {
 export interface CreateUserData {
   fullName: string;
   email: string;
-  hashedPassword: string;
+  hashedPassword?: string;
   userType: UserType;
   accountId?: string;
   entityId?: string;
   phone?: string;
   profile_image_url?: string;
+  status?: 'active' | 'inactive' | 'pending' | 'failed to send request';
 }
 
 export interface UpdateUserData {
@@ -214,6 +215,7 @@ export abstract class IProfileRepository {
   abstract findUserById(userId: string): Promise<UserData | null>;
   abstract findUserByEmail(email: string): Promise<UserData | null>;
   abstract createUser(userData: CreateUserData): Promise<UserData>;
+  abstract createUsersBatch(usersData: CreateUserData[]): Promise<UserData[]>;
   abstract updateUser(userId: string, updateData: UpdateUserData): Promise<boolean>;
   abstract deleteUser(userId: string): Promise<boolean>;
   abstract userExists(userId: string): Promise<boolean>;

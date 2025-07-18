@@ -56,7 +56,7 @@ describe('InvitationService', () => {
 
     const mockAccount = {
       _id: '507f1f77bcf86cd799439012',
-      name: 'Test Account',
+      company_name: 'Test Account',
     };
 
     const mockInviter = {

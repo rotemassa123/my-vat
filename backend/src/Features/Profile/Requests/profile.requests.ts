@@ -401,10 +401,10 @@ export class UpdateUserRequest {
   @IsNumber()
   userType?: UserType;
 
-  @ApiProperty({ enum: ['active', 'inactive', 'pending'], required: false, example: 'active' })
+  @ApiProperty({ enum: ['active', 'inactive', 'pending', 'failed to send request'], required: false, example: 'active' })
   @IsOptional()
-  @IsEnum(['active', 'inactive', 'pending'])
-  status?: 'active' | 'inactive' | 'pending';
+  @IsEnum(['active', 'inactive', 'pending', 'failed to send request'])
+  status?: 'active' | 'inactive' | 'pending' | 'failed to send request';
 
   @ApiProperty({ required: false, example: '+1987654321' })
   @IsOptional()

@@ -143,6 +143,34 @@ export class ProfileMongoService implements IProfileRepository {
     return this.mapDocumentToUserData(savedDoc);
   }
 
+  async createUsersBatch(usersData: CreateUserData[]): Promise<UserData[]> {
+    if (usersData.length === 0) {
+      return [];
+    }
+
+    const mongoUsersData = usersData.map(userData => {
+      const mongoUserData: any = {
+        ...userData,
+        status: (userData as any).status || 'pending',
+      };
+      
+      if (userData.accountId) {
+        mongoUserData.account_id = userData.accountId;
+      }
+      delete mongoUserData.accountId;
+      
+      if (userData.entityId) {
+        mongoUserData.entity_id = userData.entityId;
+      }
+      delete mongoUserData.entityId;
+      
+      return mongoUserData;
+    });
+
+    const savedDocs = await this.userModel.insertMany(mongoUsersData);
+    return savedDocs.map(doc => this.mapDocumentToUserData(doc as UserDocument));
+  }
+
   async updateUser(userId: string, updateData: UpdateUserData): Promise<boolean> {
     // Handle the plugin-managed fields separately
     const mongoUpdateData: any = { ...updateData };
