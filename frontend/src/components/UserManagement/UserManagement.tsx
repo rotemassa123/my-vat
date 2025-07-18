@@ -19,7 +19,12 @@ import {
   Typography, 
   Select, 
   FormControl, 
-  InputLabel
+  InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { 
@@ -33,6 +38,7 @@ import {
 } from '@mui/icons-material';
 import { useProfileStore } from '../../store/profileStore';
 import { useInviteModalStore } from '../../store/modalStore';
+import { useUserManagement } from '../../hooks/user/useUserManagement';
 import InviteModal from '../modals/InviteModal';
 import styles from './UserManagement.module.scss';
 
@@ -101,6 +107,7 @@ const formatUserStatus = (status: string): string => {
 const UserManagement: React.FC = () => {
   const { users: profileUsers, entities } = useProfileStore();
   const { openModal } = useInviteModalStore();
+  const { deleteUser, isDeleting, deleteError } = useUserManagement();
   
   // Transform real user data to expected format
   const transformedUsers = useMemo(() => {
@@ -130,6 +137,8 @@ const UserManagement: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [users, setUsers] = useState(transformedUsers);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Update users when transformedUsers changes
   React.useEffect(() => {
@@ -153,9 +162,27 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDeleteUser = () => {
-    // TODO: Implement delete user functionality
-    console.log('Delete user:', selectedUser);
+    if (selectedUser) {
+      setUserToDelete(selectedUser);
+      setDeleteConfirmOpen(true);
+    }
     handleCloseMenu();
+  };
+
+  const handleConfirmDelete = () => {
+    if (userToDelete) {
+      deleteUser(userToDelete);
+      if (deleteError) {
+        console.error('Delete error:', deleteError);
+      }
+    }
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteConfirmOpen(false);
+    setUserToDelete(null);
   };
 
   const handleBlockUser = () => {
@@ -356,20 +383,86 @@ const UserManagement: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleCloseMenu}
         className={styles.actionMenu}
+        PaperProps={{
+          className: styles.menuPaper,
+        }}
+        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
         <MenuItem onClick={handleEditUser} className={styles.menuItem}>
           <Edit className={styles.menuIcon} />
-          Edit User
-        </MenuItem>
-        <MenuItem onClick={handleDeleteUser} className={styles.menuItem}>
-          <Delete className={styles.menuIcon} />
-          Delete User
+          <span className={styles.menuText}>Edit User</span>
         </MenuItem>
         <MenuItem onClick={handleBlockUser} className={styles.menuItem}>
           <Block className={styles.menuIcon} />
-          Block User
+          <span className={styles.menuText}>Deactivate User</span>
+        </MenuItem>
+        <MenuItem 
+          onClick={handleDeleteUser} 
+          className={`${styles.menuItem} ${styles.deleteMenuItem}`}
+          disabled={isDeleting}
+        >
+          <Delete className={styles.menuIcon} />
+          <span className={styles.menuText}>
+            {isDeleting ? 'Deleting...' : 'Delete User'}
+          </span>
         </MenuItem>
       </Menu>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleCancelDelete}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+        PaperProps={{
+          style: {
+            borderRadius: '12px',
+            minWidth: '400px',
+          },
+        }}
+      >
+        <DialogTitle id="delete-dialog-title" sx={{ pb: 1 }}>
+          <Typography variant="h6" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+            Delete User
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this user? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={handleCancelDelete}
+            variant="outlined"
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete}
+            variant="contained"
+            color="error"
+            disabled={isDeleting}
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              backgroundColor: '#d32f2f',
+              '&:hover': {
+                backgroundColor: '#b71c1c',
+              },
+            }}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete User'}
+          </Button>
+        </DialogActions>
+      </Dialog>
       
       {/* Invite Modal */}
       <InviteModal />

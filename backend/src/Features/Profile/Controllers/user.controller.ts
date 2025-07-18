@@ -18,6 +18,7 @@ import { PasswordService } from "src/Common/ApplicationCore/Features/password.se
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 import { UserType } from "src/Common/consts/userType";
+import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
 
 @ApiTags("users")
 @Controller("users")
@@ -230,6 +231,7 @@ export class UserController {
 
   @Delete(":id")
   @ApiParam({ name: "id", type: String })
+  @RequireRoles(UserType.admin, UserType.operator)
   async deleteUser(@Param("id") id: string): Promise<{ success: boolean }> {
     try {
       const existingUser = await this.userService.findUserById(id);
