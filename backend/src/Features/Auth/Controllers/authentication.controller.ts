@@ -49,7 +49,11 @@ export class AuthenticationController {
       throw new UnauthorizedException("Invalid credentials");
     }
 
-    // Check password
+    if (user.status === 'pending' || user.status === 'failed to send request') {
+      logger.warn("Login attempt for pending/failed user", AuthenticationController.name, { email: request.email, status: user.status });
+      throw new UnauthorizedException("Account is pending activation. Please check your email for an invitation link.");
+    }
+
     const isCorrectPassword = await this.passwordService.comparePassword(
       request.password,
       user.hashedPassword
