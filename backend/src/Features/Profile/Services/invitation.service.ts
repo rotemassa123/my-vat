@@ -93,7 +93,7 @@ export class InvitationService {
         const emailData: InvitationEmailData = {
           email,
           inviterName: inviter.fullName,
-          accountName: account.name,
+          accountName: account.company_name,
           entityName: entity?.name,
           personalMessage: request.personalMessage,
           inviteUrl: this.generateInviteUrl(email, account._id, entity?._id)
@@ -101,7 +101,7 @@ export class InvitationService {
 
         return {
           to: email,
-          subject: `Invitation to join ${account.name} on MyVAT`,
+          subject: `Invitation to join ${account.company_name} on MyVAT`,
           html: this.generateInvitationEmailHtml(emailData),
           text: this.generateInvitationEmailText(emailData),
           batchId: `invitation_${index}_${Date.now()}`
@@ -182,7 +182,7 @@ export class InvitationService {
               
               <p>Click the button below to accept the invitation and set up your account:</p>
               
-              <a href="${data.inviteUrl}" class="button">Accept Invitation</a>
+              <a href="${data.inviteUrl}" class="button" style="color: white;">Accept Invitation</a>
               
               <p>If the button doesn't work, copy and paste this link into your browser:</p>
               <p><a href="${data.inviteUrl}">${data.inviteUrl}</a></p>
