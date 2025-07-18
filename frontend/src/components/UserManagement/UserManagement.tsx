@@ -25,13 +25,15 @@ import type { SelectChangeEvent } from '@mui/material/Select';
 import { 
   Search, 
   MoreVert, 
-  Add, 
+  PersonAdd, 
   Edit, 
   Delete, 
   Block, 
   CheckCircle 
 } from '@mui/icons-material';
 import { useProfileStore } from '../../store/profileStore';
+import { useInviteModalStore } from '../../store/modalStore';
+import InviteModal from '../modals/InviteModal';
 import styles from './UserManagement.module.scss';
 
 // Helper function to create avatar initials
@@ -98,6 +100,7 @@ const formatUserStatus = (status: string): string => {
 
 const UserManagement: React.FC = () => {
   const { users: profileUsers, entities } = useProfileStore();
+  const { openModal } = useInviteModalStore();
   
   // Transform real user data to expected format
   const transformedUsers = useMemo(() => {
@@ -207,10 +210,11 @@ const UserManagement: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<Add />}
+          startIcon={<PersonAdd />}
           className={styles.addButton}
+          onClick={openModal}
         >
-          Add User
+          Invite Users
         </Button>
       </Box>
 
@@ -366,6 +370,9 @@ const UserManagement: React.FC = () => {
           Block User
         </MenuItem>
       </Menu>
+      
+      {/* Invite Modal */}
+      <InviteModal />
     </Box>
   );
 };
