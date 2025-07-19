@@ -15,6 +15,7 @@ import { SignInRequest } from "src/Features/Auth/Requests/auth.requests";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
+import { IGoogleOAuthService } from "src/Common/ApplicationCore/Services/IGoogleOAuthService";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { UserType } from "src/Common/consts/userType";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
@@ -33,7 +34,8 @@ export class AuthenticationController {
   constructor(
     private jwtService: JwtService,
     private passwordService: PasswordService,
-    private userService: IProfileRepository
+    private userService: IProfileRepository,
+    private googleOAuthService: IGoogleOAuthService
   ) {}
 
   @PublicEndpointGuard()
@@ -126,5 +128,101 @@ export class AuthenticationController {
     });
 
     return { success: true };
+  }
+
+  @PublicEndpointGuard()
+  @Get("/google")
+  async googleAuth(@Res() response: Response): Promise<void> {
+    const authUrl = this.googleOAuthService.getAuthUrl();
+    logger.info("Initiating Google OAuth", AuthenticationController.name, { authUrl });
+    response.redirect(authUrl);
+  }
+
+  @PublicEndpointGuard()
+  @Get("/google/callback")
+  async googleCallback(
+    @Req() request: Request,
+    @Res() response: Response
+  ): Promise<void> {
+    try {
+      const { code, error } = request.query;
+
+      if (error) {
+        logger.warn("Google OAuth error", AuthenticationController.name, { error });
+        response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=oauth_failed`);
+        return;
+      }
+
+      if (!code) {
+        logger.warn("No authorization code received from Google", AuthenticationController.name);
+        response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=no_code`);
+        return;
+      }
+
+      const googleUserInfo = await this.googleOAuthService.verifyAuthCode(code as string);
+
+      // Check if user exists by email
+      let user = await this.userService.findUserByEmail(googleUserInfo.email);
+      
+      if (!user) {
+        logger.info("Google OAuth user not found, user needs to be invited first", AuthenticationController.name, { 
+          email: googleUserInfo.email 
+        });
+        response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=user_not_found`);
+        return;
+      }
+
+      if (user.status === 'pending' || user.status === 'failed to send request') {
+        logger.warn("Google OAuth login attempt for pending/failed user", AuthenticationController.name, { 
+          email: googleUserInfo.email, 
+          status: user.status 
+        });
+        response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=account_pending`);
+        return;
+      }
+
+      // Update last login and profile picture if needed
+      const updateData: any = { last_login: new Date() };
+      if (googleUserInfo.picture && googleUserInfo.picture !== user.profile_image_url) {
+        updateData.profile_image_url = googleUserInfo.picture;
+      }
+      
+      await this.userService.updateUser(user._id, updateData);
+
+      // Create JWT payload
+      const payload = {
+        userId: user._id,
+        fullName: user.fullName,
+        userType: user.userType,
+        accountId: user.accountId,
+        entityId: user.entityId,
+      };
+
+      // Generate token
+      const token = await this.jwtService.signAsync(payload);
+
+      // Set cookie
+      response.cookie("auth_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+        path: "/",
+      });
+
+      logger.info("Google OAuth login successful", AuthenticationController.name, { 
+        email: googleUserInfo.email,
+        userId: user._id 
+      });
+
+      // Redirect to frontend with success
+      response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?login=success`);
+
+    } catch (error) {
+      logger.error("Google OAuth callback error", AuthenticationController.name, { 
+        error: error.message 
+      });
+      response.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/login?error=oauth_error`);
+    }
   }
 }
