@@ -1,8 +1,12 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { invitationApi, type SendInvitationRequest, type SendInvitationResponse, type ValidateInvitationRequest, type ValidateInvitationResponse, type CompleteSignupRequest, type CompleteSignupResponse } from '../../lib/invitationApi';
+import { profileApi } from '../../lib/profileApi';
+import { useProfileStore } from '../../store/profileStore';
+import { type User } from '../../types/user';
 
 export const useInviteUsers = () => {
   const queryClient = useQueryClient();
+  const { setProfile, users: currentUsers } = useProfileStore();
 
   const { mutateAsync, isPending, isError, error, data } = useMutation<
     SendInvitationResponse,
@@ -12,10 +16,44 @@ export const useInviteUsers = () => {
     mutationFn: async (data: SendInvitationRequest) => {
       return invitationApi.sendInvitations(data);
     },
-    onSuccess: (response) => {
+    onSuccess: async (response, variables) => {
       // Optionally invalidate user-related queries
       queryClient.invalidateQueries({ queryKey: ['users'] });
       queryClient.invalidateQueries({ queryKey: ['profile'] });
+      
+      // Add invited users to the client-side list immediately
+      const invitedUsers: User[] = response.results
+        .filter(result => result.success)
+        .map(result => ({
+          _id: `pending-${Date.now()}-${Math.random()}`, // Temporary ID
+          fullName: 'Pending User',
+          email: result.email,
+          userType: variables.role === 'admin' ? 1 : variables.role === 'member' ? 2 : 3,
+          status: 'pending',
+          accountId: '', // Will be filled when user completes signup
+          entityId: variables.entityId || '',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        }));
+
+      // Add the invited users to the current users list
+      const updatedUsers = [...(currentUsers || []), ...invitedUsers];
+      
+      // Update the profile store with the new users
+      try {
+        const profileData = await profileApi.getProfile();
+        setProfile(profileData);
+        console.log('Profile refreshed after invitation sent');
+      } catch (error) {
+        console.error('Failed to refresh profile after invitation:', error);
+        // Fallback: update with client-side data
+        const currentProfile = useProfileStore.getState();
+        setProfile({
+          account: currentProfile.account || undefined,
+          entities: currentProfile.entities,
+          users: updatedUsers,
+        });
+      }
       
       console.log('Invitations sent successfully:', response);
     },
@@ -49,6 +87,7 @@ export const useValidateInvitation = (invitationData?: ValidateInvitationRequest
 
 export const useCompleteSignup = () => {
   const queryClient = useQueryClient();
+  const { setProfile } = useProfileStore();
 
   const { mutateAsync, isPending, isError, error, data } = useMutation<
     CompleteSignupResponse,
@@ -58,10 +97,19 @@ export const useCompleteSignup = () => {
     mutationFn: async (data: CompleteSignupRequest) => {
       return invitationApi.completeSignup(data);
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       console.log('Signup completed successfully:', response);
       // Optionally invalidate auth-related queries
       queryClient.invalidateQueries({ queryKey: ['auth'] });
+      
+      // Refresh profile data to include the newly signed up user
+      try {
+        const profileData = await profileApi.getProfile();
+        setProfile(profileData);
+        console.log('Profile refreshed after signup completion');
+      } catch (error) {
+        console.error('Failed to refresh profile after signup:', error);
+      }
     },
     onError: (error) => {
       console.error('Failed to complete signup:', error);
@@ -79,4 +127,4 @@ export const useCompleteSignup = () => {
     error,
     data,
   };
-}; 
+};
