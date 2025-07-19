@@ -1,19 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { 
   Box, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Paper, 
   Button, 
   TextField, 
   InputAdornment, 
-  Avatar, 
-  Chip, 
-  IconButton, 
   Menu, 
   MenuItem, 
   Typography, 
@@ -29,17 +19,16 @@ import {
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { 
   Search, 
-  MoreVert, 
   PersonAdd, 
   Edit, 
   Delete, 
-  Block, 
-  CheckCircle 
+  Block
 } from '@mui/icons-material';
 import { useProfileStore } from '../../store/profileStore';
 import { useInviteModalStore } from '../../store/modalStore';
 import { useUserManagement } from '../../hooks/user/useUserManagement';
 import InviteModal from '../modals/InviteModal';
+import UserRow from './UserRow';
 import styles from './UserManagement.module.scss';
 
 // Helper function to create avatar initials
@@ -200,34 +189,6 @@ const UserManagement: React.FC = () => {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return '#4CAF50';
-      case 'Inactive':
-        return '#FF9800';
-      case 'Pending':
-        return '#2196F3';
-      default:
-        return '#9E9E9E';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Active':
-        return <CheckCircle sx={{ fontSize: 16, color: '#4CAF50' }} />;
-      case 'Inactive':
-        return <Block sx={{ fontSize: 16, color: '#FF9800' }} />;
-      case 'Pending':
-        return <CheckCircle sx={{ fontSize: 16, color: '#2196F3' }} />;
-      default:
-        return <CheckCircle sx={{ fontSize: 16, color: '#9E9E9E' }} />;
-    }
-  };
-
-  
-
   return (
     <Box className={styles.userManagement}>
       {/* Header */}
@@ -292,90 +253,29 @@ const UserManagement: React.FC = () => {
       </Box>
 
       {/* Users Table */}
-      <TableContainer component={Paper} className={styles.tableContainer}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell className={styles.tableHeader}>User</TableCell>
-              <TableCell className={styles.tableHeader}>Role</TableCell>
-              <TableCell className={styles.tableHeader}>Status</TableCell>
-              <TableCell className={styles.tableHeader}>Entity</TableCell>
-              <TableCell className={styles.tableHeader}>Last Login</TableCell>
-              <TableCell className={styles.tableHeader}>Created</TableCell>
-              <TableCell className={styles.tableHeader} width="60"></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredUsers.map((user) => (
-              <TableRow key={user.id} className={styles.tableRow}>
-                <TableCell className={styles.userCell}>
-                  <Box className={styles.userInfo}>
-                    <Avatar 
-                      className={styles.avatar}
-                      src={user.avatar.startsWith('http') ? user.avatar : undefined}
-                    >
-                      {user.avatar.startsWith('http') ? '' : user.avatar}
-                    </Avatar>
-                    <Box className={styles.userDetails}>
-                      <Typography variant="body1" className={styles.userName}>
-                        {user.name}
-                      </Typography>
-                      <Typography variant="body2" className={styles.userEmail}>
-                        {user.email}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </TableCell>
-                <TableCell className={styles.roleCell}>
-                  <Chip 
-                    label={user.role} 
-                    className={styles.roleChip}
-                    size="small"
-                  />
-                </TableCell>
-                <TableCell className={styles.statusCell}>
-                  <Box className={styles.statusContainer}>
-                    {getStatusIcon(user.status)}
-                    <Typography 
-                      variant="body2" 
-                      className={styles.statusText}
-                      sx={{ color: getStatusColor(user.status) }}
-                    >
-                      {user.status}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell className={styles.entityCell}>
-                  <Box className={styles.entityContainer}>
-                    <Box className={styles.entityIcon}></Box>
-                    <Typography variant="body2" className={styles.entityName}>
-                      {user.entity}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell className={styles.lastLoginCell}>
-                  <Typography variant="body2" className={styles.lastLoginText}>
-                    {user.lastLogin}
-                  </Typography>
-                </TableCell>
-                <TableCell className={styles.createdCell}>
-                  <Typography variant="body2" className={styles.createdText}>
-                    {user.createdAt}
-                  </Typography>
-                </TableCell>
-                <TableCell className={styles.actionCell}>
-                  <IconButton
-                    onClick={(e: React.MouseEvent<HTMLElement>) => handleActionClick(e, user.id)}
-                    className={styles.actionButton}
-                  >
-                    <MoreVert />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <Box className={styles.tableContainer}>
+        {/* Table Header */}
+        <Box className={styles.tableHeader}>
+          <Box className={styles.headerCell} style={{ width: '30%' }}>User</Box>
+          <Box className={styles.headerCell} style={{ width: '12%' }}>Role</Box>
+          <Box className={styles.headerCell} style={{ width: '12%' }}>Status</Box>
+          <Box className={styles.headerCell} style={{ width: '15%' }}>Entity</Box>
+          <Box className={styles.headerCell} style={{ width: '15%' }}>Last Login</Box>
+          <Box className={styles.headerCell} style={{ width: '12%' }}>Created</Box>
+          <Box className={styles.headerCell} style={{ width: '4%', paddingRight: '24px' }}></Box>
+        </Box>
+        
+        {/* Table Body (Scrollable) */}
+        <Box className={styles.tableBody}>
+          {filteredUsers.map((user) => (
+            <UserRow 
+              key={user.id} 
+              user={user} 
+              onActionClick={handleActionClick}
+            />
+          ))}
+        </Box>
+      </Box>
 
       {/* Action Menu */}
       <Menu
