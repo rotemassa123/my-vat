@@ -232,7 +232,7 @@ If you weren't expecting this invitation, you can safely ignore this email.
 
   private generateInviteUrl(email: string, accountId: string, entityId?: string, role: string = 'member'): string {
     // TODO: Replace with actual frontend URL from config
-    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     
     // Map role string to UserType enum
     const roleMap: { [key: string]: number } = {

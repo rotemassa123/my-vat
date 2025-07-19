@@ -44,16 +44,47 @@ export class AuthenticationController {
     @Body() request: SignInRequest,
     @Res({ passthrough: true }) response: Response
   ): Promise<UserResponse> {
-    const user = await this.userService.findUserByEmail(request.email);
+    // Normalize and validate email format
+    const normalizedEmail = request.email.toLowerCase().trim();
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      logger.warn("Invalid email format during login attempt", AuthenticationController.name, { 
+        email: request.email 
+      });
+      throw new UnauthorizedException("Invalid credentials");
+    }
+
+    const user = await this.userService.findUserByEmail(normalizedEmail);
 
     if (!user) {
-      logger.warn("User not found during authentication attempt", AuthenticationController.name, { email: request.email });
+      logger.warn("User not found during authentication attempt", AuthenticationController.name, { 
+        email: normalizedEmail 
+      });
+      throw new UnauthorizedException("Invalid credentials");
+    }
+
+    // Ensure the email matches exactly (prevent email tampering)
+    if (user.email.toLowerCase() !== normalizedEmail) {
+      logger.warn("Email mismatch during login attempt", AuthenticationController.name, { 
+        userEmail: user.email, 
+        requestEmail: normalizedEmail 
+      });
       throw new UnauthorizedException("Invalid credentials");
     }
 
     if (user.status === 'pending' || user.status === 'failed to send request') {
-      logger.warn("Login attempt for pending/failed user", AuthenticationController.name, { email: request.email, status: user.status });
+      logger.warn("Login attempt for pending/failed user", AuthenticationController.name, { 
+        email: normalizedEmail, 
+        status: user.status 
+      });
       throw new UnauthorizedException("Account is pending activation. Please check your email for an invitation link.");
+    }
+
+    // Additional security: Ensure user has a password set
+    if (!user.hashedPassword) {
+      logger.warn("Login attempt for user without password", AuthenticationController.name, { 
+        email: normalizedEmail 
+      });
+      throw new UnauthorizedException("Account setup is not complete. Please use your invitation link to set up your account.");
     }
 
     const isCorrectPassword = await this.passwordService.comparePassword(
@@ -62,7 +93,9 @@ export class AuthenticationController {
     );
 
     if (!isCorrectPassword) {
-      logger.warn("Failed authentication attempt", AuthenticationController.name, { email: request.email });
+      logger.warn("Failed authentication attempt", AuthenticationController.name, { 
+        email: normalizedEmail 
+      });
       throw new UnauthorizedException("Invalid credentials");
     }
 
@@ -89,6 +122,11 @@ export class AuthenticationController {
       sameSite: "strict",
       maxAge: 24 * 60 * 60 * 1000,
       path: "/",
+    });
+
+    logger.info("Successful login", AuthenticationController.name, { 
+      email: normalizedEmail,
+      userId: user._id 
     });
 
     return {

@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, IsOptional, IsEnum, IsArray, IsMongoId, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import { IsEmail, IsString, IsOptional, IsEnum, IsArray, IsMongoId, ArrayMinSize, ArrayMaxSize, Length } from 'class-validator';
 import { UserType } from 'src/Common/consts/userType';
 
 export class SendInvitationRequest {
@@ -82,28 +82,121 @@ export class InvitationResult {
   messageId?: string;
 }
 
-export class SendInvitationResponse {
-  @ApiProperty({
-    example: 5,
-    description: 'Total number of invitations processed'
-  })
+export interface SendInvitationResponse {
   totalProcessed: number;
-
-  @ApiProperty({
-    example: 3,
-    description: 'Number of invitations sent successfully'
-  })
   successful: number;
-
-  @ApiProperty({
-    example: 2,
-    description: 'Number of invitations that failed'
-  })
   failed: number;
+  results: InvitationResult[];
+}
+
+export class ValidateInvitationRequest {
+  @ApiProperty({
+    example: 'user@example.com',
+    description: 'Email address from the invitation URL'
+  })
+  @IsEmail()
+  email: string;
 
   @ApiProperty({
-    type: [InvitationResult],
-    description: 'Detailed results for each email address'
+    example: '686174a98307686bff647c0d',
+    description: 'Account ID from the invitation URL'
   })
-  results: InvitationResult[];
+  @IsMongoId()
+  accountId: string;
+
+  @ApiProperty({
+    example: '2',
+    description: 'User role from the invitation URL'
+  })
+  @IsString()
+  role: string;
+
+  @ApiProperty({
+    example: '686174a98307686bff647c0e',
+    description: 'Entity ID from the invitation URL (optional for admin)',
+    required: false
+  })
+  @IsOptional()
+  @IsMongoId()
+  entityId?: string;
+}
+
+export interface ValidateInvitationResponse {
+  isValid: boolean;
+  user?: {
+    _id: string;
+    fullName: string;
+    email: string;
+    userType: number;
+    status: string;
+  };
+  account?: {
+    _id: string;
+    company_name: string;
+    account_type: string;
+  };
+  entity?: {
+    _id: string;
+    name: string;
+  };
+  inviter?: {
+    fullName: string;
+  };
+  error?: string;
+}
+
+export class CompleteSignupRequest {
+  @ApiProperty({
+    example: 'user@example.com',
+    description: 'Email address from the invitation'
+  })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({
+    example: 'John Doe',
+    description: 'Full name of the user'
+  })
+  @IsString()
+  fullName: string;
+
+  @ApiProperty({
+    example: 'securePassword123!',
+    description: 'Password for the user account'
+  })
+  @IsString()
+  @Length(8, 128, { message: 'Password must be between 8 and 128 characters' })
+  password: string;
+
+  @ApiProperty({
+    example: '+1234567890',
+    description: 'Phone number (optional)',
+    required: false
+  })
+  @IsOptional()
+  @IsString()
+  phone?: string;
+
+  @ApiProperty({
+    example: 'https://example.com/avatar.jpg',
+    description: 'Profile image URL (optional)',
+    required: false
+  })
+  @IsOptional()
+  @IsString()
+  profile_image_url?: string;
+}
+
+export interface CompleteSignupResponse {
+  success: boolean;
+  user: {
+    _id: string;
+    fullName: string;
+    email: string;
+    userType: number;
+    accountId: string;
+    entityId?: string;
+    status: string;
+  };
+  message: string;
 } 

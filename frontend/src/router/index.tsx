@@ -11,6 +11,7 @@ import ProtectedRoute from "../components/ProtectedRoute";
 // Lazy load components for better performance
 const AppLayout = lazy(() => import("../components/layout/AppLayout"));
 const LoginPage = lazy(() => import("../pages/LoginPage"));
+const AcceptInvitationPage = lazy(() => import("../pages/AcceptInvitationPage"));
 const DashboardPage = lazy(() => import("../pages/DashboardPage"));
 const AnalysisPage = lazy(() => import("../pages/AnalysisPage"));
 const ReportingPage = lazy(() => import("../pages/ReportingPage"));
@@ -32,6 +33,12 @@ const router = createBrowserRouter(
       <Route path="/login" element={
         <Suspense fallback={<LoadingSpinner />}>
           <LoginPage />
+        </Suspense>
+      } />
+      
+      <Route path="/accept-invitation" element={
+        <Suspense fallback={<LoadingSpinner />}>
+          <AcceptInvitationPage />
         </Suspense>
       } />
 
