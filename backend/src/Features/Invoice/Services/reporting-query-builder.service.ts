@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { FilterQuery } from 'mongoose';
+import { FilterQuery, Types } from 'mongoose';
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { InvoiceDocument } from 'src/Common/Infrastructure/DB/schemas/invoice.schema';
+import { UserType } from 'src/Common/consts/userType';
 
 export interface UserContext {
   accountId: string;
   entityId?: string;
-  userType: 'admin' | 'member' | 'guest' | 'operator';
+  userType: UserType;
 }
 
 @Injectable()
@@ -14,12 +15,12 @@ export class ReportingQueryBuilderService {
   
   buildTenantQuery(user: UserContext, params: ReportingQueryRequest): FilterQuery<InvoiceDocument> {
     const query: FilterQuery<InvoiceDocument> = {
-      account_id: user.accountId, // Always restrict by account
+      account_id: new Types.ObjectId(user.accountId), // Convert string to ObjectId
     };
 
     // Add entity restriction for non-admin users
-    if (user.userType === 'member' || user.userType === 'guest') {
-      query.entity_id = user.entityId;
+    if (user.userType === UserType.member || user.userType === UserType.viewer) {
+      query.entity_id = new Types.ObjectId(user.entityId);
     }
     // Admin users see all entities in their account (no entity_id filter)
 

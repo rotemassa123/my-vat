@@ -4,46 +4,45 @@ import {
   Query,
   UseGuards,
   Req,
+  Delete,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiQuery } from "@nestjs/swagger";
 import { ReportingQueryRequest } from "../Requests/reporting.requests";
 import { ReportingService } from "../Services/reporting.service";
+import { ReportingCacheService } from "../Services/reporting-cache.service";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
+import { UserType } from "src/Common/consts/userType";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 
 @ApiTags("reporting")
 @Controller("reporting")
 @UseGuards(AuthenticationGuard)
 export class ReportingController {
-  constructor(private readonly reportingService: ReportingService) {}
+  constructor(
+    private readonly reportingService: ReportingService,
+    private readonly cacheService: ReportingCacheService
+  ) {}
 
   @Get("invoices")
-  @ApiOperation({ 
-    summary: 'Get reporting data with advanced filtering and sorting',
-    description: 'Retrieve invoices with comprehensive filtering, pagination, sorting, and tenant isolation'
-  })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-500)', example: 100 })
-  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip for pagination', example: 0 })
-  @ApiQuery({ name: 'sort_by', required: false, type: String, description: 'Field to sort by', example: 'created_at' })
-  @ApiQuery({ name: 'sort_order', required: false, enum: ['asc', 'desc'], description: 'Sort order', example: 'desc' })
-  @ApiQuery({ name: 'status', required: false, type: [String], description: 'Filter by status values' })
-  @ApiQuery({ name: 'vat_scheme', required: false, type: [String], description: 'Filter by VAT schemes' })
-  @ApiQuery({ name: 'currency', required: false, type: [String], description: 'Filter by currencies' })
+  @ApiOperation({ summary: "Get paginated and filtered reporting data" })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "skip", required: false, type: Number })
   async getReportingData(
     @Query() params: ReportingQueryRequest,
-    @Req() request: { user: { accountId: string; entityId?: string; userType: 'admin' | 'member' | 'guest' | 'operator'; userId: string } }
+    @Req() request: { user: { accountId: string; entityId?: string; userType: UserType; userId: string } }
   ) {
     try {
       const user = request.user;
       const userContext = {
         accountId: user.accountId,
         entityId: user.entityId,
-        userType: user.userType,
+        userType: user.userType, // Keep numeric
       };
 
       logger.info("Fetching reporting data", ReportingController.name, { 
         params: JSON.stringify(params),
-        user: userContext
+        user: userContext,
+        originalUserType: user.userType // Log original for debugging
       });
 
       const result = await this.reportingService.getReportingData(userContext, params);
@@ -67,5 +66,16 @@ export class ReportingController {
     }
   }
 
-
+  @Delete("cache")
+  @ApiOperation({ summary: "Clear all reporting cache" })
+  async clearCache() {
+    try {
+      this.cacheService.invalidateAll();
+      logger.info("Reporting cache cleared", ReportingController.name);
+      return { success: true, message: "Cache cleared successfully" };
+    } catch (error) {
+      logger.error("Error clearing cache", ReportingController.name, { error: error.message });
+      throw error;
+    }
+  }
 } 

@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { UserType } from 'src/Common/consts/userType';
 import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 export type UserDocument = HydratedDocument<User>;
 

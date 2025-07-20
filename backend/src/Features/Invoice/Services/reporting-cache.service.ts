@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { createHash } from 'crypto';
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { UserContext } from './reporting-query-builder.service';
+import { UserType } from 'src/Common/consts/userType';
 
 interface CacheEntry {
   data: unknown;
@@ -19,7 +20,7 @@ export class ReportingCacheService {
     const baseKey = `reporting:${user.accountId}`;
     
     // Add entity restriction for members/guests
-    const entityKey = user.userType === 'member' || user.userType === 'guest' 
+    const entityKey = user.userType === UserType.member || user.userType === UserType.viewer 
       ? `:${user.entityId}` 
       : ':all'; // Admins see all entities in account
     

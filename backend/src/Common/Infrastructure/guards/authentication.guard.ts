@@ -73,7 +73,7 @@ export class AuthenticationGuard implements CanActivate {
         }
         
         // Member/Guest: must have both accountId and entityId
-        if (userType === UserType.member || userType === UserType.guest) {
+        if (userType === UserType.member || userType === UserType.viewer) {
             if (!accountId || !entityId) {
                 throw new UnauthorizedException('Member/Guest users must have both account and entity associations');
             }

@@ -90,7 +90,7 @@ export class UserController {
         if (createUserRequest.entityId) {
           throw new BadRequestException('Admin user must not have entity_id');
         }
-      } else if (createUserRequest.userType === UserType.member || createUserRequest.userType === UserType.guest) {
+      } else if (createUserRequest.userType === UserType.member || createUserRequest.userType === UserType.viewer) {
         // Member/Guest: must have both account_id and entity_id
         if (!createUserRequest.accountId) {
           throw new BadRequestException('Member/Guest user must have account_id');
@@ -181,7 +181,7 @@ export class UserController {
         }
         
         // If user is being set to member/guest after being admin, ensure they have an entity
-        if ((updateUserRequest.userType === UserType.member || updateUserRequest.userType === UserType.guest) &&
+        if ((updateUserRequest.userType === UserType.member || updateUserRequest.userType === UserType.viewer) &&
             existingUser.userType === UserType.admin) {
           if (!updateUserRequest.entityId) {
             throw new BadRequestException("Member/Guest users must have an entity_id");

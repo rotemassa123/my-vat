@@ -48,7 +48,7 @@ export class ProfileController {
       }
 
       // Member/Guest: Account data + their specific entity
-      if (userType === UserType.member || userType === UserType.guest) {
+      if (userType === UserType.member || userType === UserType.viewer) {
         const entity = await this.profileService.findEntityById(user.entityId);
          if (!entity) {
           throw new NotFoundException('Entity not found');

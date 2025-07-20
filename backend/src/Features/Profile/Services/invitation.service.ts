@@ -238,7 +238,7 @@ If you weren't expecting this invitation, you can safely ignore this email.
     const roleMap: { [key: string]: number } = {
       'admin': UserType.admin,
       'member': UserType.member,
-      'viewer': UserType.guest
+      'viewer': UserType.viewer
     };
     
     const userType = roleMap[role] || UserType.member;

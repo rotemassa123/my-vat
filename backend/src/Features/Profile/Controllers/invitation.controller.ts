@@ -164,7 +164,7 @@ export class InvitationController {
         '0': UserType.operator,
         '1': UserType.admin,
         '2': UserType.member,
-        '3': UserType.guest
+        '3': UserType.viewer
       };
       
       const expectedUserType = roleMap[request.role];
@@ -193,7 +193,7 @@ export class InvitationController {
       }
 
       // For member/guest roles, validate entity ID
-      if ((user.userType === UserType.member || user.userType === UserType.guest) && user.entityId !== request.entityId) {
+      if ((user.userType === UserType.member || user.userType === UserType.viewer) && user.entityId !== request.entityId) {
         this.logger.warn('Entity ID mismatch during validation', InvitationController.name, { 
           userEntityId: user.entityId, 
           requestEntityId: request.entityId,
@@ -358,7 +358,7 @@ export class InvitationController {
       const roleMap: { [key: string]: number } = {
         'admin': UserType.admin,
         'member': UserType.member,
-        'viewer': UserType.guest
+        'viewer': UserType.viewer
       };
       
       const userType = roleMap[role] || UserType.member;
@@ -409,7 +409,7 @@ export class InvitationController {
     const roleMap: { [key: string]: number } = {
       'admin': UserType.admin,
       'member': UserType.member,
-      'viewer': UserType.guest
+      'viewer': UserType.viewer
     };
     
     const userType = roleMap[role] || UserType.member;

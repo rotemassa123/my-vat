@@ -5,6 +5,7 @@ import { Invoice, InvoiceDocument } from 'src/Common/Infrastructure/DB/schemas/i
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { ReportingQueryBuilderService, UserContext } from './reporting-query-builder.service';
 import { ReportingCacheService } from './reporting-cache.service';
+import { UserType } from 'src/Common/consts/userType';
 import { logger } from 'src/Common/Infrastructure/Config/Logger';
 
 export interface ReportingResult {
@@ -17,7 +18,7 @@ export interface ReportingResult {
     user_scope: {
       account_id: string;
       entity_id?: string;
-      user_type: string;
+      user_type: UserType;
     };
     cache_hit: boolean;
   };
@@ -70,7 +71,9 @@ export class ReportingService {
         .skip(params.skip || 0)
         .lean() // Critical for performance
         .exec(),
-      this.invoiceModel.countDocuments(query).exec()
+      this.invoiceModel
+        .countDocuments(query)
+        .exec()
     ]);
 
     // Enrich data with computed fields
