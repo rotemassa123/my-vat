@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Box,
   Typography,
@@ -6,90 +6,19 @@ import {
   MenuItem,
   Chip,
   Button,
-  IconButton,
-  Paper,
-  CircularProgress,
   Alert,
-  Tooltip,
   Snackbar,
   Popover,
-  Badge,
   Stack,
 } from '@mui/material';
-import {
-  FilterList as FilterIcon,
-  Download as DownloadIcon,
-  Refresh as RefreshIcon,
-  HourglassTop as ProcessingIcon,
-  Error as ErrorIcon,
-  Cancel as NotClaimableIcon,
-  CheckCircle as ClaimableIcon,
-  Schedule as AwaitingIcon,
-  ThumbUp as AcceptedIcon,
-  ThumbDown as RejectedIcon,
-} from '@mui/icons-material';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import { format } from 'date-fns';
 import { useReporting } from '../hooks/useReporting';
 import { InvoiceApiService } from '../lib/invoiceApi';
-import type { InvoiceStatus } from '../types/api';
 import type { ReportingFilters } from '../types/reporting';
+import { ReportingHeader, ReportingTable } from '../components/reporting';
 import styles from './ReportingPage.module.scss';
 
-const ROW_HEIGHT = 60;
-
-// Status configuration with beautiful styling
-const STATUS_CONFIG = {
-  processing: {
-    label: 'Processing',
-    color: '#2196f3',
-    backgroundColor: '#e3f2fd',
-    icon: ProcessingIcon,
-    description: 'File is being processed (discovery, upload, analysis)',
-  },
-  failed: {
-    label: 'Failed',
-    color: '#f44336',
-    backgroundColor: '#ffebee',
-    icon: ErrorIcon,
-    description: 'Processing failed - check reason for details',
-  },
-  not_claimable: {
-    label: 'Not Claimable',
-    color: '#ff9800',
-    backgroundColor: '#fff3e0',
-    icon: NotClaimableIcon,
-    description: 'Document determined to be not claimable',
-  },
-  claimable: {
-    label: 'Ready to Claim',
-    color: '#4caf50',
-    backgroundColor: '#e8f5e8',
-    icon: ClaimableIcon,
-    description: 'Document is claimable and ready for submission',
-  },
-  awaiting_claim_result: {
-    label: 'Awaiting Result',
-    color: '#9c27b0',
-    backgroundColor: '#f3e5f5',
-    icon: AwaitingIcon,
-    description: 'Claim submitted, waiting for result',
-  },
-  claim_accepted: {
-    label: 'Claim Accepted',
-    color: '#4caf50',
-    backgroundColor: '#e8f5e8',
-    icon: AcceptedIcon,
-    description: 'Claim was accepted and approved',
-  },
-  claim_rejected: {
-    label: 'Claim Rejected',
-    color: '#f44336',
-    backgroundColor: '#ffebee',
-    icon: RejectedIcon,
-    description: 'Claim was rejected',
-  },
-};
+// Status configuration moved to ReportingTableRow component
 
 const CURRENCY_OPTIONS = ['EUR', 'USD', 'GBP', 'CAD', 'AUD'];
 const VAT_SCHEMES = ['standard', 'reduced', 'zero', 'exempt', 'reverse_charge', 'margin_scheme', 'import_vat', 'export_vat'];
@@ -120,48 +49,6 @@ const ReportingPage: React.FC = () => {
     pageSize: 100,
     enabled: true,
   });
-
-  // Virtual scrolling setup
-  const parentRef = useRef<HTMLDivElement>(null);
-  
-  const virtualizer = useVirtualizer({
-    count: hasMore ? allInvoices.length + 1 : allInvoices.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 20,
-  });
-
-  // Auto-load more when near bottom
-  useEffect(() => {
-    const virtualItems = virtualizer.getVirtualItems();
-    const [lastItem] = [...virtualItems].reverse();
-
-    if (!lastItem) return;
-
-    if (
-      lastItem.index >= allInvoices.length - 10 && // Load more when 10 items from end
-      hasMore &&
-      !isFetchingNextPage
-    ) {
-      loadMore();
-    }
-  }, [hasMore, loadMore, isFetchingNextPage, virtualizer, allInvoices.length]);
-
-  // Prefetch next page when scrolling
-  useEffect(() => {
-    const virtualItems = virtualizer.getVirtualItems();
-    const [lastItem] = [...virtualItems].reverse();
-
-    if (!lastItem) return;
-
-    if (
-      lastItem.index >= allInvoices.length - 50 && // Prefetch when 50 items from end
-      hasMore &&
-      !isFetchingNextPage
-    ) {
-      prefetchNext();
-    }
-  }, [prefetchNext, hasMore, isFetchingNextPage, virtualizer, allInvoices.length]);
 
   // Event handlers
   const handleFilterChange = useCallback((key: keyof ReportingFilters, value: string | string[]) => {
@@ -301,65 +188,7 @@ const ReportingPage: React.FC = () => {
     return format(new Date(dateString), 'MMM dd, yyyy');
   }, []);
 
-  const renderStatusChip = useCallback((status: InvoiceStatus, reason?: string) => {
-    const config = STATUS_CONFIG[status];
-    if (!config) {
-      // Fallback: show the raw status as a basic chip
-      return (
-        <Chip
-          label={status || 'Unknown'}
-          size="small"
-          sx={{
-            backgroundColor: '#f5f5f5',
-            color: '#666',
-            border: '1px solid #ccc',
-          }}
-        />
-      );
-    }
-
-    const IconComponent = config.icon;
-    
-    const chip = (
-      <Chip
-        icon={<IconComponent sx={{ fontSize: '16px !important' }} />}
-        label={config.label}
-        size="small"
-        sx={{
-          backgroundColor: config.backgroundColor,
-          color: config.color,
-          border: `1px solid ${config.color}`,
-          fontWeight: 600,
-          '& .MuiChip-icon': {
-            color: config.color,
-          },
-        }}
-      />
-    );
-
-    // Add tooltip with description and reason if available
-    const tooltipTitle = (
-      <Box>
-        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-          {config.label}
-        </Typography>
-        <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-          {config.description}
-        </Typography>
-        {reason && (
-          <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontStyle: 'italic' }}>
-            Reason: {reason}
-          </Typography>
-        )}
-      </Box>
-    );
-
-    return (
-      <Tooltip title={tooltipTitle} arrow placement="top">
-        {chip}
-      </Tooltip>
-    );
-  }, []);
+  // Status chip rendering moved to ReportingTableRow component
 
   if (isError) {
     return (
@@ -374,88 +203,17 @@ const ReportingPage: React.FC = () => {
   return (
     <Box className={styles.container}>
       {/* Header */}
-      <Box className={styles.header}>
-        <Box>
-          <Typography className={styles.title}>
-            Invoice Claims Reporting
-          </Typography>
-          <Typography className={styles.subtitle}>
-            {totalCount > 0 
-              ? `${totalCount} claims found${getActiveFiltersText()}` 
-              : isLoading 
-                ? 'Loading...' 
-                : 'No claims found'
-            }
-          </Typography>
-        </Box>
-        
-        <Box className={styles.headerActions}>
-          <Badge 
-            badgeContent={getActiveFiltersCount()} 
-            color="primary"
-            sx={{
-              '& .MuiBadge-badge': {
-                backgroundColor: '#1976d2',
-                color: 'white',
-                fontWeight: 600,
-                fontSize: '11px',
-                minWidth: '18px',
-                height: '18px',
-                borderRadius: '9px',
-              }
-            }}
-          >
-            <Button
-              variant="outlined"
-              startIcon={<FilterIcon />}
-              onClick={handleFilterClick}
-              className={styles.filterButton}
-              sx={{
-                backgroundColor: isFilterOpen ? '#f0f8ff' : 'transparent',
-                borderColor: getActiveFiltersCount() > 0 ? '#1976d2' : '#e0e0e0',
-                color: getActiveFiltersCount() > 0 ? '#1976d2' : '#666',
-                fontWeight: getActiveFiltersCount() > 0 ? 600 : 400,
-                borderRadius: '8px',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  backgroundColor: '#f0f8ff',
-                  borderColor: '#1976d2',
-                  color: '#1976d2',
-                  transform: 'translateY(-1px)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                }
-              }}
-            >
-              Filter
-            </Button>
-          </Badge>
-          <Tooltip 
-            title={
-              allInvoices.length === 0 
-                ? "No invoices to export" 
-                : `Export ${totalCount} invoice${totalCount !== 1 ? 's' : ''} ${filters.status && filters.status.length > 0 ? `(filtered by: ${filters.status.join(', ')})` : ''}`
-            }
-            arrow
-          >
-            <span>
-              <Button
-                variant="outlined"
-                startIcon={isExporting ? <CircularProgress size={16} /> : <DownloadIcon />}
-                onClick={handleExport}
-                disabled={isLoading || allInvoices.length === 0 || isExporting}
-                sx={{
-                  minWidth: '120px', // Prevent button width changes during loading
-                }}
-              >
-                {isExporting ? 'Exporting...' : `Export CSV (${totalCount})`}
-              </Button>
-            </span>
-          </Tooltip>
-          <IconButton onClick={() => refreshInvoices()} disabled={isLoading}>
-            <RefreshIcon />
-          </IconButton>
-        </Box>
-      </Box>
+      <ReportingHeader
+        totalCount={totalCount}
+        isLoading={isLoading}
+        isExporting={isExporting}
+        activeFiltersCount={getActiveFiltersCount()}
+        activeFiltersText={getActiveFiltersText()}
+        onFilterClick={handleFilterClick}
+        onExportClick={handleExport}
+        onRefreshClick={() => refreshInvoices()}
+        isFilterOpen={isFilterOpen}
+      />
 
       {/* Export Error Alert */}
       {exportError && (
@@ -470,7 +228,7 @@ const ReportingPage: React.FC = () => {
         </Alert>
       )}
 
-      {/* Filter Popup */}
+      {/* Filter Popup - Preserved existing functionality */}
       <Popover
         open={isFilterOpen}
         anchorEl={filterAnchorEl}
@@ -526,23 +284,14 @@ const ReportingPage: React.FC = () => {
                 Status
               </Typography>
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                {Object.entries(STATUS_CONFIG).map(([status, config]) => (
+                {['processing', 'failed', 'not_claimable', 'claimable', 'awaiting_claim_result', 'claim_accepted', 'claim_rejected'].map((status) => (
                   <Chip
                     key={status}
-                    label={config.label}
+                    label={status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                     onClick={() => handleStatusToggle(status)}
                     variant={filters.status?.includes(status) ? 'filled' : 'outlined'}
                     color={filters.status?.includes(status) ? 'primary' : 'default'}
                     size="small"
-                    sx={{
-                      borderColor: config.color,
-                      color: filters.status?.includes(status) ? 'white' : config.color,
-                      backgroundColor: filters.status?.includes(status) ? config.color : 'transparent',
-                      '&:hover': {
-                        backgroundColor: config.color,
-                        color: 'white',
-                      }
-                    }}
                   />
                 ))}
               </Box>
@@ -599,116 +348,17 @@ const ReportingPage: React.FC = () => {
         </Box>
       </Popover>
 
-      {/* Virtual Scrolling Table */}
-      <Paper sx={{ mt: 2 }}>
-        <Box
-          ref={parentRef}
-          sx={{
-            height: 600,
-            overflow: 'auto',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          {isLoading && allInvoices.length === 0 ? (
-            <Box display="flex" justifyContent="center" alignItems="center" height="100%">
-              <CircularProgress />
-            </Box>
-          ) : (
-            <Box
-              sx={{
-                height: `${virtualizer.getTotalSize()}px`,
-                width: '100%',
-                position: 'relative',
-              }}
-            >
-              {virtualizer.getVirtualItems().map((virtualItem) => {
-                const isLoaderRow = virtualItem.index > allInvoices.length - 1;
-                const invoice = allInvoices[virtualItem.index];
-
-                return (
-                  <Box
-                    key={virtualItem.index}
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: `${virtualItem.size}px`,
-                      transform: `translateY(${virtualItem.start}px)`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      px: 2,
-                      borderBottom: '1px solid #f0f0f0',
-                      '&:hover': {
-                        backgroundColor: '#f9f9f9',
-                      }
-                    }}
-                  >
-                    {isLoaderRow ? (
-                      hasMore ? (
-                        <Box display="flex" justifyContent="center" alignItems="center" width="100%">
-                          <CircularProgress size={24} />
-                          <Typography variant="body2" ml={1}>
-                            Loading more invoices...
-                          </Typography>
-                        </Box>
-                      ) : (
-                        <Box display="flex" justifyContent="center" alignItems="center" width="100%">
-                          <Typography variant="body2" color="text.secondary">
-                            No more invoices to load
-                          </Typography>
-                        </Box>
-                      )
-                    ) : (
-                      <>
-                        <Box sx={{ width: 200, flexShrink: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                            {invoice.name || 'Unnamed Invoice'}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ width: 150, flexShrink: 0 }}>
-                          <Typography variant="body2">
-                            {invoice.supplier || '-'}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ width: 120, flexShrink: 0 }}>
-                          {renderStatusChip(invoice.status as InvoiceStatus)}
-                        </Box>
-                        <Box sx={{ width: 100, flexShrink: 0 }}>
-                          <Typography variant="body2">
-                            {formatCurrency(invoice.net_amount, invoice.currency)}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ width: 100, flexShrink: 0 }}>
-                          <Typography variant="body2">
-                            {invoice.currency || '-'}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ width: 120, flexShrink: 0 }}>
-                          <Typography variant="body2">
-                            {formatDate(invoice.created_at)}
-                          </Typography>
-                        </Box>
-                      </>
-                    )}
-                  </Box>
-                );
-              })}
-            </Box>
-          )}
-        </Box>
-
-        {/* Loading indicator at bottom */}
-        {isFetchingNextPage && (
-          <Box display="flex" justifyContent="center" p={2}>
-            <CircularProgress size={24} />
-            <Typography variant="body2" ml={1}>
-              Loading more invoices...
-            </Typography>
-          </Box>
-        )}
-      </Paper>
+      {/* Reporting Table */}
+      <ReportingTable
+        invoices={allInvoices}
+        isLoading={isLoading}
+        isFetchingNextPage={isFetchingNextPage}
+        hasMore={hasMore}
+        onLoadMore={loadMore}
+        onPrefetchNext={prefetchNext}
+        formatCurrency={formatCurrency}
+        formatDate={formatDate}
+      />
 
       {/* Export Success Snackbar */}
       <Snackbar

@@ -1,0 +1,84 @@
+.tableRow {
+  border-bottom: 1px solid #cbd2f0;
+  
+  &:hover {
+    background-color: #f9f9f9;
+  }
+}
+
+.rowContent {
+  display: flex;
+  align-items: center;
+  height: 65px;
+  padding: 0 24px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.expandButton {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24px;
+}
+
+.cell {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.claimId {
+  font-size: 16px;
+  font-weight: 500;
+  color: #000000;
+  font-family: 'Poppins', sans-serif;
+  
+  .hashSymbol {
+    font-size: 13.6px;
+    color: #666666;
+    margin-right: 2px;
+  }
+}
+
+.cellText {
+  font-size: 16px;
+  color: #555555;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+}
+
+.statusChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1px solid currentColor;
+  font-family: 'Poppins', sans-serif;
+  
+  // Specific status colors matching Figma
+  &.pending {
+    background-color: #fff7ed;
+    color: #f97316;
+    border-color: #f97316;
+  }
+  
+  &.approved {
+    background-color: #f0fdf4;
+    color: #189948;
+    border-color: #189948;
+  }
+  
+  &.rejected {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border-color: #b91c1c;
+  }
+}
+
+.expandedContent {
+  padding: 16px 24px 16px 72px; // Account for expand button space
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+} 

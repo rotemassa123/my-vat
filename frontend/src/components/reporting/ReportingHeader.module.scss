@@ -1,0 +1,44 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.titleSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.pageTitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1a1a1a;
+  line-height: 1.2;
+  font-family: 'Poppins', sans-serif;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #666666;
+  line-height: 1.4;
+  font-family: 'Poppins', sans-serif;
+}
+
+.actionButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.filterButton {
+  // Styles are handled inline in the component to match Figma exactly
+}
+
+.exportButton {
+  // Styles are handled inline in the component to match Figma exactly
+} 
