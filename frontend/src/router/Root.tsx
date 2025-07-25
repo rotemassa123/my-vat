@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 import { Outlet } from "react-router-dom";
-import { useAppInit } from "../hooks/auth/useAppInit";
+import ProtectedRoute from "../components/ProtectedRoute";
+import { useAuth } from "../hooks/auth/useAuth";
 
 function Root() {
-  useAppInit();
-  
+  useAuth(); // Move auth check here - similar to SmartEstate
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedRoute />
       <Outlet />
     </Suspense>
   );

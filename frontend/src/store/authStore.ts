@@ -7,7 +7,6 @@ interface AuthStore {
   loading: boolean;
   error: string | null;
   user: User | null;
-  isHydrating: boolean;
   
   // Actions
   setAuthenticated: (isAuthenticated: boolean) => void;
@@ -26,7 +25,6 @@ export const useAuthStore = create(
       loading: false,
       error: null,
       user: null,
-      isHydrating: true,
 
       setAuthenticated: (isAuthenticated) => set({ 
         isAuthenticated,
@@ -62,11 +60,6 @@ export const useAuthStore = create(
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => sessionStorage),
-      onRehydrateStorage: (state) => {
-        if (state) {
-          state.isHydrating = false;
-        }
-      },
     }
   )
-); 
+);

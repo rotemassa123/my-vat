@@ -4,9 +4,9 @@ import {
   Route,
   RouterProvider,
 } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { lazy } from "react";
 import Root from "./Root";
-import ProtectedRoute from "../components/ProtectedRoute";
+import { useAuth } from "../hooks/auth/useAuth";
 
 // Lazy load components for better performance
 const AppLayout = lazy(() => import("../components/layout/AppLayout"));
@@ -18,75 +18,31 @@ const ReportingPage = lazy(() => import("../pages/ReportingPage"));
 const ManagePage = lazy(() => import("../pages/ManagePage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
 
-// Loading component
-const LoadingSpinner = () => (
-  <div className="flex items-center justify-center min-h-screen">
-    <div className="text-lg">Loading...</div>
-  </div>
-);
+function Router() {
+  useAuth();
 
-// Create router once, outside component
-const router = createBrowserRouter(
-  createRoutesFromElements(
-    <Route path="/" element={<Root />}>
-      {/* Public Routes */}
-      <Route path="/login" element={
-        <Suspense fallback={<LoadingSpinner />}>
-          <LoginPage />
-        </Suspense>
-      } />
-      
-      <Route path="/accept-invitation" element={
-        <Suspense fallback={<LoadingSpinner />}>
-          <AcceptInvitationPage />
-        </Suspense>
-      } />
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      <Route path="/" element={<Root />}>
+        {/* Public Routes */}
+        <Route>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+        </Route>
 
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={
-          <Suspense fallback={<LoadingSpinner />}>
-            <AppLayout />
-          </Suspense>
-        }>
-          <Route index element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <DashboardPage />
-            </Suspense>
-          } />
-          <Route path="/dashboard" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <DashboardPage />
-            </Suspense>
-          } />
-          <Route path="/analysis" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <AnalysisPage />
-            </Suspense>
-          } />
-          <Route path="/reporting" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <ReportingPage />
-            </Suspense>
-          } />
-          <Route path="/manage-account" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <ManagePage />
-            </Suspense>
-          } />
-          <Route path="/settings" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <SettingsPage />
-            </Suspense>
-          } />
+        {/* Private Routes */}
+        <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/analysis" element={<AnalysisPage />} />
+          <Route path="/reporting" element={<ReportingPage />} />
+          <Route path="/manage-account" element={<ManagePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>
-    </Route>
-  )
-);
+    )
+  );
 
-function Router() {
   return <RouterProvider router={router} />;
 }
 
-export default Router; 
+export default Router;

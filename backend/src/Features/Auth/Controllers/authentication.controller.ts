@@ -144,6 +144,11 @@ export class AuthenticationController {
     @Req() request: Request
   ): Promise<UserResponse> {
     const user = (request as any).user;
+
+    logger.info("Getting user", AuthenticationController.name, { 
+      user: user 
+    });
+
     return {
       fullName: user.fullName,
       _id: user.userId,
