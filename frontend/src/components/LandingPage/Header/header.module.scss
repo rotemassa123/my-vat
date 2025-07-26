@@ -1,0 +1,214 @@
+.headerContainer {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1200px;
+  height: 120px;
+  background-color: #fbfcff;
+  border-radius: 20px;
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .headerContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 52px;
+    height: 100%;
+  }
+
+  .logoSection {
+    .logoText {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 24px;
+      color: #001441;
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+
+      .logoMy {
+        font-size: 24px;
+        font-weight: 700;
+        color: #001441;
+      }
+
+      .logoVAT {
+        font-size: 18px;
+        font-weight: 500;
+        color: #2f426d;
+        position: relative;
+        top: -2px;
+      }
+    }
+  }
+
+  .navigationSection {
+    display: flex;
+    align-items: center;
+    gap: 72px;
+
+    .navLinks {
+      display: flex;
+      align-items: center;
+      gap: 72px;
+
+      .navItem {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 400;
+        font-size: 18px;
+        color: #001441;
+        cursor: pointer;
+        transition: color 0.3s ease;
+        white-space: nowrap;
+
+        &:hover {
+          color: #0090FF;
+        }
+      }
+    }
+
+    .loginButton {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      font-size: 18px;
+      border-radius: 100px;
+      padding: 18px 36px;
+      text-transform: none;
+      border-width: 1.5px;
+    }
+  }
+
+  // Responsive Design
+  @media (max-width: 1728px) {
+    width: 90%;
+    max-width: 1200px;
+
+    .headerContent {
+      padding: 0 40px;
+    }
+
+    .navigationSection {
+      gap: 40px;
+
+      .navLinks {
+        gap: 40px;
+      }
+    }
+  }
+
+  @media (max-width: 1200px) {
+    width: 95%;
+    max-width: 1200px;
+
+    .headerContent {
+      padding: 0 30px;
+    }
+
+    .navigationSection {
+      gap: 30px;
+
+      .navLinks {
+        gap: 30px;
+
+        .navItem {
+          font-size: 16px;
+        }
+      }
+
+      .loginButton {
+        font-size: 16px;
+        padding: 14px 28px;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    width: 95%;
+    height: 100px;
+    top: 32px;
+
+    .headerContent {
+      padding: 0 20px;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .logoSection {
+      .logoText {
+        font-size: 20px;
+
+        .logoMy {
+          font-size: 20px;
+        }
+
+        .logoVAT {
+          font-size: 16px;
+        }
+      }
+    }
+
+    .navigationSection {
+      gap: 20px;
+
+      .navLinks {
+        gap: 20px;
+
+        .navItem {
+          font-size: 14px;
+        }
+      }
+
+      .loginButton {
+        font-size: 14px;
+        padding: 10px 20px;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    width: 98%;
+    height: 90px;
+    top: 16px;
+
+    .headerContent {
+      padding: 0 15px;
+    }
+
+    .logoSection {
+      .logoText {
+        font-size: 18px;
+
+        .logoMy {
+          font-size: 18px;
+        }
+
+        .logoVAT {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .navigationSection {
+      gap: 15px;
+
+      .navLinks {
+        gap: 15px;
+
+        .navItem {
+          font-size: 12px;
+        }
+      }
+
+      .loginButton {
+        font-size: 12px;
+        padding: 8px 16px;
+      }
+    }
+  }
+} 

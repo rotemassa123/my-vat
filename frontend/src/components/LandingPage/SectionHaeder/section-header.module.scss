@@ -1,0 +1,59 @@
+.headerContainer {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 10px;
+  text-align: start;
+
+  .title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #111933;
+    line-height: 1.2;
+  }
+
+  .subTitle {
+    font-size: 14px;
+    color: #666;
+    font-weight: bold;
+  }
+  .description {
+    width: 70%;
+    font-size: 20px;
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 770px) {
+    .title {
+      font-size: 26px;
+      font-weight: bold;
+      color: #111933;
+      line-height: 1.2;
+    }
+  }
+
+  @media (max-width: 445px) {
+    .title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #111933;
+      line-height: 1.2;
+    }
+
+    .subTitle {
+      font-size: 14px;
+      color: #666;
+      font-weight: bold;
+    }
+    .description {
+      width: 70%;
+      font-size: 16px;
+      font-weight: 500;
+      color: #666;
+      margin-bottom: 20px;
+    }
+  }
+}

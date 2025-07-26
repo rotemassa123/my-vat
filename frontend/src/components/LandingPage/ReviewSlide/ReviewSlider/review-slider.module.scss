@@ -1,0 +1,58 @@
+.reviewsContainer {
+  position: relative;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: visible;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.reviewSlider {
+  display: flex;
+  transition: transform 0.5s ease-in-out;
+  align-items: stretch;
+  gap: 24px;
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .reviewSlider {
+    gap: 16px;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .reviewSlider {
+    gap: 12px;
+    padding: 0 5px;
+  }
+}
+
+.navigationDots {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+  gap: 8px;
+
+  .navigationDot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #E0E0E0;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    outline: none;
+
+    &:hover {
+      background-color: #0090FF;
+      transform: scale(1.2);
+    }
+
+    &.active {
+      background-color: #0090FF;
+      transform: scale(1.2);
+    }
+  }
+}

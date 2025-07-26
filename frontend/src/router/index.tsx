@@ -17,6 +17,7 @@ const AnalysisPage = lazy(() => import("../pages/AnalysisPage"));
 const ReportingPage = lazy(() => import("../pages/ReportingPage"));
 const ManagePage = lazy(() => import("../pages/ManagePage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
+const LandingPage = lazy(() => import("../components/LandingPage/landing-page"));
 
 function Router() {
   useAuth();
@@ -28,6 +29,7 @@ function Router() {
         <Route>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+          <Route path="/landing-page" element={<LandingPage />} />
         </Route>
 
         {/* Private Routes */}

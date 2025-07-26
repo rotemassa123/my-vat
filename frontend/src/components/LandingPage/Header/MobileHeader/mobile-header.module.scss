@@ -1,0 +1,53 @@
+.headerBox {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background-color: #e5e7fe;
+  border-bottom: 1px solid #b0b0b1;
+  z-index: 1000;
+  padding: 15px 20px;
+  direction: rtl;
+
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  align-items: center;
+
+  .logo {
+    display: flex;
+    align-items: center;
+  }
+
+  .logoImage {
+    width: 70px;
+    height: auto;
+    cursor: pointer;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+}
+
+.drawerContent {
+  width: 250px;
+  padding: 16px;
+  direction: rtl;
+}
+
+.drawerList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.closeButtonWrapper {
+  display: flex;
+  justify-content: flex-end;
+
+  button {
+    color: #333;
+  }
+}

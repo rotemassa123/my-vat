@@ -1,0 +1,182 @@
+.reviewContainer {
+  background: linear-gradient(135deg, 
+    #FBFCFF 0%, 
+    #F5F8FF 25%, 
+    #F0F4FF 50%, 
+    #E8F2FF 75%, 
+    #E6F0FF 100%
+  );
+  padding: 120px 0;
+  position: relative;
+  overflow: hidden;
+
+  .container {
+    position: relative;
+    z-index: 2;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 80px;
+
+    .subTitle {
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1.4px;
+      color: #0090FF;
+      margin-bottom: 16px;
+    }
+
+    .title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 56px;
+      line-height: 1.2;
+      color: #001441;
+      margin-bottom: 32px;
+    }
+  }
+
+  .content {
+    display: flex;
+    justify-content: center;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  .stepsGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+    width: 100%;
+    max-width: 1200px;
+  }
+
+  .stepCard {
+    padding: 32px 24px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 144, 255, 0.08);
+    border: 1px solid rgba(0, 144, 255, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    min-height: 320px;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 48px rgba(0, 144, 255, 0.15);
+    }
+
+    .stepNumber {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, #0090FF 0%, #0055FF 100%);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      color: #ffffff;
+      font-size: 24px;
+      font-weight: 700;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .stepIcon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .stepTitle {
+      font-family: 'Inter', sans-serif;
+      font-size: 24px;
+      font-weight: 600;
+      color: #001441;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .stepDescription {
+      font-family: 'Inter', sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #2f426d;
+      text-align: center;
+    }
+  }
+
+  // Responsive Design
+  @media (max-width: 1200px) {
+    padding: 100px 0;
+
+    .content {
+      padding: 0 40px;
+    }
+
+    .header {
+      .title {
+        font-size: 48px;
+      }
+    }
+
+    .stepsGrid {
+      gap: 24px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 80px 0;
+
+    .content {
+      padding: 0 20px;
+    }
+
+    .header {
+      margin-bottom: 60px;
+
+      .title {
+        font-size: 40px;
+      }
+    }
+
+    .stepsGrid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .stepCard {
+      padding: 24px 20px;
+      min-height: 280px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 60px 0;
+
+    .content {
+      padding: 0 15px;
+    }
+
+    .header {
+      .title {
+        font-size: 32px;
+      }
+    }
+
+    .stepsGrid {
+      grid-template-columns: repeat(1, 1fr);
+      gap: 16px;
+    }
+
+    .stepCard {
+      padding: 20px 16px;
+      min-height: 260px;
+    }
+  }
+}
