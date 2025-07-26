@@ -15,6 +15,7 @@ import {
 } from '@mui/icons-material';
 import UserAvatarMenu from '../UserAvatarMenu';
 import styles from './AppLayout.module.scss';
+import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
 
 const navigationItems = [
   {
@@ -53,9 +54,11 @@ export default function AppLayout() {
       <Box className={styles.header}>
         {/* Logo */}
         <Box className={styles.logo}>
-          <Typography className={styles.logoText}>
-            MY<span className={styles.highlight}>VAT</span>
-          </Typography>
+          <img 
+            src={CLOUDINARY_IMAGES.LOGO.MAIN}
+            alt="MyVAT Logo"
+            style={{ height: '40px', width: 'auto' }}
+          />
         </Box>
 
         {/* Search Bar */}

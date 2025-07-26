@@ -16,13 +16,12 @@ import {
   VisibilityOff,
 } from '@mui/icons-material';
 import { useLogin } from '../hooks/auth/useLogin';
-import { useAuth } from '../hooks/auth/useAuth';
 import { type LoginCredentials } from '../lib/authApi';
 import styles from '../components/Login.module.scss';
+import { CLOUDINARY_IMAGES } from '../consts/cloudinary';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
   const { login, isLoading, error } = useLogin();
 
   const [showPassword, setShowPassword] = useState(false);
@@ -40,13 +39,6 @@ export default function LoginPage() {
     e.preventDefault();
     login(form);
   };
-
-  // Redirect if already authenticated
-  useEffect(() => {
-    if (isAuthenticated && !isAuthLoading) {
-      navigate('/dashboard', { replace: true });
-    }
-  }, [isAuthenticated, isAuthLoading, navigate]);
 
   // Handle OAuth callback success/error
   useEffect(() => {
@@ -80,8 +72,11 @@ export default function LoginPage() {
       <Box className={styles.loginCard}>
         {/* Logo Section */}
         <Box className={styles.logo}>
-          <Typography className={styles.logoMy}>MY</Typography>
-          <Typography className={styles.logoVat}>VAT</Typography>
+          <img 
+            src={CLOUDINARY_IMAGES.LOGO.MAIN}
+            alt="MyVAT Logo"
+            style={{ height: '60px', width: 'auto' }}
+          />
         </Box>
 
         {/* Tagline */}

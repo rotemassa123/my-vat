@@ -1,19 +1,29 @@
 import { Box, Typography, Button, Container } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { CLOUDINARY_IMAGES } from "../../../consts/cloudinary";
 import styles from "./header.module.scss";
 
 interface HeaderProps {
   menuItems?: string[];
 }
 
-const Header = ({ menuItems = ["Home", "About Us", "Sign up"] }: HeaderProps) => {
+const Header = ({ menuItems = ["Home", "About Us"] }: HeaderProps) => {
+  const navigate = useNavigate();
+
+  const handleLoginClick = () => {
+    navigate('/login');
+  };
+
   return (
     <Box className={styles.headerContainer}>
       <Container maxWidth="xl" className={styles.headerContent}>
         <Box className={styles.logoSection}>
-          <Typography variant="h6" className={styles.logoText}>
-            <span className={styles.logoMy}>My</span>
-            <span className={styles.logoVAT}>VAT</span>
-          </Typography>
+          <img 
+            src={CLOUDINARY_IMAGES.LOGO.MAIN}
+            alt="MyVAT Logo"
+            className={styles.logoImage}
+            style={{ height: '40px', width: 'auto' }}
+          />
         </Box>
         
         <Box className={styles.navigationSection}>
@@ -32,6 +42,7 @@ const Header = ({ menuItems = ["Home", "About Us", "Sign up"] }: HeaderProps) =>
           <Button 
             variant="outlined" 
             className={styles.loginButton}
+            onClick={handleLoginClick}
             sx={{
               borderColor: '#004dff',
               color: '#001441',

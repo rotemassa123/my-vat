@@ -2,7 +2,7 @@ const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/dmymtgpxw/image/upload/"
 
 export const CLOUDINARY_IMAGES = {
   LOGO: {
-    MAIN: `${CLOUDINARY_BASE_URL}v1743276109/Logo_cjpx4z.jpg?_s=public-apps`,
+    MAIN: `${CLOUDINARY_BASE_URL}v1753531560/myVat-logo_bczncr.png`,
   },
   HERO: {
     ILLUSTRATION: `${CLOUDINARY_BASE_URL}v1753508932/landing-page-hero-section-image_pvg6rc.png?_s=public-apps`,
