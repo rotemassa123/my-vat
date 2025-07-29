@@ -1,0 +1,391 @@
+// Modal Container
+.modalContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  outline: none;
+  display: flex;
+  flex-direction: column;
+}
+
+// Modal Header
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+}
+
+.modalTitle {
+  font-weight: 600 !important;
+  font-size: 24px !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+}
+
+.closeButton {
+  color: #6b7280 !important;
+  padding: 8px !important;
+  
+  &:hover {
+    color: #374151 !important;
+    background-color: #f9fafb !important;
+  }
+}
+
+// Modal Content
+.modalContent {
+  padding: 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex: 1;
+}
+
+// Form Groups
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  color: #374151 !important;
+  margin-bottom: 4px !important;
+}
+
+.select {
+  .MuiOutlinedInput-root {
+    border-radius: 8px !important;
+    border: 1px solid #d1d5db !important;
+    background-color: #fff !important;
+    font-size: 14px !important;
+    
+    &:hover {
+      border-color: #9ca3af !important;
+    }
+    
+    &.Mui-focused {
+      border-color: #2563eb !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+    }
+    
+    .MuiOutlinedInput-notchedOutline {
+      border: none !important;
+    }
+  }
+}
+
+// Upload Section
+.uploadSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.uploadHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.uploadLabel {
+  font-weight: 500 !important;
+  font-size: 14px !important;
+  color: #374151 !important;
+  margin: 0 !important;
+}
+
+.fileCount {
+  font-size: 12px !important;
+  color: #2563eb !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border: 2px dashed #d1d5db;
+  border-radius: 12px;
+  padding: 32px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #f9fafb;
+  
+  &:hover {
+    border-color: #2563eb;
+    background-color: rgba(37, 99, 235, 0.04);
+  }
+  
+  &.dragOver {
+    border-color: #2563eb;
+    background-color: rgba(37, 99, 235, 0.08);
+    transform: scale(1.02);
+  }
+}
+
+.selectedFiles {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 100%;
+  overflow: hidden;
+  
+  .MuiTypography-root {
+    font-size: 12px !important;
+    text-align: center;
+    word-break: break-word;
+  }
+}
+
+// Progress Section - Google Drive Style
+.progressSection {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.progressTitle {
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+}
+
+.progressItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.progressHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fileName {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #374151 !important;
+  margin: 0 !important;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.progressStatus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.progressPercent {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+  min-width: 35px;
+  text-align: right;
+}
+
+.progressBar {
+  height: 6px !important;
+  border-radius: 3px !important;
+  background-color: #f3f4f6 !important;
+  
+  .MuiLinearProgress-bar {
+    background-color: #2563eb !important;
+    border-radius: 3px !important;
+    transition: all 0.3s ease !important;
+  }
+  
+  &.completed .MuiLinearProgress-bar {
+    background-color: #10b981 !important;
+  }
+  
+  &.failed .MuiLinearProgress-bar {
+    background-color: #ef4444 !important;
+  }
+}
+
+.errorText {
+  font-size: 12px !important;
+  color: #ef4444 !important;
+  margin: 0 !important;
+  font-style: italic;
+}
+
+// Modal Footer
+.modalFooter {
+  padding: 24px 32px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #fff;
+  position: sticky;
+  bottom: 0;
+}
+
+.uploadButton {
+  background-color: #2563eb !important;
+  color: #fff !important;
+  padding: 12px 32px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  text-transform: none !important;
+  min-width: 120px !important;
+  
+  &:hover {
+    background-color: #1d4ed8 !important;
+  }
+  
+  &:disabled {
+    background-color: #9ca3af !important;
+    color: #fff !important;
+  }
+}
+
+// Success State
+.successContent {
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+  min-height: 320px;
+  justify-content: center;
+}
+
+.successIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  animation: successPulse 1.5s ease-in-out;
+}
+
+@keyframes successPulse {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.successTitle {
+  font-weight: 600 !important;
+  font-size: 24px !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.successSubtitle {
+  font-size: 16px !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+  font-weight: 500 !important;
+}
+
+.successButton {
+  background-color: #2563eb !important;
+  color: #fff !important;
+  padding: 12px 48px !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  font-size: 16px !important;
+  text-transform: none !important;
+  min-width: 140px !important;
+  margin-top: 12px !important;
+  
+  &:hover {
+    background-color: #1d4ed8 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3) !important;
+  }
+  
+  transition: all 0.2s ease !important;
+}
+
+// Responsive Design
+@media (max-width: 768px) {
+  .modalContainer {
+    width: 95%;
+    max-width: none;
+    margin: 20px;
+  }
+  
+  .modalHeader,
+  .modalContent,
+  .modalFooter {
+    padding: 16px 20px;
+  }
+  
+  .uploadHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  // Success state responsive
+  .successContent {
+    padding: 32px 20px;
+    min-height: 350px;
+    gap: 20px;
+  }
+  
+  .successTitle {
+    font-size: 24px !important;
+  }
+  
+  .successSubtitle {
+    font-size: 14px !important;
+  }
+  
+  .successButton {
+    padding: 10px 32px !important;
+    font-size: 14px !important;
+  }
+} 

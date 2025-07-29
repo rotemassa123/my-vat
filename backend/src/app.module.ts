@@ -6,6 +6,7 @@ import { InfraModule } from './Common/Infrastructure/infra.module';
 import { ProfileModule } from "./Features/Profile/profile.module";
 import { AuthModule } from "src/Features/Auth/auth.module";
 import { InvoiceModule } from "./Features/Invoice/invoice.module";
+import { FilesModule } from "./Features/Files/files.module";
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './Common/Infrastructure/guards/authentication.guard';
 
@@ -16,6 +17,7 @@ import { AuthenticationGuard } from './Common/Infrastructure/guards/authenticati
     AuthModule,
     ProfileModule,
     InvoiceModule,
+    FilesModule,
     AutomapperModule.forRoot({
       strategyInitializer: classes()
     })

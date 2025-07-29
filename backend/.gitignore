@@ -129,3 +129,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
+# Google Cloud Service Account Keys
+gcs-service-account.json
+*-service-account.json
+

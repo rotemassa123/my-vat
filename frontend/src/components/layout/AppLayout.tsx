@@ -13,7 +13,12 @@ import {
   Settings as SettingsIcon,
   AccountCircle,
 } from '@mui/icons-material';
+import { useState } from 'react';
 import UserAvatarMenu from '../UserAvatarMenu';
+import FloatingActionButton from '../FloatingActionButton/FloatingActionButton';
+import UploadModal from '../UploadModal/UploadModal';
+import UploadProgressManager from '../UploadProgressManager/UploadProgressManager';
+import { UploadProvider } from '../../contexts/UploadContext';
 import styles from './AppLayout.module.scss';
 import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
 
@@ -47,6 +52,15 @@ const navigationItems = [
 
 export default function AppLayout() {
   const location = useLocation();
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  const handleFabClick = () => {
+    setIsUploadModalOpen(true);
+  };
+
+  const handleCloseUploadModal = () => {
+    setIsUploadModalOpen(false);
+  };
 
   return (
     <Box className={styles.appContainer}>
@@ -123,6 +137,21 @@ export default function AppLayout() {
           </Box>
         </Box>
       </Box>
+
+      {/* Floating Action Button */}
+      <FloatingActionButton onClick={handleFabClick} />
+
+      {/* Upload Components with Provider */}
+      <UploadProvider>
+        {/* Upload Modal */}
+        <UploadModal 
+          open={isUploadModalOpen} 
+          onClose={handleCloseUploadModal} 
+        />
+
+        {/* Upload Progress Manager */}
+        <UploadProgressManager />
+      </UploadProvider>
     </Box>
   );
 } 
