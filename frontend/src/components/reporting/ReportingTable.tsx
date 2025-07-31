@@ -102,6 +102,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
     <Box className={styles.tableContainer}>
       {/* Table Header */}
       <Box className={styles.tableHeader}>
+        <Box className={styles.headerSpacer} style={{ width: '48px' }}></Box>
         <Box className={styles.headerCell} style={{ width: '15%' }}>Claim ID</Box>
         <Box className={styles.headerCell} style={{ width: '12%' }}>Country</Box>
         <Box className={styles.headerCell} style={{ width: '15%' }}>Entity</Box>

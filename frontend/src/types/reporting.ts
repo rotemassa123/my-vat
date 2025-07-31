@@ -21,6 +21,8 @@ export interface ReportingInvoice {
   _id: string;
   name: string;
   supplier?: string;
+  entity_id?: string;
+  entity_name?: string; // Add entity name field
   invoice_date?: string;
   invoice_number?: string;
   net_amount?: string;

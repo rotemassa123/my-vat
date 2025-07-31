@@ -5,6 +5,7 @@ import { IInvoiceRepository } from "src/Common/ApplicationCore/Services/IInvoice
 import { InvoiceMongoService } from "src/Common/Infrastructure/Services/invoice-mongo-service";
 import { Invoice, InvoiceSchema } from "src/Common/Infrastructure/DB/schemas/invoice.schema";
 import { Summary, SummarySchema } from "src/Common/Infrastructure/DB/schemas/summary.schema";
+import { Entity, EntitySchema } from "src/Common/Infrastructure/DB/schemas/entity.schema";
 import { ReportingService } from './Services/reporting.service';
 import { ReportingQueryBuilderService } from './Services/reporting-query-builder.service';
 import { ReportingCacheService } from './Services/reporting-cache.service';
@@ -14,7 +15,8 @@ import { ReportingCacheService } from './Services/reporting-cache.service';
     InfraModule,
     MongooseModule.forFeature([
       { name: Invoice.name, schema: InvoiceSchema },
-      { name: Summary.name, schema: SummarySchema }
+      { name: Summary.name, schema: SummarySchema },
+      { name: Entity.name, schema: EntitySchema }
     ])
   ],
   providers: [

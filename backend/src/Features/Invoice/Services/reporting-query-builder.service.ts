@@ -27,6 +27,20 @@ export class ReportingQueryBuilderService {
     return this.addFilters(query, params);
   }
 
+  buildTenantQueryWithoutEntityScope(user: UserContext, params: ReportingQueryRequest): FilterQuery<InvoiceDocument> {
+    const query: FilterQuery<InvoiceDocument> = {
+      account_id: new Types.ObjectId(user.accountId), // Convert string to ObjectId
+    };
+
+    // For reporting, we want to see all entities for admin users
+    // For non-admin users, still restrict to their entity
+    if (user.userType === UserType.member || user.userType === UserType.viewer) {
+      query.entity_id = new Types.ObjectId(user.entityId);
+    }
+
+    return this.addFilters(query, params);
+  }
+
   private addFilters(query: FilterQuery<InvoiceDocument>, params: ReportingQueryRequest): FilterQuery<InvoiceDocument> {
     // Multi-select filters
     if (params.status?.length) {
@@ -57,6 +71,7 @@ export class ReportingQueryBuilderService {
       _id: 1,
       name: 1,
       supplier: 1,
+      entity_id: 1, // Add entity_id to projection
       invoice_date: 1,
       invoice_number: 1,
       net_amount: 1,

@@ -28,8 +28,14 @@
   align-items: center;
   
   &:first-child {
-    padding-left: 48px; // Account for expand button space
+    padding-left: 0; // Remove extra padding, let the expand button space handle alignment
   }
+}
+
+.headerSpacer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .tableBody {

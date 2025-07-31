@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from 'src/Common/Infrastructure/DB/schemas/invoice.schema';
+import { Entity, EntityDocument } from 'src/Common/Infrastructure/DB/schemas/entity.schema';
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { ReportingQueryBuilderService, UserContext } from './reporting-query-builder.service';
 import { ReportingCacheService } from './reporting-cache.service';
@@ -29,6 +30,8 @@ export class ReportingService {
   constructor(
     @InjectModel(Invoice.name)
     private readonly invoiceModel: Model<InvoiceDocument>,
+    @InjectModel(Entity.name)
+    private readonly entityModel: Model<EntityDocument>,
     private readonly queryBuilder: ReportingQueryBuilderService,
     private readonly cacheService: ReportingCacheService,
   ) {}
@@ -58,7 +61,7 @@ export class ReportingService {
     // Cache miss - query database
     logger.info('Reporting cache miss - querying database', ReportingService.name, { cacheKey });
 
-    const query = this.queryBuilder.buildTenantQuery(user, params);
+    const query = this.queryBuilder.buildTenantQueryWithoutEntityScope(user, params);
     const sort = this.queryBuilder.buildSortOptions(params);
     const projection = this.queryBuilder.getProjection();
 
@@ -66,6 +69,7 @@ export class ReportingService {
     const [invoices, total] = await Promise.all([
       this.invoiceModel
         .find(query, projection)
+        .setOptions({ disableEntityScope: true }) // Disable entity scope for reporting
         .sort(sort)
         .limit(params.limit || 100)
         .skip(params.skip || 0)
@@ -73,14 +77,36 @@ export class ReportingService {
         .exec(),
       this.invoiceModel
         .countDocuments(query)
+        .setOptions({ disableEntityScope: true }) // Disable entity scope for reporting
         .exec()
     ]);
 
     // Enrich data with computed fields
-    const enrichedInvoices = invoices.map((invoice: Record<string, unknown>) => ({
-      ...invoice,
-      total_amount: this.calculateTotalAmount(invoice),
-      vendor_name: invoice.supplier || 'Unknown',
+    const enrichedInvoices = await Promise.all(invoices.map(async (invoice: Record<string, unknown>) => {
+      logger.info('Processing invoice for entity lookup', ReportingService.name, { 
+        invoice_id: invoice._id,
+        entity_id: invoice.entity_id,
+        has_entity_id: !!invoice.entity_id
+      });
+      
+      let entity = null;
+      if (invoice.entity_id) {
+        entity = await this.entityModel.findById(invoice.entity_id).lean();
+      }
+      
+      logger.info('Entity lookup result', ReportingService.name, { 
+        invoice_id: invoice._id,
+        entity_id: invoice.entity_id,
+        entity_found: !!entity,
+        entity_name: entity?.name || 'Not found'
+      });
+      
+      return {
+        ...invoice,
+        total_amount: this.calculateTotalAmount(invoice),
+        entity_name: entity?.name || (invoice.supplier ? `${invoice.supplier} (Entity)` : 'Unknown Entity'),
+        vendor_name: invoice.supplier || 'Unknown',
+      };
     }));
 
     const result: ReportingResult = {

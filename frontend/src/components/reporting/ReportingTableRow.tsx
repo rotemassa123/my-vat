@@ -87,6 +87,17 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
 
+  // Debug logging for entity information
+  React.useEffect(() => {
+    console.log('Invoice data:', {
+      id: invoice._id,
+      entity_id: invoice.entity_id,
+      entity_name: invoice.entity_name,
+      supplier: invoice.supplier,
+      vendor_name: invoice.vendor_name
+    });
+  }, [invoice]);
+
   const handleExpandClick = () => {
     setExpanded(!expanded);
   };
@@ -190,7 +201,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
         {/* Entity */}
         <Box className={styles.cell} style={{ width: '15%' }}>
           <Typography variant="body2" className={styles.cellText}>
-            {invoice.supplier || '-'}
+            {invoice.entity_name || invoice.supplier || '-'}
           </Typography>
         </Box>
 
