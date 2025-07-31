@@ -184,7 +184,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
         </Box>
 
         {/* Claim ID */}
-        <Box className={styles.cell} style={{ width: '15%' }}>
+        <Box className={styles.cell} style={{ width: '18%' }}>
           <Typography className={styles.claimId}>
             <span className={styles.hashSymbol}>#</span>
             {getClaimId()}
@@ -192,62 +192,43 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
         </Box>
 
         {/* Country */}
-        <Box className={styles.cell} style={{ width: '12%' }}>
+        <Box className={styles.cell} style={{ width: '14%' }}>
           <Typography variant="body2" className={styles.cellText}>
             {invoice.country || invoice.supplier || '-'}
           </Typography>
         </Box>
 
         {/* Entity */}
-        <Box className={styles.cell} style={{ width: '15%' }}>
+        <Box className={styles.cell} style={{ width: '18%' }}>
           <Typography variant="body2" className={styles.cellText}>
             {invoice.entity_name || invoice.supplier || '-'}
           </Typography>
         </Box>
 
         {/* Submitted On */}
-        <Box className={styles.cell} style={{ width: '12%' }}>
+        <Box className={styles.cell} style={{ width: '14%' }}>
           <Typography variant="body2" className={styles.cellText}>
             {formatDate(invoice.created_at)}
           </Typography>
         </Box>
 
         {/* Currency */}
-        <Box className={styles.cell} style={{ width: '10%' }}>
+        <Box className={styles.cell} style={{ width: '12%' }}>
           <Typography variant="body2" className={styles.cellText}>
             {invoice.currency || '€'}
           </Typography>
         </Box>
 
         {/* Amount */}
-        <Box className={styles.cell} style={{ width: '12%' }}>
+        <Box className={styles.cell} style={{ width: '14%' }}>
           <Typography variant="body2" className={styles.cellText}>
-            {formatCurrency(invoice.net_amount, invoice.currency)}
+            {formatCurrency(invoice.claim_amount?.toString(), invoice.currency)}
           </Typography>
         </Box>
 
         {/* Status */}
-        <Box className={styles.cell} style={{ width: '14%' }}>
-          {renderStatusChip(invoice.status)}
-        </Box>
-
-        {/* Actions */}
         <Box className={styles.cell} style={{ width: '10%' }}>
-          <Button
-            variant="text"
-            size="small"
-            sx={{
-              color: '#1e90ff',
-              fontWeight: 500,
-              textTransform: 'none',
-              fontSize: '14px',
-              '&:hover': {
-                backgroundColor: 'rgba(30, 144, 255, 0.04)',
-              }
-            }}
-          >
-            View Details
-          </Button>
+          {renderStatusChip(invoice.status)}
         </Box>
       </Box>
 

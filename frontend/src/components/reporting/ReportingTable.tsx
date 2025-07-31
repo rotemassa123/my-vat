@@ -103,14 +103,13 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
       {/* Table Header */}
       <Box className={styles.tableHeader}>
         <Box className={styles.headerSpacer} style={{ width: '48px' }}></Box>
-        <Box className={styles.headerCell} style={{ width: '15%' }}>Claim ID</Box>
-        <Box className={styles.headerCell} style={{ width: '12%' }}>Country</Box>
-        <Box className={styles.headerCell} style={{ width: '15%' }}>Entity</Box>
-        <Box className={styles.headerCell} style={{ width: '12%' }}>Submitted On</Box>
-        <Box className={styles.headerCell} style={{ width: '10%' }}>Currency</Box>
-        <Box className={styles.headerCell} style={{ width: '12%' }}>Amount</Box>
-        <Box className={styles.headerCell} style={{ width: '14%' }}>Status</Box>
-        <Box className={styles.headerCell} style={{ width: '10%' }}>Actions</Box>
+        <Box className={styles.headerCell} style={{ width: '18%' }}>Claim ID</Box>
+        <Box className={styles.headerCell} style={{ width: '14%' }}>Country</Box>
+        <Box className={styles.headerCell} style={{ width: '18%' }}>Entity</Box>
+        <Box className={styles.headerCell} style={{ width: '14%' }}>Submitted On</Box>
+        <Box className={styles.headerCell} style={{ width: '12%' }}>Currency</Box>
+        <Box className={styles.headerCell} style={{ width: '14%' }}>Amount</Box>
+        <Box className={styles.headerCell} style={{ width: '10%' }}>Status</Box>
       </Box>
 
       {/* Virtual Scrolling Table Body */}
