@@ -216,3 +216,8 @@ Thumbs.db
 
 # Cursor AI
 .cursor/ 
+
+# Google Cloud Service Account Keys
+gcs-service-account.json
+*-service-account.json
+service-account.json 

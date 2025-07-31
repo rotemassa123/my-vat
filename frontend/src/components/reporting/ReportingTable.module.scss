@@ -1,9 +1,12 @@
 .tableContainer {
   background: #ffffff;
-  border-radius: 20px;
+  border-radius: 20px 20px 0 0; // Only top corners rounded
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 250px); // Increased space for better visibility
 }
 
 .tableHeader {
@@ -14,6 +17,7 @@
   border-bottom: 1px solid #cbd2f0;
   padding: 0 24px;
   font-family: 'Poppins', sans-serif;
+  flex-shrink: 0; // Prevent header from shrinking
 }
 
 .headerCell {
@@ -29,8 +33,10 @@
 }
 
 .tableBody {
-  height: 650px;
+  flex: 1;
   overflow: auto;
+  min-height: 0; // Allow flex item to shrink
+  max-height: calc(100vh - 350px); // Increased space to prevent cutoff
   
   &::-webkit-scrollbar {
     width: 8px;
@@ -49,6 +55,17 @@
       background: #a8a8a8;
     }
   }
+  
+  // Ensure scrollbar is always visible
+  &::-webkit-scrollbar-thumb:vertical {
+    min-height: 50px;
+  }
+  
+  // Prevent horizontal scroll
+  overflow-x: hidden;
+  
+  // Add padding to ensure last item is fully visible
+  padding-bottom: 8px;
 }
 
 .loadingContainer {
@@ -75,4 +92,5 @@
   padding: 16px;
   border-top: 1px solid #f0f0f0;
   background: #fafafa;
+  flex-shrink: 0; // Prevent loader from shrinking
 } 

@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import ReportingTableRow from './ReportingTableRow';
@@ -35,7 +35,25 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
     getScrollElement: () => parentRef.current,
     estimateSize: () => ROW_HEIGHT,
     overscan: 20,
+    scrollPaddingEnd: 8, // Add padding to ensure last item is fully visible
   });
+
+  // Handle scroll bounds to prevent scrolling past visible area
+  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLDivElement;
+    const { scrollTop, scrollHeight, clientHeight } = target;
+    
+    // Prevent scrolling past the bottom (account for padding)
+    const maxScrollTop = scrollHeight - clientHeight;
+    if (scrollTop > maxScrollTop) {
+      target.scrollTop = maxScrollTop;
+    }
+    
+    // Prevent scrolling past the top
+    if (scrollTop < 0) {
+      target.scrollTop = 0;
+    }
+  }, []);
 
   // Auto-load more when near bottom
   React.useEffect(() => {
@@ -45,7 +63,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
     if (!lastItem) return;
 
     if (
-      lastItem.index >= invoices.length - 10 && // Load more when 10 items from end
+      lastItem.index >= invoices.length - 15 && // Increased from 10 to 15 for earlier loading
       hasMore &&
       !isFetchingNextPage
     ) {
@@ -98,6 +116,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
       <Box
         ref={parentRef}
         className={styles.tableBody}
+        onScroll={handleScroll}
       >
         <Box
           style={{
