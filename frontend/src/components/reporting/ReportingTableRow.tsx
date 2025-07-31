@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
+import {
+  Box,
+  Typography,
   IconButton, 
   Tooltip,
   Button,

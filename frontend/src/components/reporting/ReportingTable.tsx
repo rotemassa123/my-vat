@@ -1,11 +1,8 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import { useVirtualizer } from '@tanstack/react-virtual';
 import ReportingTableRow from './ReportingTableRow';
 import type { ReportingInvoice } from '../../types/reporting';
 import styles from './ReportingTable.module.scss';
-
-const ROW_HEIGHT = 65;
 
 interface ReportingTableProps {
   invoices: ReportingInvoice[];
@@ -28,64 +25,16 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
   formatCurrency,
   formatDate,
 }) => {
-  const parentRef = useRef<HTMLDivElement>(null);
-  
-  const virtualizer = useVirtualizer({
-    count: hasMore ? invoices.length + 1 : invoices.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => ROW_HEIGHT,
-    overscan: 20,
-    scrollPaddingEnd: 8, // Add padding to ensure last item is fully visible
-  });
-
-  // Handle scroll bounds to prevent scrolling past visible area
+  // Auto-load more when scrolling near bottom
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
     const target = event.target as HTMLDivElement;
     const { scrollTop, scrollHeight, clientHeight } = target;
     
-    // Prevent scrolling past the bottom (account for padding)
-    const maxScrollTop = scrollHeight - clientHeight;
-    if (scrollTop > maxScrollTop) {
-      target.scrollTop = maxScrollTop;
-    }
-    
-    // Prevent scrolling past the top
-    if (scrollTop < 0) {
-      target.scrollTop = 0;
-    }
-  }, []);
-
-  // Auto-load more when near bottom
-  React.useEffect(() => {
-    const virtualItems = virtualizer.getVirtualItems();
-    const [lastItem] = [...virtualItems].reverse();
-
-    if (!lastItem) return;
-
-    if (
-      lastItem.index >= invoices.length - 15 && // Increased from 10 to 15 for earlier loading
-      hasMore &&
-      !isFetchingNextPage
-    ) {
+    // Load more when near bottom
+    if (scrollTop + clientHeight >= scrollHeight - 100 && hasMore && !isFetchingNextPage) {
       onLoadMore();
     }
-  }, [hasMore, onLoadMore, isFetchingNextPage, virtualizer, invoices.length]);
-
-  // Prefetch next page when scrolling
-  React.useEffect(() => {
-    const virtualItems = virtualizer.getVirtualItems();
-    const [lastItem] = [...virtualItems].reverse();
-
-    if (!lastItem) return;
-
-    if (
-      lastItem.index >= invoices.length - 50 && // Prefetch when 50 items from end
-      hasMore &&
-      !isFetchingNextPage
-    ) {
-      onPrefetchNext();
-    }
-  }, [onPrefetchNext, hasMore, isFetchingNextPage, virtualizer, invoices.length]);
+  }, [hasMore, onLoadMore, isFetchingNextPage]);
 
   if (isLoading && invoices.length === 0) {
     return (
@@ -112,67 +61,26 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
         <Box className={styles.headerCell} style={{ width: '10%' }}>Status</Box>
       </Box>
 
-      {/* Virtual Scrolling Table Body */}
-      <Box
-        ref={parentRef}
-        className={styles.tableBody}
-        onScroll={handleScroll}
-      >
-        <Box
-          style={{
-            height: `${virtualizer.getTotalSize()}px`,
-            width: '100%',
-            position: 'relative',
-          }}
-        >
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const isLoaderRow = virtualItem.index > invoices.length - 1;
-            const invoice = invoices[virtualItem.index];
-
-            return (
-              <Box
-                key={virtualItem.index}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: `${virtualItem.size}px`,
-                  transform: `translateY(${virtualItem.start}px)`,
-                }}
-              >
-                {isLoaderRow ? (
-                  <Box className={styles.loaderRow}>
-                    {hasMore ? (
-                      <>
-                        <CircularProgress size={24} />
-                        <Typography variant="body2" sx={{ ml: 1 }}>
-                          Loading more claims...
-                        </Typography>
-                      </>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        No more claims to load
-                      </Typography>
-                    )}
-                  </Box>
-                ) : invoice ? (
-                  <ReportingTableRow
-                    invoice={invoice}
-                    formatCurrency={formatCurrency}
-                    formatDate={formatDate}
-                  />
-                ) : (
-                  <Box className={styles.loaderRow}>
-                    <Typography variant="body2" color="text.secondary">
-                      Loading...
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            );
-          })}
-        </Box>
+      {/* Table Body - Non-virtualized for proper expansion */}
+      <Box className={styles.tableBody} onScroll={handleScroll}>
+        {invoices.map((invoice, index) => (
+          <ReportingTableRow
+            key={invoice._id}
+            invoice={invoice}
+            formatCurrency={formatCurrency}
+            formatDate={formatDate}
+          />
+        ))}
+        
+        {/* Loading indicator */}
+        {isFetchingNextPage && (
+          <Box className={styles.loaderRow}>
+            <CircularProgress size={24} />
+            <Typography variant="body2" sx={{ ml: 1 }}>
+              Loading more claims...
+            </Typography>
+          </Box>
+        )}
       </Box>
 
       {/* Loading indicator at bottom */}
