@@ -5,10 +5,13 @@ import { useAuthStore } from "../store/authStore";
 export default function ProtectedRoute() {
   const { isAuthenticated, loading } = useAuthStore();
   const navigate = useNavigate();
-  const publicRoutes = ["/landing-page", "/signup", "/forgot-password"];
+  const publicRoutes = ["/landing-page", "/signup", "/forgot-password", "/accept-invitation"];
 
-  useEffect(() => {    
-    if (loading || publicRoutes.includes(window.location.pathname)) return;
+  useEffect(() => {
+    const currentPath = window.location.pathname;
+    const isPublicRoute = publicRoutes.some(route => currentPath.startsWith(route));
+    
+    if (loading || isPublicRoute) return;
     
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
