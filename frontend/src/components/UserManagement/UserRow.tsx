@@ -11,6 +11,7 @@ import {
   CheckCircle,
   Block,
 } from '@mui/icons-material';
+import RoleCombobox from './RoleCombobox';
 import styles from './UserManagement.module.scss';
 
 interface User {
@@ -28,9 +29,11 @@ interface User {
 interface UserRowProps {
   user: User;
   onActionClick: (event: React.MouseEvent<HTMLElement>, userId: string) => void;
+  onRoleChange: (userId: string, newRole: string, newUserType: number) => void;
+  isUpdatingRole?: boolean;
 }
 
-const UserRow: React.FC<UserRowProps> = ({ user, onActionClick }) => {
+const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, isUpdatingRole = false }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
@@ -77,13 +80,14 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionClick }) => {
           </Box>
         </Box>
       </Box>
-      <Box className={styles.roleCell} style={{ width: '12%' }}>
-        <Chip 
-          label={user.role} 
-          className={styles.roleChip}
-          size="small"
-        />
-      </Box>
+                     <Box className={styles.roleCell} style={{ width: '12%' }}>
+                 <RoleCombobox
+                   currentRole={user.role}
+                   userId={user.id}
+                   onRoleChange={onRoleChange}
+                   isLoading={isUpdatingRole}
+                 />
+               </Box>
       <Box className={styles.statusCell} style={{ width: '12%' }}>
         <Box className={styles.statusContainer}>
           {getStatusIcon(user.status)}

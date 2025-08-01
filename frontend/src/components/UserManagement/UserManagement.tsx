@@ -24,6 +24,7 @@ import {
   Delete, 
   Block
 } from '@mui/icons-material';
+import { Alert, Snackbar } from '@mui/material';
 import { useProfileStore } from '../../store/profileStore';
 import { useInviteModalStore } from '../../store/modalStore';
 import { useUserManagement } from '../../hooks/user/useUserManagement';
@@ -96,7 +97,10 @@ const formatUserStatus = (status: string): string => {
 const UserManagement: React.FC = () => {
   const { users: profileUsers, entities } = useProfileStore();
   const { openModal } = useInviteModalStore();
-  const { deleteUser, isDeleting, deleteError } = useUserManagement();
+  const { deleteUser, isDeleting, deleteError, updateUserRole, isUpdatingRole, updateRoleError } = useUserManagement();
+  
+  // State for error handling
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
   // Transform real user data to expected format
   const transformedUsers = useMemo(() => {
@@ -178,6 +182,14 @@ const UserManagement: React.FC = () => {
     // TODO: Implement block user functionality
     console.log('Block user:', selectedUser);
     handleCloseMenu();
+  };
+
+  const handleRoleChange = (userId: string, newRole: string, newUserType: number) => {
+    updateUserRole(userId, newUserType);
+  };
+
+  const handleCloseError = () => {
+    setErrorMessage(null);
   };
 
   const filteredUsers = users.filter(user => {
@@ -272,6 +284,8 @@ const UserManagement: React.FC = () => {
               key={user.id} 
               user={user} 
               onActionClick={handleActionClick}
+              onRoleChange={handleRoleChange}
+              isUpdatingRole={isUpdatingRole}
             />
           ))}
         </Box>
@@ -363,6 +377,22 @@ const UserManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!updateRoleError}
+        autoHideDuration={6000}
+        onClose={handleCloseError}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseError} 
+          severity="error" 
+          sx={{ width: '100%' }}
+        >
+          {updateRoleError?.message || 'Failed to update user role'}
+        </Alert>
+      </Snackbar>
       
       {/* Invite Modal */}
       <InviteModal />
