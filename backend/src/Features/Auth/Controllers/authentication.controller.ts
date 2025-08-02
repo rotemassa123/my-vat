@@ -220,13 +220,8 @@ export class AuthenticationController {
         return;
       }
 
-      // Update last login and profile picture if needed
-      const updateData: any = { last_login: new Date() };
-      if (googleUserInfo.picture && googleUserInfo.picture !== user.profile_image_url) {
-        updateData.profile_image_url = googleUserInfo.picture;
-      }
-      
-      await this.userService.updateUser(user._id, updateData);
+      // Update last login time
+      await this.userService.updateUser(user._id, { last_login: new Date() });
 
       // Create JWT payload
       const payload = {
