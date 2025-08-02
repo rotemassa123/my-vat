@@ -229,6 +229,109 @@ export class UserController {
     }
   }
 
+  @Put(":id/role")
+  @ApiParam({ name: "id", type: String })
+  @RequireRoles(UserType.admin, UserType.operator)
+  async updateUserRole(
+    @Param("id") id: string,
+    @Body() updateRoleRequest: { userType: UserType; entityId?: string }
+  ): Promise<{ success: boolean; user: UserResponse }> {
+    try {
+      // Check if user exists
+      const existingUser = await this.userService.findUserById(id);
+      if (!existingUser) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      // Prevent users from becoming operators
+      if (updateRoleRequest.userType === UserType.operator) {
+        throw new BadRequestException("Users cannot become operators");
+      }
+
+      const updateData: UpdateUserData = {
+        userType: updateRoleRequest.userType,
+      };
+
+      // Handle user type changes with entity logic
+      if (updateRoleRequest.userType === UserType.admin) {
+        // Admin: remove entity_id
+        updateData.entityId = undefined;
+      } else if (updateRoleRequest.userType === UserType.member || updateRoleRequest.userType === UserType.viewer) {
+        // Member/Viewer: require entity_id
+        if (!updateRoleRequest.entityId) {
+          throw new BadRequestException("Member/Viewer users must have an entity_id");
+        }
+        
+        // Validate that the entity exists
+        const entityExists = await this.userService.entityExists(updateRoleRequest.entityId);
+        if (!entityExists) {
+          throw new BadRequestException(`Entity with ID ${updateRoleRequest.entityId} does not exist`);
+        }
+        
+        updateData.entityId = updateRoleRequest.entityId;
+      }
+
+      const updated = await this.userService.updateUser(id, updateData);
+      if (!updated) {
+        throw new BadRequestException(`Failed to update user role with ID ${id}`);
+      }
+
+      const updatedUser = await this.userService.findUserById(id);
+      return { 
+        success: true, 
+        user: updatedUser as UserResponse 
+      };
+    } catch (error) {
+      logger.error("Error updating user role", UserController.name, { error: error.message, id });
+      throw error;
+    }
+  }
+
+  @Put(":id/entity")
+  @ApiParam({ name: "id", type: String })
+  @RequireRoles(UserType.admin, UserType.operator)
+  async updateUserEntity(
+    @Param("id") id: string,
+    @Body() updateEntityRequest: { entityId: string }
+  ): Promise<{ success: boolean; user: UserResponse }> {
+    try {
+      // Check if user exists
+      const existingUser = await this.userService.findUserById(id);
+      if (!existingUser) {
+        throw new NotFoundException(`User with ID ${id} not found`);
+      }
+
+      // Don't allow entity changes for admin users
+      if (existingUser.userType === UserType.admin) {
+        throw new BadRequestException("Admin users cannot have entities assigned");
+      }
+
+      // Validate that the entity exists
+      const entityExists = await this.userService.entityExists(updateEntityRequest.entityId);
+      if (!entityExists) {
+        throw new BadRequestException(`Entity with ID ${updateEntityRequest.entityId} does not exist`);
+      }
+
+      const updateData: UpdateUserData = {
+        entityId: updateEntityRequest.entityId,
+      };
+
+      const updated = await this.userService.updateUser(id, updateData);
+      if (!updated) {
+        throw new BadRequestException(`Failed to update user entity with ID ${id}`);
+      }
+
+      const updatedUser = await this.userService.findUserById(id);
+      return { 
+        success: true, 
+        user: updatedUser as UserResponse 
+      };
+    } catch (error) {
+      logger.error("Error updating user entity", UserController.name, { error: error.message, id });
+      throw error;
+    }
+  }
+
   @Delete(":id")
   @ApiParam({ name: "id", type: String })
   @RequireRoles(UserType.admin, UserType.operator)

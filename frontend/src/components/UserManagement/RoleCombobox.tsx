@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Chip,
   Menu,
@@ -14,8 +14,7 @@ import {
 interface RoleComboboxProps {
   currentRole: string;
   userId: string;
-  onRoleChange: (userId: string, newRole: string, newUserType: number) => void;
-  isLoading?: boolean;
+  onRoleChange: (userId: string, newRole: string, newUserType: number) => Promise<void>;
 }
 
 const roleOptions = [
@@ -28,29 +27,41 @@ const roleOptions = [
 const RoleCombobox: React.FC<RoleComboboxProps> = ({ 
   currentRole, 
   userId,
-  onRoleChange,
-  isLoading = false
+  onRoleChange
 }) => {
   const [selectedRole, setSelectedRole] = useState(currentRole);
+
+  // Update selectedRole when currentRole prop changes
+  useEffect(() => {
+    setSelectedRole(currentRole);
+  }, [currentRole]);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    if (!isLoading) {
-      setAnchorEl(event.currentTarget);
-    }
+    setAnchorEl(event.currentTarget);
   };
 
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const handleRoleSelect = (newRole: string, userType: number) => {
+  const handleRoleSelect = async (newRole: string, userType: number) => {
     if (newRole !== selectedRole) {
       setSelectedRole(newRole);
-      onRoleChange(userId, newRole, userType);
+      handleClose(); // Close menu immediately
+      
+      try {
+        await onRoleChange(userId, newRole, userType);
+        // Success - role is updated
+      } catch (error) {
+        // Revert to original role on failure
+        setSelectedRole(currentRole);
+        console.error('Role update failed:', error);
+      }
+    } else {
+      handleClose();
     }
-    handleClose();
   };
 
   return (
@@ -65,27 +76,26 @@ const RoleCombobox: React.FC<RoleComboboxProps> = ({
           border: '1px solid #e0e0e0',
           borderRadius: '8px',
           backgroundColor: '#fff',
-          cursor: isLoading ? 'not-allowed' : 'pointer',
-          opacity: isLoading ? 0.7 : 1,
+          cursor: 'pointer',
           minWidth: '100px',
           height: '36px',
           '&:hover': {
-            backgroundColor: isLoading ? '#fff' : '#f5f5f5',
-            borderColor: isLoading ? '#e0e0e0' : '#ccc',
+            backgroundColor: '#f5f5f5',
+            borderColor: '#ccc',
           }
         }}
       >
-        <Typography
-          variant="body2"
-          sx={{
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: "'Roboto', sans-serif",
-            color: isLoading ? '#999' : '#333',
-          }}
-        >
-          {isLoading ? 'Updating...' : selectedRole}
-        </Typography>
+                       <Typography
+                 variant="body2"
+                 sx={{
+                   fontSize: '14px',
+                   fontWeight: 500,
+                   fontFamily: "'Roboto', sans-serif",
+                   color: '#333',
+                 }}
+               >
+                 {selectedRole}
+               </Typography>
                        <ChevronDownIcon 
                  fontSize="small" 
                  sx={{ 
@@ -109,12 +119,12 @@ const RoleCombobox: React.FC<RoleComboboxProps> = ({
           horizontal: 'left',
         }}
       >
-        {roleOptions.map((option) => (
-          <MenuItem 
-            key={option.value}
-            onClick={() => handleRoleSelect(option.value, option.userType)}
-            disabled={option.value === selectedRole || isLoading}
-          >
+                         {roleOptions.map((option) => (
+                   <MenuItem 
+                     key={option.value}
+                     onClick={() => handleRoleSelect(option.value, option.userType)}
+                     disabled={option.value === selectedRole}
+                   >
             <Typography variant="body2">
               {option.label}
             </Typography>

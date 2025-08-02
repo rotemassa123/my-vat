@@ -97,10 +97,13 @@ const formatUserStatus = (status: string): string => {
 const UserManagement: React.FC = () => {
   const { users: profileUsers, entities } = useProfileStore();
   const { openModal } = useInviteModalStore();
-  const { deleteUser, isDeleting, deleteError, updateUserRole, isUpdatingRole, updateRoleError } = useUserManagement();
+  const { deleteUser, isDeleting, deleteError, updateUserRole, updateRoleError, updateUserEntity, updateEntityError } = useUserManagement(
+    (message: string) => setSuccessMessage(message)
+  );
   
   // State for error handling
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
   // Transform real user data to expected format
   const transformedUsers = useMemo(() => {
@@ -184,12 +187,45 @@ const UserManagement: React.FC = () => {
     handleCloseMenu();
   };
 
-  const handleRoleChange = (userId: string, newRole: string, newUserType: number) => {
-    updateUserRole(userId, newUserType);
+  const handleRoleChange = async (userId: string, newRole: string, newUserType: number): Promise<void> => {
+    // Find the current user to get their current entity
+    const currentUser = profileUsers.find(user => user._id === userId);
+    
+    if (newUserType === 1) { // Admin
+      // For admin, we don't need entityId (it will be cleared by backend)
+      await updateUserRole(userId, newUserType);
+    } else if (newUserType === 2 || newUserType === 3) { // Member or Viewer
+      // For member/viewer, we need to assign an entity
+      // If user already has an entity, keep it; otherwise assign to first available entity
+      let entityId = currentUser?.entityId;
+      
+      if (!entityId && entities.length > 0) {
+        // Assign to first available entity
+        entityId = entities[0]._id;
+      }
+      
+      if (!entityId) {
+        setErrorMessage('No entities available for assignment');
+        throw new Error('No entities available for assignment');
+      }
+      
+      // Call the backend with both userType and entityId
+      await updateUserRole(userId, newUserType, entityId);
+    } else {
+      await updateUserRole(userId, newUserType);
+    }
+  };
+
+  const handleEntityChange = async (userId: string, newEntityId: string): Promise<void> => {
+    await updateUserEntity(userId, newEntityId);
   };
 
   const handleCloseError = () => {
     setErrorMessage(null);
+  };
+
+  const handleCloseSuccess = () => {
+    setSuccessMessage(null);
   };
 
   const filteredUsers = users.filter(user => {
@@ -270,8 +306,8 @@ const UserManagement: React.FC = () => {
         <Box className={styles.tableHeader}>
           <Box className={styles.headerCell} style={{ width: '30%' }}>User</Box>
           <Box className={styles.headerCell} style={{ width: '12%' }}>Role</Box>
-          <Box className={styles.headerCell} style={{ width: '12%' }}>Status</Box>
           <Box className={styles.headerCell} style={{ width: '15%' }}>Entity</Box>
+          <Box className={styles.headerCell} style={{ width: '12%' }}>Status</Box>
           <Box className={styles.headerCell} style={{ width: '15%' }}>Last Login</Box>
           <Box className={styles.headerCell} style={{ width: '12%' }}>Created</Box>
           <Box className={styles.headerCell} style={{ width: '4%', paddingRight: '24px' }}></Box>
@@ -285,7 +321,8 @@ const UserManagement: React.FC = () => {
               user={user} 
               onActionClick={handleActionClick}
               onRoleChange={handleRoleChange}
-              isUpdatingRole={isUpdatingRole}
+              onEntityChange={handleEntityChange}
+              entities={entities}
             />
           ))}
         </Box>
@@ -380,7 +417,7 @@ const UserManagement: React.FC = () => {
 
       {/* Error Snackbar */}
       <Snackbar
-        open={!!updateRoleError}
+        open={!!updateRoleError || !!updateEntityError}
         autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -390,7 +427,23 @@ const UserManagement: React.FC = () => {
           severity="error" 
           sx={{ width: '100%' }}
         >
-          {updateRoleError?.message || 'Failed to update user role'}
+          {updateRoleError?.message || updateEntityError?.message || 'Failed to update user'}
+        </Alert>
+      </Snackbar>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={4000}
+        onClose={handleCloseSuccess}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleCloseSuccess} 
+          severity="success" 
+          sx={{ width: '100%' }}
+        >
+          {successMessage}
         </Alert>
       </Snackbar>
       

@@ -12,6 +12,7 @@ import {
   Block,
 } from '@mui/icons-material';
 import RoleCombobox from './RoleCombobox';
+import EntityCombobox from './EntityCombobox';
 import styles from './UserManagement.module.scss';
 
 interface User {
@@ -29,11 +30,12 @@ interface User {
 interface UserRowProps {
   user: User;
   onActionClick: (event: React.MouseEvent<HTMLElement>, userId: string) => void;
-  onRoleChange: (userId: string, newRole: string, newUserType: number) => void;
-  isUpdatingRole?: boolean;
+  onRoleChange: (userId: string, newRole: string, newUserType: number) => Promise<void>;
+  onEntityChange: (userId: string, newEntityId: string) => Promise<void>;
+  entities: Array<{ _id: string; name: string }>;
 }
 
-const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, isUpdatingRole = false }) => {
+const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, onEntityChange, entities }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
@@ -80,14 +82,22 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, is
           </Box>
         </Box>
       </Box>
-                     <Box className={styles.roleCell} style={{ width: '12%' }}>
-                 <RoleCombobox
-                   currentRole={user.role}
-                   userId={user.id}
-                   onRoleChange={onRoleChange}
-                   isLoading={isUpdatingRole}
-                 />
-               </Box>
+                           <Box className={styles.roleCell} style={{ width: '12%' }}>
+        <RoleCombobox
+          currentRole={user.role}
+          userId={user.id}
+          onRoleChange={onRoleChange}
+        />
+      </Box>
+      <Box className={styles.entityCell} style={{ width: '15%' }}>
+        <EntityCombobox
+          currentEntity={user.entity}
+          userId={user.id}
+          userRole={user.role}
+          entities={entities}
+          onEntityChange={onEntityChange}
+        />
+      </Box>
       <Box className={styles.statusCell} style={{ width: '12%' }}>
         <Box className={styles.statusContainer}>
           {getStatusIcon(user.status)}
@@ -97,14 +107,6 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, is
             sx={{ color: getStatusColor(user.status) }}
           >
             {user.status}
-          </Typography>
-        </Box>
-      </Box>
-      <Box className={styles.entityCell} style={{ width: '15%' }}>
-        <Box className={styles.entityContainer}>
-          <Box className={styles.entityIcon}></Box>
-          <Typography variant="body2" className={styles.entityName}>
-            {user.entity}
           </Typography>
         </Box>
       </Box>

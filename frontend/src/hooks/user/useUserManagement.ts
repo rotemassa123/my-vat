@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../../lib/profileApi';
 import { useProfileStore } from '../../store/profileStore';
 
-export const useUserManagement = () => {
+export const useUserManagement = (onSuccess?: (message: string) => void) => {
   const queryClient = useQueryClient();
   const { setProfile } = useProfileStore();
 
@@ -30,27 +30,79 @@ export const useUserManagement = () => {
   };
 
   const updateUserRoleMutation = useMutation({
-    mutationFn: ({ userId, userType }: { userId: string; userType: number }) => 
-      profileApi.updateUserRole(userId, userType),
-    onSuccess: async () => {
-      // Refetch profile data to update the users list
-      try {
-        const profileData = await profileApi.getProfile();
-        setProfile(profileData);
-      } catch (error) {
-        console.error('Failed to refetch profile after role update:', error);
-      }
-      
-      // Invalidate and refetch profile query
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-    },
-    onError: (error: Error) => {
-      console.error('Update user role failed:', error);
-    },
+    mutationFn: ({ userId, userType, entityId }: { userId: string; userType: number; entityId?: string }) => 
+      profileApi.updateUserRole(userId, userType, entityId),
   });
 
-  const updateUserRole = (userId: string, userType: number) => {
-    updateUserRoleMutation.mutate({ userId, userType });
+  const updateUserRole = async (userId: string, userType: number, entityId?: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      updateUserRoleMutation.mutate(
+        { userId, userType, entityId },
+        {
+          onSuccess: async () => {
+            // Refetch profile data to update the users list
+            try {
+              const profileData = await profileApi.getProfile();
+              setProfile(profileData);
+            } catch (error) {
+              console.error('Failed to refetch profile after role update:', error);
+            }
+            
+            // Invalidate and refetch profile query
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
+            
+            // Show success message
+            if (onSuccess) {
+              onSuccess('User role updated successfully');
+            }
+            
+            resolve();
+          },
+          onError: (error) => {
+            console.error('Update user role failed:', error);
+            reject(error);
+          }
+        }
+      );
+    });
+  };
+
+  const updateUserEntityMutation = useMutation({
+    mutationFn: ({ userId, entityId }: { userId: string; entityId: string }) => 
+      profileApi.updateUserEntity(userId, entityId),
+  });
+
+  const updateUserEntity = async (userId: string, entityId: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      updateUserEntityMutation.mutate(
+        { userId, entityId },
+        {
+          onSuccess: async () => {
+            // Refetch profile data to update the users list
+            try {
+              const profileData = await profileApi.getProfile();
+              setProfile(profileData);
+            } catch (error) {
+              console.error('Failed to refetch profile after entity update:', error);
+            }
+            
+            // Invalidate and refetch profile query
+            queryClient.invalidateQueries({ queryKey: ['profile'] });
+            
+            // Show success message
+            if (onSuccess) {
+              onSuccess('User entity updated successfully');
+            }
+            
+            resolve();
+          },
+          onError: (error) => {
+            console.error('Update user entity failed:', error);
+            reject(error);
+          }
+        }
+      );
+    });
   };
 
   return {
@@ -58,7 +110,8 @@ export const useUserManagement = () => {
     isDeleting: deleteUserMutation.isPending,
     deleteError: deleteUserMutation.error,
     updateUserRole,
-    isUpdatingRole: updateUserRoleMutation.isPending,
     updateRoleError: updateUserRoleMutation.error,
+    updateUserEntity,
+    updateEntityError: updateUserEntityMutation.error,
   };
 }; 
