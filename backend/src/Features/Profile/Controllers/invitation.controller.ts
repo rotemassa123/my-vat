@@ -1,12 +1,13 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InvitationService } from '../Services/invitation.service';
-import { SendInvitationRequest, SendInvitationResponse, ValidateInvitationRequest, ValidateInvitationResponse, CompleteSignupRequest, CompleteSignupResponse } from '../Requests/invitation.requests';
+import { SendInvitationRequest, SendInvitationResponse, ValidateInvitationRequest, ValidateInvitationTokenRequest, ValidateInvitationResponse, CompleteSignupRequest, CompleteSignupResponse } from '../Requests/invitation.requests';
 import { RequireRoles } from 'src/Common/Infrastructure/decorators/require-roles.decorator';
 import { UserType } from 'src/Common/consts/userType';
 import { IProfileRepository, CreateUserData } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import { PublicEndpointGuard } from 'src/Common/Infrastructure/decorators/publicEndpoint.decorator';
 import { PasswordService } from 'src/Common/ApplicationCore/Features/password.service';
+import { TokenService } from 'src/Common/Infrastructure/Services/token.service';
 import * as httpContext from 'express-http-context';
 
 @ApiTags('invitations')
@@ -17,7 +18,8 @@ export class InvitationController {
   constructor(
     private readonly invitationService: InvitationService,
     private readonly profileRepository: IProfileRepository,
-    private readonly passwordService: PasswordService
+    private readonly passwordService: PasswordService,
+    private readonly tokenService: TokenService
   ) {}
 
   @RequireRoles(UserType.admin, UserType.operator)
@@ -96,6 +98,138 @@ export class InvitationController {
   @PublicEndpointGuard()
   @Post('validate')
   async validateInvitation(@Body() request: ValidateInvitationRequest): Promise<ValidateInvitationResponse> {
+    // Legacy endpoint - kept for backward compatibility
+    return this.validateInvitationLegacy(request);
+  }
+
+  @PublicEndpointGuard()
+  @Post('validate-token')
+  async validateInvitationToken(@Body() request: ValidateInvitationTokenRequest): Promise<ValidateInvitationResponse> {
+    try {
+      this.logger.log('Validating invitation token');
+
+      // Verify and decode the token
+      const tokenPayload = this.tokenService.verifyInvitationToken(request.token);
+      
+      if (!tokenPayload) {
+        this.logger.warn('Invalid or expired invitation token');
+        return {
+          isValid: false,
+          error: 'Invalid or expired invitation link. Please request a new invitation.'
+        };
+      }
+
+      // Find the user by email
+      const user = await this.profileRepository.findUserByEmail(tokenPayload.email);
+      
+      if (!user) {
+        this.logger.warn('Token validation for non-existent user', { 
+          email: tokenPayload.email 
+        });
+        return {
+          isValid: false,
+          error: 'User not found. Please check your invitation link.'
+        };
+      }
+
+      // Check if user status is pending (invitation was sent but not completed)
+      if (user.status !== 'pending') {
+        if (user.status === 'active') {
+          return {
+            isValid: false,
+            error: 'This invitation has already been used. Please log in instead.'
+          };
+        } else {
+          return {
+            isValid: false,
+            error: 'This invitation is no longer valid.'
+          };
+        }
+      }
+
+      // Additional security: Check if user already has a password
+      if (user.hashedPassword) {
+        this.logger.warn('Pending user already has password set', { 
+          email: tokenPayload.email 
+        });
+        return {
+          isValid: false,
+          error: 'This account has already been activated. Please log in instead.'
+        };
+      }
+
+      // Validate that the token parameters match the user record
+      const roleMap: { [key: string]: number } = {
+        '0': UserType.operator,
+        '1': UserType.admin,
+        '2': UserType.member,
+        '3': UserType.viewer
+      };
+      
+      const expectedUserType = roleMap[tokenPayload.role];
+      if (user.userType !== expectedUserType) {
+        this.logger.warn('Role mismatch during token validation', { 
+          userRole: user.userType, 
+          tokenRole: tokenPayload.role,
+          email: tokenPayload.email 
+        });
+        return {
+          isValid: false,
+          error: 'Invalid invitation parameters.'
+        };
+      }
+
+      // Get account and entity information
+      const [account, entity, inviter] = await Promise.all([
+        this.profileRepository.findAccountById(tokenPayload.accountId),
+        tokenPayload.entityId ? this.profileRepository.findEntityById(tokenPayload.entityId) : null,
+        this.profileRepository.findUserById(tokenPayload.inviterId)
+      ]);
+
+      if (!account) {
+        this.logger.warn('Account not found during token validation', { 
+          accountId: tokenPayload.accountId 
+        });
+        return {
+          isValid: false,
+          error: 'Invalid invitation parameters.'
+        };
+      }
+
+      // Return successful validation with user and context information
+      return {
+        isValid: true,
+        user: {
+          _id: user._id,
+          fullName: user.fullName,
+          email: user.email,
+          userType: user.userType,
+          status: user.status
+        },
+        account: {
+          _id: account._id,
+          company_name: account.company_name,
+          account_type: account.account_type
+        },
+        entity: entity ? {
+          _id: entity._id,
+          name: entity.name
+        } : undefined,
+        inviter: inviter ? {
+          fullName: inviter.fullName
+        } : undefined
+      };
+
+    } catch (error) {
+      this.logger.error('Error validating invitation token', error);
+      return {
+        isValid: false,
+        error: 'An error occurred while validating your invitation. Please try again.'
+      };
+    }
+  }
+
+  private async validateInvitationLegacy(@Body() request: ValidateInvitationRequest): Promise<ValidateInvitationResponse> {
     try {
       this.logger.log(`Validating invitation for email: ${request.email}`);
 

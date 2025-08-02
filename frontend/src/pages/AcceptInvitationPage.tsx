@@ -19,7 +19,7 @@ import {
   PhotoCamera,
   Email,
 } from '@mui/icons-material';
-import { useValidateInvitation, useCompleteSignup } from '../hooks/invitation/useInviteUsers';
+import { useValidateInvitation, useValidateInvitationToken, useCompleteSignup } from '../hooks/invitation/useInviteUsers';
 import type { ValidateInvitationRequest, CompleteSignupRequest } from '../lib/invitationApi';
 import styles from './AcceptInvitationPage.module.scss';
 
@@ -64,31 +64,53 @@ const AcceptInvitationPage: React.FC = () => {
     profile_image_url: '',
   });
 
-  // Extract invitation parameters from URL
-  const invitationParams: ValidateInvitationRequest | undefined = React.useMemo(() => {
-    const email = searchParams.get('email');
-    const accountId = searchParams.get('accountId');
-    const role = searchParams.get('role');
-    const entityId = searchParams.get('entityId');
+  // Extract invitation parameters from URL (support both token and legacy parameters)
+  const { invitationParams, invitationToken } = React.useMemo(() => {
+    const token = searchParams.get('token');
+    
+    if (token) {
+      // New secure token-based invitation
+      return { invitationParams: undefined, invitationToken: token };
+    } else {
+      // Legacy parameter-based invitation
+      const email = searchParams.get('email');
+      const accountId = searchParams.get('accountId');
+      const role = searchParams.get('role');
+      const entityId = searchParams.get('entityId');
 
-    if (!email || !accountId || !role) {
-      return undefined;
+      if (!email || !accountId || !role) {
+        return { invitationParams: undefined, invitationToken: undefined };
+      }
+
+      return {
+        invitationParams: {
+          email,
+          accountId,
+          role,
+          entityId: entityId || undefined,
+        },
+        invitationToken: undefined
+      };
     }
-
-    return {
-      email,
-      accountId,
-      role,
-      entityId: entityId || undefined,
-    };
   }, [searchParams]);
 
-  // Validate invitation
+  // Validate invitation (use token-based validation if available, otherwise fallback to legacy)
   const {
-    data: validationData,
-    isLoading: isValidating,
-    error: validationError,
+    data: legacyValidationData,
+    isLoading: isLegacyValidating,
+    error: legacyValidationError,
   } = useValidateInvitation(invitationParams);
+
+  const {
+    data: tokenValidationData,
+    isLoading: isTokenValidating,
+    error: tokenValidationError,
+  } = useValidateInvitationToken(invitationToken);
+
+  // Use token validation if available, otherwise use legacy
+  const validationData = tokenValidationData || legacyValidationData;
+  const isValidating = isTokenValidating || isLegacyValidating;
+  const validationError = tokenValidationError || legacyValidationError;
 
   // Complete signup mutation
   const {
@@ -100,10 +122,10 @@ const AcceptInvitationPage: React.FC = () => {
 
   // Redirect if no invitation parameters
   useEffect(() => {
-    if (!invitationParams) {
+    if (!invitationParams && !invitationToken) {
       navigate('/login?error=invalid_invitation_link');
     }
-  }, [invitationParams, navigate]);
+  }, [invitationParams, invitationToken, navigate]);
 
   // Handle form updates
   const updateFormData = (updates: Partial<SignupFormData>) => {
@@ -193,15 +215,17 @@ const AcceptInvitationPage: React.FC = () => {
 
   // Handle form submission
   const handleSubmit = async () => {
-    if (!invitationParams || !validationData?.isValid) return;
+    if (!validationData?.isValid || !validationData.user) return;
 
-    // Additional security: Ensure the email in the form matches the invitation email
-    const invitationEmail = invitationParams.email.toLowerCase().trim();
-    const validationEmail = validationData.user?.email.toLowerCase().trim();
-    
-    if (!validationData.user || invitationEmail !== validationEmail) {
-      console.error('Email mismatch detected during signup');
-      return;
+    // Additional security: For legacy invitations, ensure the email matches
+    if (invitationParams) {
+      const invitationEmail = invitationParams.email.toLowerCase().trim();
+      const validationEmail = validationData.user.email.toLowerCase().trim();
+      
+      if (invitationEmail !== validationEmail) {
+        console.error('Email mismatch detected during signup');
+        return;
+      }
     }
 
     try {

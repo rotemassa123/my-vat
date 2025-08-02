@@ -121,6 +121,15 @@ export class ValidateInvitationRequest {
   entityId?: string;
 }
 
+export class ValidateInvitationTokenRequest {
+  @ApiProperty({
+    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    description: 'Secure invitation token from the URL'
+  })
+  @IsString()
+  token: string;
+}
+
 export interface ValidateInvitationResponse {
   isValid: boolean;
   user?: {

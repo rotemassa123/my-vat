@@ -3,6 +3,7 @@ import { IGmailService, BatchEmailOptions, BatchEmailResult } from 'src/Common/A
 import { IProfileRepository } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import { UserType } from 'src/Common/consts/userType';
 import { SendInvitationRequest, InvitationResult, SendInvitationResponse } from '../Requests/invitation.requests';
+import { TokenService } from 'src/Common/Infrastructure/Services/token.service';
 import * as httpContext from 'express-http-context';
 
 interface InvitationEmailData {
@@ -20,7 +21,8 @@ export class InvitationService {
 
   constructor(
     private readonly gmailService: IGmailService,
-    private readonly profileRepository: IProfileRepository
+    private readonly profileRepository: IProfileRepository,
+    private readonly tokenService: TokenService
   ) {}
 
   async sendInvitations(request: SendInvitationRequest): Promise<SendInvitationResponse> {
@@ -103,7 +105,7 @@ export class InvitationService {
           accountName: account.company_name,
           entityName: entity?.name,
           personalMessage: request.personalMessage,
-          inviteUrl: this.generateInviteUrl(email, account._id, entity?._id, role)
+          inviteUrl: this.generateInviteUrl(email, account._id, inviter._id, entity?._id, role)
         };
 
         return {
@@ -230,7 +232,7 @@ If you weren't expecting this invitation, you can safely ignore this email.
     `;
   }
 
-  private generateInviteUrl(email: string, accountId: string, entityId?: string, role: string = 'member'): string {
+  private generateInviteUrl(email: string, accountId: string, inviterId: string, entityId?: string, role: string = 'member'): string {
     // TODO: Replace with actual frontend URL from config
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     
@@ -243,13 +245,20 @@ If you weren't expecting this invitation, you can safely ignore this email.
     
     const userType = roleMap[role] || UserType.member;
     
-    const params = new URLSearchParams({
-      email,
-      role: userType.toString(),
-      accountId,
-      ...(entityId && { entityId })
-    });
+    // Generate secure token instead of exposing sensitive data in URL
+    this.logger.log('Generating secure invitation token', { email, accountId, entityId, role: userType.toString(), inviterId });
     
-    return `${baseUrl}/accept-invitation?${params.toString()}`;
+    const token = this.tokenService.generateInvitationToken(
+      email,
+      accountId,
+      entityId,
+      userType.toString(),
+      inviterId
+    );
+    
+    const secureUrl = `${baseUrl}/accept-invitation?token=${encodeURIComponent(token)}`;
+    this.logger.log('Generated secure invitation URL', { email, secureUrl: secureUrl.substring(0, 50) + '...' });
+    
+    return secureUrl;
   }
 } 

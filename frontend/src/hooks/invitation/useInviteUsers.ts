@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { invitationApi, type SendInvitationRequest, type SendInvitationResponse, type ValidateInvitationRequest, type ValidateInvitationResponse, type CompleteSignupRequest, type CompleteSignupResponse } from '../../lib/invitationApi';
+import { invitationApi, type SendInvitationRequest, type SendInvitationResponse, type ValidateInvitationRequest, type ValidateInvitationTokenRequest, type ValidateInvitationResponse, type CompleteSignupRequest, type CompleteSignupResponse } from '../../lib/invitationApi';
 import { profileApi } from '../../lib/profileApi';
 import { useProfileStore } from '../../store/profileStore';
 import { type User } from '../../types/user';
@@ -80,6 +80,16 @@ export const useValidateInvitation = (invitationData?: ValidateInvitationRequest
     queryKey: ['validate-invitation', invitationData],
     queryFn: () => invitationApi.validateInvitation(invitationData!),
     enabled: !!invitationData,
+    retry: false, // Don't retry failed invitation validations
+    staleTime: 0, // Always refetch when component mounts
+  });
+};
+
+export const useValidateInvitationToken = (token?: string) => {
+  return useQuery<ValidateInvitationResponse, Error>({
+    queryKey: ['validate-invitation-token', token],
+    queryFn: () => invitationApi.validateInvitationToken({ token: token! }),
+    enabled: !!token,
     retry: false, // Don't retry failed invitation validations
     staleTime: 0, // Always refetch when component mounts
   });
