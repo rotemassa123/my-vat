@@ -218,7 +218,7 @@
     background-color: white;
     border: 1px solid #bebebe;
     border-radius: 100px;
-    margin-top: 1.5rem;
+    margin-top: 0;
     font-family: 'Poppins', sans-serif;
     font-size: 14px;
     color: #40578c;
@@ -235,6 +235,30 @@
     .googleIcon {
       width: 20px;
       height: 20px;
+    }
+  }
+  
+  .divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem 0;
+    position: relative;
+    
+    &::before,
+    &::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background-color: #bebebe;
+    }
+    
+    .dividerText {
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      color: #40578c;
+      padding: 0 1rem;
+      background-color: white;
     }
   }
 }
