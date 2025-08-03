@@ -15,6 +15,19 @@ export interface ReportingQueryParams extends ReportingFilters {
   skip?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
+  include_summary?: boolean;  // New parameter for including embedded summaries
+}
+
+export interface SummaryContent {
+  country?: string;
+  supplier?: string;
+  date?: string;
+  id?: string;
+  description?: string;
+  net_amount?: string;
+  vat_amount?: string;
+  vat_rate?: string;
+  currency?: string;
 }
 
 export interface ReportingInvoice {
@@ -34,6 +47,7 @@ export interface ReportingInvoice {
   country?: string;
   description?: string;
   vat_rate?: string;
+  vat_scheme?: string;  // Added VAT scheme field
   claim_amount?: number;
   size: number;
   source: string;
@@ -42,6 +56,8 @@ export interface ReportingInvoice {
   status_updated_at: string;
   total_amount?: number;
   vendor_name?: string;
+  supplier_name?: string;  // Added supplier name field for compatibility
+  summary_content?: SummaryContent;  // Embedded summary data
 }
 
 export interface ReportingMetadata {
