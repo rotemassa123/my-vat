@@ -23,6 +23,7 @@ import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/public
 interface UserResponse {
   _id: string;
   fullName: string;
+  email: string;
   userType: UserType;
   accountId: string;
   entityId: string;
@@ -107,6 +108,7 @@ export class AuthenticationController {
     const payload = {
       userId: user._id,
       fullName: user.fullName,
+      email: user.email,
       userType: user.userType,
       accountId: user.accountId,
       entityId: user.entityId,
@@ -132,6 +134,7 @@ export class AuthenticationController {
     return {
       _id: user._id!,
       fullName: user.fullName,
+      email: user.email,
       userType: user.userType,
       accountId: user.accountId,
       entityId: user.entityId,
@@ -147,6 +150,7 @@ export class AuthenticationController {
 
     return {
       fullName: user.fullName,
+      email: user.email,
       _id: user.userId,
       userType: user.userType,
       accountId: user.accountId,
@@ -227,6 +231,7 @@ export class AuthenticationController {
       const payload = {
         userId: user._id,
         fullName: user.fullName,
+        email: user.email,
         userType: user.userType,
         accountId: user.accountId,
         entityId: user.entityId,
