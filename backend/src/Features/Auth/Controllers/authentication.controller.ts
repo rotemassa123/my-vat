@@ -27,6 +27,7 @@ interface UserResponse {
   userType: UserType;
   accountId: string;
   entityId: string;
+  profile_image_url?: string;
 }
 
 @ApiTags("auth")
@@ -112,6 +113,7 @@ export class AuthenticationController {
       userType: user.userType,
       accountId: user.accountId,
       entityId: user.entityId,
+      profile_image_url: user.profile_image_url,
     };
 
     // Generate token
@@ -138,6 +140,7 @@ export class AuthenticationController {
       userType: user.userType,
       accountId: user.accountId,
       entityId: user.entityId,
+      profile_image_url: user.profile_image_url,
     };
   }
 
@@ -155,6 +158,7 @@ export class AuthenticationController {
       userType: user.userType,
       accountId: user.accountId,
       entityId: user.entityId,
+      profile_image_url: user.profile_image_url,
     };
   }
 
@@ -235,6 +239,7 @@ export class AuthenticationController {
         userType: user.userType,
         accountId: user.accountId,
         entityId: user.entityId,
+        profile_image_url: user.profile_image_url,
       };
 
       // Generate token

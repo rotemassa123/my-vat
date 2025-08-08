@@ -39,28 +39,33 @@
   align-items: center;
 }
 
+.clickableAvatar {
+  position: relative;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
 .avatar {
   border: 3px solid #e0e0e0;
-  transition: border-color 0.2s ease;
+  transition: all 0.3s ease;
+  cursor: pointer;
   
   &:hover {
-    border-color: #0131ff;
+    border-color: #9e9e9e;
   }
 }
 
-.uploadButton {
+.loadingOverlay {
   position: absolute;
-  bottom: -8px;
-  right: -8px;
-  background-color: #0131ff;
-  color: white;
-  z-index: 10;
-  width: 40px;
-  height: 40px;
-  
-  &:hover {
-    background-color: #001441;
-  }
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
 }
 
 .uploadHint {

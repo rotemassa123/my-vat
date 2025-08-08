@@ -16,9 +16,14 @@ export default function ProtectedRoute() {
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
       return;
-    } else {
+    }
+    
+    // Only redirect to dashboard if user is on login page or root
+    if (currentPath === "/login" || currentPath === "/") {
       navigate("/dashboard", { replace: true });
     }
+    
+    // Don't redirect if user is already on a valid authenticated page
   }, [isAuthenticated, loading, navigate]);
 
   return <Fragment />;

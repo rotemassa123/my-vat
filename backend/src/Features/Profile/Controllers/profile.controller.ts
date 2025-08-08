@@ -20,6 +20,7 @@ import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentica
 import { UserType } from "src/Common/consts/userType";
 import { IImageStorageProvider } from "src/Common/ApplicationCore/Providers/IImageStorageProvider";
 import { CurrentAccountId } from "src/Common/decorators/current-account-id.decorator";
+import { CurrentUserId } from "src/Common/decorators/current-user-id.decorator";
 import * as path from "path";
 
 @ApiTags("profile")
@@ -100,7 +101,7 @@ export class ProfileController {
   @ApiResponse({ status: 201, description: 'Profile image uploaded successfully' })
   async uploadProfileImage(
     @UploadedFile() file: Express.Multer.File,
-    @CurrentAccountId() userId: string,
+    @CurrentUserId() userId: string,
   ): Promise<{ profileImageUrl: string }> {
     if (!file) {
       throw new BadRequestException('No file provided');
@@ -113,7 +114,7 @@ export class ProfileController {
     }
 
     // If user already has an image (and not default), delete it from storage
-    if (user.profile_image_url && user.profile_image_url !== '/user.png') {
+    if (user.profile_image_url && !user.profile_image_url.endsWith('avatar.jpg')) {
       await this.imageStorage.Delete(user.profile_image_url);
     }
 
@@ -133,7 +134,7 @@ export class ProfileController {
   @Delete('delete-image')
   @UseGuards(AuthenticationGuard)
   async deleteProfileImage(
-    @CurrentAccountId() userId: string,
+    @CurrentUserId() userId: string,
   ): Promise<{ success: boolean }> {
     const user = await this.profileService.findUserById(userId);
     if (!user) {

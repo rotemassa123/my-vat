@@ -9,9 +9,31 @@ export interface UpdateUserRoleResponse {
   user: any;
 }
 
+export interface UploadProfileImageResponse {
+  profileImageUrl: string;
+}
+
+export interface DeleteProfileImageResponse {
+  success: boolean;
+}
+
 export const profileApi = {
   getProfile: async (): Promise<any> => {
     const response = await apiClient.get('/profile');
+    return response.data;
+  },
+
+  uploadProfileImage: async (formData: FormData): Promise<UploadProfileImageResponse> => {
+    const response = await apiClient.post('/profile/upload-image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  deleteProfileImage: async (): Promise<DeleteProfileImageResponse> => {
+    const response = await apiClient.delete('/profile/delete-image');
     return response.data;
   },
   
