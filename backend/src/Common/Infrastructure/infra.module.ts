@@ -20,6 +20,8 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { DatabaseInitializationService } from "./Services/database-initialization.service";
 import { Summary, SummarySchema } from "./DB/schemas/summary.schema";
 import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
+import { IImageStorageProvider } from "../ApplicationCore/Providers/IImageStorageProvider";
+import { CloudinaryStorageProvider } from "./Services/CloudinaryStorageProvider";
 
 @Global()
 @Module({
@@ -44,8 +46,17 @@ import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
     { provide: IGCSService, useClass: GCSService },
     { provide: IGmailService, useClass: GmailService },
     { provide: IGoogleOAuthService, useClass: GoogleOAuthService },
+    { provide: IImageStorageProvider, useClass: CloudinaryStorageProvider },
     { provide: APP_INTERCEPTOR, useClass: TenantContextInterceptor },
   ],
-  exports: [MongooseModule, JwtModule, IProfileRepository, IGCSService, IGmailService, IGoogleOAuthService],
+  exports: [
+    MongooseModule,
+    JwtModule,
+    IProfileRepository,
+    IGCSService,
+    IGmailService,
+    IGoogleOAuthService,
+    IImageStorageProvider,
+  ],
 })
 export class InfraModule {}
