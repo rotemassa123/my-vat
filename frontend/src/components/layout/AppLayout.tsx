@@ -4,10 +4,6 @@ import {
   TextField,
   InputAdornment,
   Typography,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -15,7 +11,6 @@ import {
   Analytics as AnalyticsIcon,
   Assessment as ReportIcon,
   Settings,
-  AdminPanelSettings,
   People as PeopleIcon,
   Business as BusinessIcon,
 } from '@mui/icons-material';
@@ -29,12 +24,9 @@ import { UploadProvider } from '../../contexts/UploadContext';
 import styles from './AppLayout.module.scss';
 import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
 
-
-
 export default function AppLayout() {
   const location = useLocation();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [adminMenuAnchor, setAdminMenuAnchor] = useState<null | HTMLElement>(null);
   const { user } = useAuthStore();
 
   const handleFabClick = () => {
@@ -45,19 +37,11 @@ export default function AppLayout() {
     setIsUploadModalOpen(false);
   };
 
-  const handleAdminMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAdminMenuAnchor(event.currentTarget);
-  };
-
-  const handleAdminMenuClose = () => {
-    setAdminMenuAnchor(null);
-  };
-
-  // Navigation items with dynamic icon based on user type
+  // Navigation items with dynamic items based on user type
   const navigationItems = [
     {
       path: '/dashboard',
-      label: 'Overall Dashboard',
+      label: 'Dashboard',
       icon: <DashboardIcon className={styles.icon} />,
     },
     {
@@ -70,12 +54,42 @@ export default function AppLayout() {
       label: 'Reporting',
       icon: <ReportIcon className={styles.icon} />,
     },
-    {
-      path: user?.userType === 1 ? '/manage-account' : '/settings',
-      label: user?.userType === 1 ? 'Administration' : 'Settings',
-      icon: user?.userType === 1 ? <AdminPanelSettings className={styles.icon} /> : <Settings className={styles.icon} />,
-    },
   ];
+
+  // Add admin-specific navigation items
+  if (user?.userType === 1) {
+    navigationItems.push(
+      {
+        path: '/users',
+        label: 'Users',
+        icon: <PeopleIcon className={styles.icon} />,
+      },
+      {
+        path: '/entities',
+        label: 'Entities',
+        icon: <BusinessIcon className={styles.icon} />,
+      },
+      {
+        path: '/settings',
+        label: 'Settings',
+        icon: <Settings className={styles.icon} />,
+      }
+    );
+  } else if (user?.userType === 2) {
+    // For operators, only add Settings
+    navigationItems.push({
+      path: '/settings',
+      label: 'Settings',
+      icon: <Settings className={styles.icon} />,
+    });
+  } else {
+    // For members/viewers, only add Settings
+    navigationItems.push({
+      path: '/settings',
+      label: 'Settings',
+      icon: <Settings className={styles.icon} />,
+    });
+  }
 
   return (
     <Box className={styles.appContainer}>
@@ -129,38 +143,18 @@ export default function AppLayout() {
         {/* Sidebar */}
         <Box className={styles.sidebar}>
           <Box className={styles.navigation}>
-            {navigationItems.map((item) => {
-              // Special handling for Administration item (admin/operator only)
-              if (item.path === '/manage-account' && user?.userType === 1) {
-                return (
-                  <Box
-                    key={item.path}
-                    className={`${styles.navItem} ${
-                      location.pathname === item.path ? styles.active : ''
-                    }`}
-                    onClick={handleAdminMenuOpen}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    {item.icon}
-                    <Typography className={styles.label}>{item.label}</Typography>
-                  </Box>
-                );
-              }
-              
-              // Regular navigation items (including Settings for member/viewer)
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`${styles.navItem} ${
-                    location.pathname === item.path ? styles.active : ''
-                  }`}
-                >
-                  {item.icon}
-                  <Typography className={styles.label}>{item.label}</Typography>
-                </Link>
-              );
-            })}
+            {navigationItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`${styles.navItem} ${
+                  location.pathname === item.path ? styles.active : ''
+                }`}
+              >
+                {item.icon}
+                <Typography className={styles.label}>{item.label}</Typography>
+              </Link>
+            ))}
           </Box>
         </Box>
 
@@ -175,53 +169,6 @@ export default function AppLayout() {
 
       {/* Floating Action Button */}
       <FloatingActionButton onClick={handleFabClick} />
-
-      {/* Administration Menu */}
-      <Menu
-        anchorEl={adminMenuAnchor}
-        open={Boolean(adminMenuAnchor)}
-        onClose={handleAdminMenuClose}
-        anchorOrigin={{
-          vertical: 'top',
-          horizontal: 'right',
-        }}
-        transformOrigin={{
-          vertical: 'top',
-          horizontal: 'left',
-        }}
-        sx={{
-          '& .MuiPaper-root': {
-            marginLeft: '4px',
-          },
-        }}
-        PaperProps={{
-          sx: {
-            mt: 1,
-            minWidth: 200,
-            boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-            borderRadius: 2,
-          },
-        }}
-      >
-        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/manage-account">
-          <ListItemIcon>
-            <PeopleIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>User Management</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/entity-management">
-          <ListItemIcon>
-            <BusinessIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Entity Management</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleAdminMenuClose} component={Link} to="/settings">
-          <ListItemIcon>
-            <Settings fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Settings</ListItemText>
-        </MenuItem>
-      </Menu>
 
       {/* Upload Components with Provider */}
       <UploadProvider>

@@ -16,6 +16,7 @@ const DashboardPage = lazy(() => import("../pages/DashboardPage"));
 const AnalysisPage = lazy(() => import("../pages/AnalysisPage"));
 const ReportingPage = lazy(() => import("../pages/ReportingPage"));
 const ManagePage = lazy(() => import("../pages/ManagePage"));
+const EntitiesPage = lazy(() => import("../pages/EntitiesPage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
 const LandingPage = lazy(() => import("../components/LandingPage/landing-page"));
 
@@ -37,7 +38,8 @@ function Router() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/analysis" element={<AnalysisPage />} />
           <Route path="/reporting" element={<ReportingPage />} />
-          <Route path="/manage-account" element={<ManagePage />} />
+          <Route path="/users" element={<ManagePage />} />
+          <Route path="/entities" element={<EntitiesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Route>

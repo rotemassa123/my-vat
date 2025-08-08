@@ -43,7 +43,7 @@ export default function UserAvatarMenu() {
 
   const handleProfile = () => {
     // Navigate to profile/account settings
-    navigate('/manage-account');
+    navigate('/users');
     handleClose();
   };
 
