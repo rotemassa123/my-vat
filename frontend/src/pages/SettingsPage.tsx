@@ -1,24 +1,49 @@
-import { Box, Typography } from '@mui/material';
-import { Settings as SettingsIcon } from '@mui/icons-material';
+import React, { useState } from 'react';
+import { Box } from '@mui/material';
+import {
+  SettingsHeader,
+  SettingsTabs,
+  ProfileTab,
+  SecurityTab,
+  IntegrationsTab,
+  TabPanel,
+} from '../components/Settings';
+import styles from './SettingsPage.module.scss';
 
-export default function SettingsPage() {
+const SettingsPage: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
   return (
-    <Box sx={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      minHeight: '60vh',
-      textAlign: 'center',
-      padding: 3 
-    }}>
-      <SettingsIcon sx={{ fontSize: 64, color: '#0131ff', mb: 2 }} />
-      <Typography variant="h4" sx={{ mb: 2, fontWeight: 600, color: '#001441' }}>
-        Settings
-      </Typography>
-      <Typography variant="body1" sx={{ color: '#40578c' }}>
-        Settings page coming soon...
-      </Typography>
+    <Box className={styles.settingsContainer}>
+      {/* Header */}
+      <SettingsHeader />
+
+      {/* Main Content */}
+      <Box className={styles.content}>
+        {/* Tabs */}
+        <SettingsTabs value={tabValue} onChange={handleTabChange} />
+
+        {/* Tab Content */}
+        <Box className={styles.tabContent}>
+          <TabPanel value={tabValue} index={0}>
+            <ProfileTab />
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <SecurityTab />
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={2}>
+            <IntegrationsTab />
+          </TabPanel>
+        </Box>
+      </Box>
     </Box>
   );
-} 
+};
+
+export default SettingsPage; 

@@ -1,0 +1,67 @@
+.card {
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  margin-bottom: 2rem;
+}
+
+.sectionTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #001441;
+  margin-bottom: 1.5rem;
+}
+
+.securitySection {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.subsectionTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #001441;
+  margin-bottom: 1rem;
+}
+
+.passwordSection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.textField {
+  margin-bottom: 1.5rem;
+  
+  .MuiOutlinedInput-root {
+    border-radius: 8px;
+    
+    &:hover .MuiOutlinedInput-notchedOutline {
+      border-color: #0131ff;
+    }
+    
+    &.Mui-focused .MuiOutlinedInput-notchedOutline {
+      border-color: #0131ff;
+    }
+  }
+}
+
+.actionButton {
+  align-self: flex-start;
+  margin-top: 1rem;
+}
+
+.divider {
+  margin: 2rem 0;
+  border-color: #e0e0e0;
+}
+
+.alert {
+  margin-bottom: 1rem;
+  
+  .MuiAlert-message {
+    color: #40578c;
+  }
+} 

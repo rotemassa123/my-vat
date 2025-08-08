@@ -17,4 +17,20 @@ html, body {
 /* Global styles */
 body {
   background-color: #f5f5f5;
+}
+
+[class*="_header_"],
+._header_1xzcy_1,
+.MuiBox-root[class*="_header_"],
+div[class*="_header_"],
+div._header_1xzcy_1,
+div.MuiBox-root[class*="_header_"] {
+  margin-bottom: 1.5rem !important;
+  padding: 0 !important;
+}
+
+/* More aggressive override for any element with this class */
+*[class*="_header_"] {
+  margin-bottom: 1.5rem !important;
+  padding: 0 !important;
 } 

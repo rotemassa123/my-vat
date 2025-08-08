@@ -1,0 +1,43 @@
+.tabsContainer {
+  position: sticky;
+  top: 0;
+  z-index: 99;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background-color: white;
+}
+
+.tabs {
+  padding: 0 1rem;
+  
+  .MuiTabs-indicator {
+    background-color: #0131ff;
+    height: 3px;
+  }
+}
+
+.tab {
+  text-transform: none;
+  font-weight: 500;
+  color: #40578c;
+  padding: 1rem 1.5rem;
+  min-height: 64px;
+  
+  &.Mui-selected {
+    color: #0131ff;
+    font-weight: 600;
+  }
+  
+  .MuiTab-iconWrapper {
+    margin-bottom: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .tabs {
+    .MuiTab-root {
+      min-width: auto;
+      padding: 0.5rem 1rem;
+    }
+  }
+} 

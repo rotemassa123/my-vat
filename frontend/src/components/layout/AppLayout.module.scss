@@ -12,13 +12,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2.5rem;
+  padding: 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   z-index: 10;
   
   .logo {
     display: flex;
     align-items: center;
+    padding-left: 2rem;
     
     .logoText {
       font-family: 'Poppins', sans-serif;
@@ -117,7 +118,8 @@
 
 .content {
   flex: 1;
-  padding: 2rem;
+  padding-left: 2rem;
+  padding-right: 0;
   overflow: hidden;
 }
 
@@ -137,6 +139,7 @@
   }
   
   .content {
-    padding: 16px;
+    padding-left: 16px;
+    padding-right: 0;
   }
 } 
