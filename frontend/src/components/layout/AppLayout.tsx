@@ -37,6 +37,9 @@ export default function AppLayout() {
     setIsUploadModalOpen(false);
   };
 
+  // Check if we're on the settings page to hide FAB
+  const isSettingsPage = location.pathname === '/settings';
+
   // Navigation items with dynamic items based on user type
   const navigationItems = [
     {
@@ -167,8 +170,8 @@ export default function AppLayout() {
         </Box>
       </Box>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton onClick={handleFabClick} />
+      {/* Floating Action Button - Hidden on settings page */}
+      {!isSettingsPage && <FloatingActionButton onClick={handleFabClick} />}
 
       {/* Upload Components with Provider */}
       <UploadProvider>

@@ -9,22 +9,34 @@
   font-size: 1.5rem;
   font-weight: 600;
   color: #001441;
-  margin-bottom: 1.5rem;
-}
-
-.profileSection {
-  display: flex;
-  gap: 2rem;
-  align-items: flex-start;
   margin-bottom: 2rem;
 }
 
-.avatarSection {
+.mainContent {
+  display: flex;
+  gap: 3rem;
+  margin-bottom: 2rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 2rem;
+  }
+}
+
+.profilePictureSection {
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  min-width: 150px;
+  min-width: 200px;
+}
+
+.avatarContainer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .avatar {
@@ -37,24 +49,36 @@
 }
 
 .uploadButton {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
   background-color: #0131ff;
   color: white;
+  z-index: 10;
+  width: 40px;
+  height: 40px;
   
   &:hover {
     background-color: #001441;
   }
 }
 
+.uploadHint {
+  text-align: center;
+  color: #666;
+  font-size: 0.875rem;
+  max-width: 200px;
+}
+
 .formSection {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
+  min-width: 0;
 }
 
 .textField {
-  margin-bottom: 1.5rem;
-  
   .MuiOutlinedInput-root {
     border-radius: 8px;
     
@@ -68,32 +92,32 @@
   }
 }
 
-.infoSection {
-  margin-top: 1rem;
+.bottomSection {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e0e0e0;
+  margin-top: 1rem;
   
-  .accountInfo {
-    padding: 0.5rem 0.75rem;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    margin-right: 1rem;
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
   }
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0;
-  padding-top: 0;
-  border-top: none;
+.accountInfo {
+  padding: 0.5rem 0.75rem;
+  background-color: #f5f5f5;
+  border-radius: 4px;
 }
 
-@media (max-width: 768px) {
-  .profileSection {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
+.saveButton {
+  background-color: #0131ff;
+  min-width: 140px;
+  
+  &:hover {
+    background-color: #001441;
   }
 } 
