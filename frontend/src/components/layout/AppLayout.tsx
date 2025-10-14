@@ -12,7 +12,7 @@ import {
   Assessment as ReportIcon,
   Settings,
   People as PeopleIcon,
-  Business as BusinessIcon,
+  Domain as DomainIcon,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
@@ -67,7 +67,7 @@ export default function AppLayout() {
       {
         path: '/entities',
         label: 'Entities',
-        icon: <BusinessIcon className={styles.icon} />,
+        icon: <DomainIcon className={styles.icon} />,
       },
       {
         path: '/settings',

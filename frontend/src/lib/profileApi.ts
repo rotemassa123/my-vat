@@ -27,6 +27,10 @@ export interface UpdateEntityResponse {
   entity: any;
 }
 
+export interface CreateEntityResponse {
+  _id: string;
+}
+
 export const profileApi = {
   getProfile: async (): Promise<any> => {
     const response = await apiClient.get('/profile');
@@ -126,7 +130,17 @@ export const profileApi = {
     }
   },
 
-  updateEntity: async (entityId: string, updateData: { name?: string }): Promise<UpdateEntityResponse> => {
+  updateEntity: async (entityId: string, updateData: { 
+    name?: string;
+    entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
+    address?: {
+      street?: string;
+      city?: string;
+      state?: string;
+      postal_code?: string;
+      country?: string;
+    };
+  }): Promise<UpdateEntityResponse> => {
     try {
       const response = await apiClient.put<UpdateEntityResponse>(`/entities/${entityId}`, updateData);
       return response.data;
@@ -141,6 +155,35 @@ export const profileApi = {
         throw new Error(error.response.data?.message || 'Failed to update entity');
       }
       throw new Error('An error occurred while updating the entity');
+    }
+  },
+
+  createEntity: async (entityData: {
+    accountId: string;
+    name: string;
+    entity_type: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
+    address: {
+      street: string;
+      city: string;
+      state?: string;
+      postal_code?: string;
+      country?: string;
+    };
+  }): Promise<CreateEntityResponse> => {
+    try {
+      const response = await apiClient.post<CreateEntityResponse>('/entities', entityData);
+      return response.data;
+    } catch (error: any) {
+      console.error('Create entity error:', error.response?.data);
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to create entities');
+      }
+      if (error.response?.status === 400) {
+        const errorMessage = error.response.data?.message || 'Failed to create entity';
+        console.error('Validation error details:', errorMessage);
+        throw new Error(Array.isArray(errorMessage) ? errorMessage.join(', ') : errorMessage);
+      }
+      throw new Error('An error occurred while creating the entity');
     }
   },
 

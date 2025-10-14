@@ -19,7 +19,7 @@ import {
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { 
   Search, 
-  BusinessCenter, 
+  DomainAdd, 
   Edit, 
   Delete
 } from '@mui/icons-material';
@@ -27,6 +27,7 @@ import { Alert, Snackbar } from '@mui/material';
 import { useAccountStore } from '../../store/accountStore';
 import { profileApi } from '../../lib/profileApi';
 import EntityRow from './EntityRow.tsx';
+import EntityModal from './EntityModal';
 import styles from './EntityManagement.module.scss';
 
 // Helper function to format date
@@ -70,7 +71,7 @@ const getLocationString = (address?: {
 };
 
 const EntityManagement: React.FC = () => {
-  const { entities, users, setProfile } = useAccountStore();
+  const { entities, users, account, setProfile } = useAccountStore();
   
   // State for error handling
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -107,13 +108,56 @@ const EntityManagement: React.FC = () => {
   const [entityToDelete, setEntityToDelete] = useState<string | null>(null);
   const [assignedUsersCount, setAssignedUsersCount] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [editingEntityId, setEditingEntityId] = useState<string | null>(null);
-  const [editingEntityName, setEditingEntityName] = useState<string>('');
+  
+  // Entity Modal State (unified for create and edit)
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [entityToEdit, setEntityToEdit] = useState<any>(null);
 
   // Update entities when transformedEntities changes
   React.useEffect(() => {
     setDisplayEntities(transformedEntities);
   }, [transformedEntities]);
+
+  // Load Google Maps API dynamically
+  React.useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_PLATFORM_API;
+    
+    if (!apiKey || apiKey === 'YOUR_GOOGLE_MAPS_API_KEY_HERE') {
+      console.error('Google Maps API key not configured. Please add VITE_GOOGLE_MAPS_PLATFORM_API to your .env file');
+      return;
+    }
+
+    // Check if Google Maps is already loaded
+    if ((window as any).google && 
+        (window as any).google.maps && 
+        (window as any).google.maps.places) {
+      console.log('Google Maps API already loaded');
+      return;
+    }
+
+    // Load Google Maps API script with places library
+    // Note: We still load 'places' library for AutocompleteService, but use the new Place API for details
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places&loading=async`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      console.log('Google Maps API loaded successfully');
+    };
+    script.onerror = () => {
+      console.error('Failed to load Google Maps API');
+    };
+    
+    document.head.appendChild(script);
+
+    return () => {
+      // Cleanup: remove script if component unmounts
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, []);
 
   const handleActionClick = (event: React.MouseEvent<HTMLElement>, entityId: string) => {
     setAnchorEl(event.currentTarget);
@@ -129,59 +173,29 @@ const EntityManagement: React.FC = () => {
     if (selectedEntity) {
       const entity = entities.find(e => e._id === selectedEntity);
       if (entity) {
-        setEditingEntityId(selectedEntity);
-        setEditingEntityName(entity.name);
+        setEntityToEdit(entity);
+        setModalMode('edit');
+        setModalOpen(true);
       }
     }
     handleCloseMenu();
   };
 
-  const handleSaveEntityName = async (entityId: string) => {
-    // Find the original entity
-    const originalEntity = entities.find(e => e._id === entityId);
-    
-    if (!originalEntity) {
-      setEditingEntityId(null);
-      setEditingEntityName('');
-      return;
-    }
-
-    // Check if name actually changed
-    if (editingEntityName.trim() === originalEntity.name) {
-      // No change, just exit editing mode
-      setEditingEntityId(null);
-      setEditingEntityName('');
-      return;
-    }
-
-    if (!editingEntityName.trim()) {
-      setErrorMessage('Entity name cannot be empty');
-      setEditingEntityId(null);
-      setEditingEntityName('');
-      return;
-    }
-
-    try {
-      await profileApi.updateEntity(entityId, { name: editingEntityName.trim() });
-      
-      // Refresh profile data
-      const profileData = await profileApi.getProfile();
-      setProfile(profileData);
-      
-      setSuccessMessage('Entity name updated successfully');
-      setEditingEntityId(null);
-      setEditingEntityName('');
-    } catch (error) {
-      console.error('Failed to update entity name:', error);
-      setErrorMessage(error instanceof Error ? error.message : 'Failed to update entity name');
-      setEditingEntityId(null);
-      setEditingEntityName('');
-    }
+  const handleCreateEntity = () => {
+    setEntityToEdit(null);
+    setModalMode('create');
+    setModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
-    setEditingEntityId(null);
-    setEditingEntityName('');
+  const handleModalClose = () => {
+    setModalOpen(false);
+    setEntityToEdit(null);
+  };
+
+  const handleModalSuccess = async () => {
+    // Refresh profile data to get the updated/created entity
+    const profileData = await profileApi.getProfile();
+    setProfile(profileData);
   };
 
   const handleDeleteEntity = () => {
@@ -278,11 +292,11 @@ const EntityManagement: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<BusinessCenter />}
+          startIcon={<DomainAdd />}
           className={styles.addButton}
-          onClick={() => console.log('Add Entity clicked')}
+          onClick={handleCreateEntity}
         >
-          Add Entity
+          Create Entity
         </Button>
       </Box>
 
@@ -310,11 +324,11 @@ const EntityManagement: React.FC = () => {
             label="Type"
           >
             <MenuItem value="">All Types</MenuItem>
-            <MenuItem value="Company">Company</MenuItem>
-            <MenuItem value="Subsidiary">Subsidiary</MenuItem>
-            <MenuItem value="Branch">Branch</MenuItem>
-            <MenuItem value="Partnership">Partnership</MenuItem>
-            <MenuItem value="Sole Proprietorship">Sole Proprietorship</MenuItem>
+            <MenuItem value="company">Company</MenuItem>
+            <MenuItem value="subsidiary">Subsidiary</MenuItem>
+            <MenuItem value="branch">Branch</MenuItem>
+            <MenuItem value="partnership">Partnership</MenuItem>
+            <MenuItem value="sole_proprietorship">Sole Proprietorship</MenuItem>
           </Select>
         </FormControl>
 
@@ -353,11 +367,6 @@ const EntityManagement: React.FC = () => {
               key={entity.id} 
               entity={entity} 
               onActionClick={handleActionClick}
-              isEditing={editingEntityId === entity.id}
-              editingName={editingEntityName}
-              onNameChange={setEditingEntityName}
-              onSave={() => handleSaveEntityName(entity.id)}
-              onCancel={handleCancelEdit}
             />
           ))}
         </Box>
@@ -530,6 +539,18 @@ const EntityManagement: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Unified Entity Modal (Create/Edit) */}
+      <EntityModal
+        open={modalOpen}
+        onClose={handleModalClose}
+        mode={modalMode}
+        entity={modalMode === 'edit' ? entityToEdit : undefined}
+        accountId={account?._id}
+        onSuccess={handleModalSuccess}
+        onShowSuccess={setSuccessMessage}
+        onShowError={setErrorMessage}
+      />
 
       {/* Error Snackbar */}
       <Snackbar
