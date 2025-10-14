@@ -3,8 +3,8 @@ import {
   Box,
   Avatar,
   Typography,
-  Chip,
   IconButton,
+  TextField,
 } from '@mui/material';
 import {
   MoreVert,
@@ -33,9 +33,49 @@ interface UserRowProps {
   onRoleChange: (userId: string, newRole: string, newUserType: number) => Promise<void>;
   onEntityChange: (userId: string, newEntityId: string) => Promise<void>;
   entities: Array<{ _id: string; name: string }>;
+  isEditing?: boolean;
+  editingName?: string;
+  onNameChange?: (name: string) => void;
+  onSaveName?: () => void;
+  onCancel?: () => void;
 }
 
-const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, onEntityChange, entities }) => {
+const UserRow: React.FC<UserRowProps> = ({ 
+  user, 
+  onActionClick, 
+  onRoleChange, 
+  onEntityChange, 
+  entities,
+  isEditing = false,
+  editingName = '',
+  onNameChange,
+  onSaveName,
+  onCancel
+}) => {
+  const [isInitialMount, setIsInitialMount] = React.useState(true);
+  const nameInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Track when editing starts to prevent immediate blur
+  React.useEffect(() => {
+    if (isEditing) {
+      setIsInitialMount(true);
+      // Select all text when editing starts
+      if (nameInputRef.current) {
+        nameInputRef.current.select();
+      }
+      // Allow blur to work after a short delay
+      const timer = setTimeout(() => {
+        setIsInitialMount(false);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isEditing]);
+
+  const handleNameBlur = () => {
+    if (!isInitialMount && onSaveName) {
+      onSaveName();
+    }
+  };
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
@@ -73,9 +113,30 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, on
             {user.avatar.startsWith('http') ? '' : user.avatar}
           </Avatar>
           <Box className={styles.userDetails}>
-            <Typography variant="body1" className={styles.userName}>
-              {user.name}
-            </Typography>
+            {isEditing ? (
+              <TextField
+                inputRef={nameInputRef}
+                value={editingName}
+                onChange={(e) => onNameChange?.(e.target.value)}
+                onBlur={handleNameBlur}
+                variant="outlined"
+                size="small"
+                autoFocus
+                fullWidth
+                className={styles.editInput}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    onSaveName?.();
+                  } else if (e.key === 'Escape') {
+                    onCancel?.();
+                  }
+                }}
+              />
+            ) : (
+              <Typography variant="body1" className={styles.userName}>
+                {user.name}
+              </Typography>
+            )}
             <Typography variant="body2" className={styles.userEmail}>
               {user.email}
             </Typography>
@@ -121,12 +182,14 @@ const UserRow: React.FC<UserRowProps> = ({ user, onActionClick, onRoleChange, on
         </Typography>
       </Box>
       <Box className={styles.actionCell} style={{ width: '4%' }}>
-        <IconButton
-          onClick={(e: React.MouseEvent<HTMLElement>) => onActionClick(e, user.id)}
-          className={styles.actionButton}
-        >
-          <MoreVert />
-        </IconButton>
+        {!isEditing && (
+          <IconButton
+            onClick={(e: React.MouseEvent<HTMLElement>) => onActionClick(e, user.id)}
+            className={styles.actionButton}
+          >
+            <MoreVert />
+          </IconButton>
+        )}
       </Box>
     </Box>
   );

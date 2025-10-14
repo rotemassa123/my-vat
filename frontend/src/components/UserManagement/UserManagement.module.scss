@@ -6,6 +6,15 @@
   flex-direction: column;
   box-sizing: border-box;
   padding: 2rem;
+  padding-right: 2rem;
+}
+
+.userManagement {
+  background-color: #f3faff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-right: 2rem;
 }
 
 .header {
@@ -435,6 +444,63 @@
     &:hover .menuText {
       color: #b71c1c !important;
     }
+  }
+}
+
+.editInput {
+  .MuiOutlinedInput-root {
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    
+    .MuiOutlinedInput-notchedOutline {
+      border: none;
+    }
+    
+    &:hover {
+      .MuiOutlinedInput-notchedOutline {
+        border: none;
+      }
+    }
+    
+    &.Mui-focused {
+      .MuiOutlinedInput-notchedOutline {
+        border: none;
+      }
+    }
+  }
+  
+  .MuiInputBase-input {
+    padding: 6px 12px;
+  }
+}
+
+.editEmailInput {
+  .MuiOutlinedInput-root {
+    font-size: 0.8rem;
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+    
+    .MuiOutlinedInput-notchedOutline {
+      border: none;
+    }
+    
+    &:hover {
+      .MuiOutlinedInput-notchedOutline {
+        border: none;
+      }
+    }
+    
+    &.Mui-focused {
+      .MuiOutlinedInput-notchedOutline {
+        border: none;
+      }
+    }
+  }
+  
+  .MuiInputBase-input {
+    padding: 4px 12px;
+    color: #40578c;
   }
 }
 

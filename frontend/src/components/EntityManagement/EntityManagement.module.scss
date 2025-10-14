@@ -6,6 +6,15 @@
   flex-direction: column;
   box-sizing: border-box;
   padding: 2rem;
+  padding-right: 2rem;
+}
+
+.userManagement {
+  background-color: #f3faff;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding-right: 2rem;
 }
 
 .header {
@@ -235,7 +244,46 @@
   }
 }
 
+.typeText, .regNumberText, .locationText {
+  color: #40578c;
+  font-size: 0.875rem;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+}
 
+.statusContainer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.editInput {
+  .MuiOutlinedInput-root {
+    font-size: 0.9rem;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    
+    .MuiOutlinedInput-notchedOutline {
+      border: none;
+    }
+    
+    &:hover {
+      .MuiOutlinedInput-notchedOutline {
+        border: none;
+      }
+    }
+    
+    &.Mui-focused {
+      .MuiOutlinedInput-notchedOutline {
+        border: none;
+      }
+    }
+  }
+  
+  .MuiInputBase-input {
+    padding: 8px 12px;
+  }
+}
 
 .inlineSelect {
   width: 130px;

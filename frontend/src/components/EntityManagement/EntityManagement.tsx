@@ -19,31 +19,19 @@ import {
 import type { SelectChangeEvent } from '@mui/material/Select';
 import { 
   Search, 
-  PersonAdd, 
+  BusinessCenter, 
   Edit, 
-  Delete, 
-  Block
+  Delete
 } from '@mui/icons-material';
 import { Alert, Snackbar } from '@mui/material';
 import { useAccountStore } from '../../store/accountStore';
-import { useInviteModalStore } from '../../store/modalStore';
-import { useUserManagement } from '../../hooks/user/useUserManagement';
-import InviteModal from '../modals/InviteModal';
-import EntityRow from './EntityRow';
+import { profileApi } from '../../lib/profileApi';
+import EntityRow from './EntityRow.tsx';
 import styles from './EntityManagement.module.scss';
-
-// Helper function to create avatar initials
-const createAvatarInitials = (fullName: string): string => {
-  const names = fullName.split(' ');
-  if (names.length >= 2) {
-    return `${names[0][0]}${names[1][0]}`.toUpperCase();
-  }
-  return fullName.substring(0, 2).toUpperCase();
-};
 
 // Helper function to format date
 const formatDate = (date: Date | string | undefined): string => {
-  if (!date) return 'Never';
+  if (!date) return 'N/A';
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date;
     return dateObj.toLocaleDateString('en-US', {
@@ -52,172 +40,215 @@ const formatDate = (date: Date | string | undefined): string => {
       day: '2-digit'
     });
   } catch {
-    return 'Never';
+    return 'N/A';
   }
 };
 
-// Helper function to format date with time
-const formatDateTime = (date: Date | string | undefined): string => {
-  if (!date) return 'Never';
-  try {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleString('en-US', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  } catch {
-    return 'Never';
-  }
+// Helper function to format entity type for display
+const formatEntityType = (type?: string): string => {
+  if (!type) return 'N/A';
+  return type
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 };
 
-// Helper function to map userType to role
-const mapUserTypeToRole = (userType: number): string => {
-  switch (userType) {
-    case 1:
-      return 'Admin';
-    case 2:
-      return 'Member';
-    case 3:
-      return 'Viewer';
-    case 4:
-      return 'Guest';
-    default:
-      return 'Member';
-  }
-};
-
-// Helper function to format user status for display
-const formatUserStatus = (status: string): string => {
+// Helper function to format entity status for display
+const formatEntityStatus = (status: string): string => {
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
+// Helper function to get location string
+const getLocationString = (address?: {
+  city?: string;
+  state?: string;
+  country?: string;
+}): string => {
+  if (!address) return 'N/A';
+  const parts = [address.city, address.state, address.country].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : 'N/A';
+};
+
 const EntityManagement: React.FC = () => {
-  const { users: profileUsers, entities } = useAccountStore();
-  const { openModal } = useInviteModalStore();
-  const { deleteUser, isDeleting, deleteError, updateUserRole, updateRoleError, updateUserEntity, updateEntityError } = useUserManagement(
-    (message: string) => setSuccessMessage(message)
-  );
+  const { entities, users, setProfile } = useAccountStore();
   
   // State for error handling
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   
-  // Transform real user data to expected format
-  const transformedUsers = useMemo(() => {
-    if (!profileUsers || profileUsers.length === 0) {
+  // Transform entity data to display format
+  const transformedEntities = useMemo(() => {
+    if (!entities || entities.length === 0) {
       return [];
     }
     
-    return profileUsers.map(user => {
-      const entity = entities.find(e => e._id === user.entityId);
-      return {
-        id: user._id,
-        name: user.fullName,
-        email: user.email,
-        role: mapUserTypeToRole(user.userType),
-        status: formatUserStatus(user.status),
-        avatar: createAvatarInitials(user.fullName),
-        entity: entity?.name || 'Unknown Entity',
-        lastLogin: formatDateTime(undefined), // Not available in current data
-        createdAt: formatDate(user.created_at)
-      };
-    });
-  }, [profileUsers, entities]);
+    return entities.map(entity => ({
+      id: entity._id,
+      name: entity.name,
+      type: formatEntityType(entity.entity_type),
+      registrationNumber: entity.registration_number || 'N/A',
+      status: formatEntityStatus(entity.status),
+      location: getLocationString(entity.address),
+      email: entity.email || 'N/A',
+      phone: entity.phone || 'N/A',
+      createdAt: formatDate(entity.created_at)
+    }));
+  }, [entities]);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [users, setUsers] = useState(transformedUsers);
+  const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
+  const [displayEntities, setDisplayEntities] = useState(transformedEntities);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [usersWarningOpen, setUsersWarningOpen] = useState(false);
+  const [lastEntityWarningOpen, setLastEntityWarningOpen] = useState(false);
+  const [entityToDelete, setEntityToDelete] = useState<string | null>(null);
+  const [assignedUsersCount, setAssignedUsersCount] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editingEntityId, setEditingEntityId] = useState<string | null>(null);
+  const [editingEntityName, setEditingEntityName] = useState<string>('');
 
-  // Update users when transformedUsers changes
+  // Update entities when transformedEntities changes
   React.useEffect(() => {
-    setUsers(transformedUsers);
-  }, [transformedUsers]);
+    setDisplayEntities(transformedEntities);
+  }, [transformedEntities]);
 
-  const handleActionClick = (event: React.MouseEvent<HTMLElement>, userId: string) => {
+  const handleActionClick = (event: React.MouseEvent<HTMLElement>, entityId: string) => {
     setAnchorEl(event.currentTarget);
-    setSelectedUser(userId);
+    setSelectedEntity(entityId);
   };
 
   const handleCloseMenu = () => {
     setAnchorEl(null);
-    setSelectedUser(null);
+    setSelectedEntity(null);
   };
 
-  const handleEditUser = () => {
-    // TODO: Implement edit user functionality
-    console.log('Edit user:', selectedUser);
-    handleCloseMenu();
-  };
-
-  const handleDeleteUser = () => {
-    if (selectedUser) {
-      setUserToDelete(selectedUser);
-      setDeleteConfirmOpen(true);
+  const handleEditEntity = () => {
+    if (selectedEntity) {
+      const entity = entities.find(e => e._id === selectedEntity);
+      if (entity) {
+        setEditingEntityId(selectedEntity);
+        setEditingEntityName(entity.name);
+      }
     }
     handleCloseMenu();
   };
 
-  const handleConfirmDelete = () => {
-    if (userToDelete) {
-      deleteUser(userToDelete);
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
+  const handleSaveEntityName = async (entityId: string) => {
+    // Find the original entity
+    const originalEntity = entities.find(e => e._id === entityId);
+    
+    if (!originalEntity) {
+      setEditingEntityId(null);
+      setEditingEntityName('');
+      return;
+    }
+
+    // Check if name actually changed
+    if (editingEntityName.trim() === originalEntity.name) {
+      // No change, just exit editing mode
+      setEditingEntityId(null);
+      setEditingEntityName('');
+      return;
+    }
+
+    if (!editingEntityName.trim()) {
+      setErrorMessage('Entity name cannot be empty');
+      setEditingEntityId(null);
+      setEditingEntityName('');
+      return;
+    }
+
+    try {
+      await profileApi.updateEntity(entityId, { name: editingEntityName.trim() });
+      
+      // Refresh profile data
+      const profileData = await profileApi.getProfile();
+      setProfile(profileData);
+      
+      setSuccessMessage('Entity name updated successfully');
+      setEditingEntityId(null);
+      setEditingEntityName('');
+    } catch (error) {
+      console.error('Failed to update entity name:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update entity name');
+      setEditingEntityId(null);
+      setEditingEntityName('');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEntityId(null);
+    setEditingEntityName('');
+  };
+
+  const handleDeleteEntity = () => {
+    if (selectedEntity) {
+      // Check if this is the last entity
+      const activeEntities = entities.filter(e => e.status === 'active');
+      if (activeEntities.length === 1) {
+        // Show warning that last entity cannot be deleted
+        setLastEntityWarningOpen(true);
+        handleCloseMenu();
+        return;
+      }
+
+      // Check if any active users are assigned to this entity
+      const assignedUsers = users.filter(
+        user => user.entityId === selectedEntity && user.status === 'active'
+      );
+      
+      if (assignedUsers.length > 0) {
+        // Show warning dialog if users are assigned
+        setEntityToDelete(selectedEntity);
+        setAssignedUsersCount(assignedUsers.length);
+        setUsersWarningOpen(true);
+      } else {
+        // Show delete confirmation if no users assigned
+        setEntityToDelete(selectedEntity);
+        setDeleteConfirmOpen(true);
+      }
+    }
+    handleCloseMenu();
+  };
+
+  const handleConfirmDelete = async () => {
+    if (entityToDelete) {
+      setIsDeleting(true);
+      try {
+        await profileApi.deleteEntity(entityToDelete);
+        
+        // Refresh profile data
+        const profileData = await profileApi.getProfile();
+        setProfile(profileData);
+        
+        setSuccessMessage('Entity deleted successfully');
+      } catch (error) {
+        console.error('Delete error:', error);
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to delete entity');
+      } finally {
+        setIsDeleting(false);
       }
     }
     setDeleteConfirmOpen(false);
-    setUserToDelete(null);
+    setEntityToDelete(null);
   };
 
   const handleCancelDelete = () => {
     setDeleteConfirmOpen(false);
-    setUserToDelete(null);
+    setEntityToDelete(null);
   };
 
-  const handleBlockUser = () => {
-    // TODO: Implement block user functionality
-    console.log('Block user:', selectedUser);
-    handleCloseMenu();
+  const handleCloseUsersWarning = () => {
+    setUsersWarningOpen(false);
+    setEntityToDelete(null);
+    setAssignedUsersCount(0);
   };
 
-  const handleRoleChange = async (userId: string, newRole: string, newUserType: number): Promise<void> => {
-    // Find the current user to get their current entity
-    const currentUser = profileUsers.find(user => user._id === userId);
-    
-    if (newUserType === 1) { // Admin
-      // For admin, we don't need entityId (it will be cleared by backend)
-      await updateUserRole(userId, newUserType);
-    } else if (newUserType === 2 || newUserType === 3) { // Member or Viewer
-      // For member/viewer, we need to assign an entity
-      // If user already has an entity, keep it; otherwise assign to first available entity
-      let entityId = currentUser?.entityId;
-      
-      if (!entityId && entities.length > 0) {
-        // Assign to first available entity
-        entityId = entities[0]._id;
-      }
-      
-      if (!entityId) {
-        setErrorMessage('No entities available for assignment');
-        throw new Error('No entities available for assignment');
-      }
-      
-      // Call the backend with both userType and entityId
-      await updateUserRole(userId, newUserType, entityId);
-    } else {
-      await updateUserRole(userId, newUserType);
-    }
-  };
-
-  const handleEntityChange = async (userId: string, newEntityId: string): Promise<void> => {
-    await updateUserEntity(userId, newEntityId);
+  const handleCloseLastEntityWarning = () => {
+    setLastEntityWarningOpen(false);
   };
 
   const handleCloseError = () => {
@@ -228,13 +259,14 @@ const EntityManagement: React.FC = () => {
     setSuccessMessage(null);
   };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = roleFilter === '' || user.role === roleFilter;
-    const matchesStatus = statusFilter === '' || user.status === statusFilter;
+  const filteredEntities = displayEntities.filter(entity => {
+    const matchesSearch = entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          entity.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          entity.location.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesType = typeFilter === '' || entity.type === typeFilter;
+    const matchesStatus = statusFilter === '' || entity.status === statusFilter;
     
-    return matchesSearch && matchesRole && matchesStatus;
+    return matchesSearch && matchesType && matchesStatus;
   });
 
   return (
@@ -246,9 +278,9 @@ const EntityManagement: React.FC = () => {
         </Typography>
         <Button
           variant="contained"
-          startIcon={<PersonAdd />}
+          startIcon={<BusinessCenter />}
           className={styles.addButton}
-          onClick={openModal}
+          onClick={() => console.log('Add Entity clicked')}
         >
           Add Entity
         </Button>
@@ -271,17 +303,18 @@ const EntityManagement: React.FC = () => {
         />
         
         <FormControl className={styles.filterSelect}>
-          <InputLabel>Role</InputLabel>
+          <InputLabel>Type</InputLabel>
           <Select
-            value={roleFilter}
-            onChange={(e: SelectChangeEvent<string>) => setRoleFilter(e.target.value)}
-            label="Role"
+            value={typeFilter}
+            onChange={(e: SelectChangeEvent<string>) => setTypeFilter(e.target.value)}
+            label="Type"
           >
-            <MenuItem value="">All Roles</MenuItem>
-            <MenuItem value="Admin">Admin</MenuItem>
-            <MenuItem value="Member">Member</MenuItem>
-            <MenuItem value="Viewer">Viewer</MenuItem>
-            <MenuItem value="Guest">Guest</MenuItem>
+            <MenuItem value="">All Types</MenuItem>
+            <MenuItem value="Company">Company</MenuItem>
+            <MenuItem value="Subsidiary">Subsidiary</MenuItem>
+            <MenuItem value="Branch">Branch</MenuItem>
+            <MenuItem value="Partnership">Partnership</MenuItem>
+            <MenuItem value="Sole Proprietorship">Sole Proprietorship</MenuItem>
           </Select>
         </FormControl>
 
@@ -295,34 +328,36 @@ const EntityManagement: React.FC = () => {
             <MenuItem value="">All Status</MenuItem>
             <MenuItem value="Active">Active</MenuItem>
             <MenuItem value="Inactive">Inactive</MenuItem>
-            <MenuItem value="Pending">Pending</MenuItem>
+            <MenuItem value="Dissolved">Dissolved</MenuItem>
           </Select>
         </FormControl>
       </Box>
 
-      {/* Users Table */}
+      {/* Entities Table */}
       <Box className={styles.tableContainer}>
         {/* Table Header */}
         <Box className={styles.tableHeader}>
-          <Box className={styles.headerCell} style={{ width: '30%' }}>User</Box>
-          <Box className={styles.headerCell} style={{ width: '12%' }}>Role</Box>
-          <Box className={styles.headerCell} style={{ width: '15%' }}>Entity</Box>
+          <Box className={styles.headerCell} style={{ width: '25%' }}>Name</Box>
+          <Box className={styles.headerCell} style={{ width: '15%' }}>Type</Box>
+          <Box className={styles.headerCell} style={{ width: '15%' }}>Registration #</Box>
           <Box className={styles.headerCell} style={{ width: '12%' }}>Status</Box>
-          <Box className={styles.headerCell} style={{ width: '15%' }}>Last Login</Box>
-          <Box className={styles.headerCell} style={{ width: '12%' }}>Created</Box>
+          <Box className={styles.headerCell} style={{ width: '20%' }}>Location</Box>
+          <Box className={styles.headerCell} style={{ width: '9%' }}>Created</Box>
           <Box className={styles.headerCell} style={{ width: '4%', paddingRight: '24px' }}></Box>
         </Box>
         
         {/* Table Body (Scrollable) */}
         <Box className={styles.tableBody}>
-          {filteredUsers.map((user) => (
+          {filteredEntities.map((entity) => (
             <EntityRow 
-              key={user.id} 
-              user={user} 
+              key={entity.id} 
+              entity={entity} 
               onActionClick={handleActionClick}
-              onRoleChange={handleRoleChange}
-              onEntityChange={handleEntityChange}
-              entities={entities}
+              isEditing={editingEntityId === entity.id}
+              editingName={editingEntityName}
+              onNameChange={setEditingEntityName}
+              onSave={() => handleSaveEntityName(entity.id)}
+              onCancel={handleCancelEdit}
             />
           ))}
         </Box>
@@ -340,26 +375,107 @@ const EntityManagement: React.FC = () => {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
       >
-        <MenuItem onClick={handleEditUser} className={styles.menuItem}>
+        <MenuItem onClick={handleEditEntity} className={styles.menuItem}>
           <Edit className={styles.menuIcon} />
-          <span className={styles.menuText}>Edit User</span>
-        </MenuItem>
-        <MenuItem onClick={handleBlockUser} className={styles.menuItem}>
-          <Block className={styles.menuIcon} />
-          <span className={styles.menuText}>Deactivate User</span>
+          <span className={styles.menuText}>Edit Entity</span>
         </MenuItem>
         <MenuItem 
-          onClick={handleDeleteUser} 
+          onClick={handleDeleteEntity} 
           className={`${styles.menuItem} ${styles.deleteMenuItem}`}
           disabled={isDeleting}
         >
           <Delete className={styles.menuIcon} />
           <span className={styles.menuText}>
-            {isDeleting ? 'Deleting...' : 'Delete User'}
+            {isDeleting ? 'Deleting...' : 'Delete Entity'}
           </span>
         </MenuItem>
       </Menu>
       
+      {/* Last Entity Warning Dialog */}
+      <Dialog
+        open={lastEntityWarningOpen}
+        onClose={handleCloseLastEntityWarning}
+        aria-labelledby="last-entity-warning-dialog-title"
+        aria-describedby="last-entity-warning-dialog-description"
+        PaperProps={{
+          style: {
+            borderRadius: '12px',
+            minWidth: '400px',
+          },
+        }}
+      >
+        <DialogTitle id="last-entity-warning-dialog-title" sx={{ pb: 1 }}>
+          <Typography variant="h6" sx={{ color: '#ff9800', fontWeight: 600 }}>
+            Cannot Delete Last Entity
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          <DialogContentText id="last-entity-warning-dialog-description">
+            You cannot delete the last entity. Your account must have at least one active entity.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={handleCloseLastEntityWarning}
+            variant="contained"
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              backgroundColor: '#0131ff',
+              '&:hover': {
+                backgroundColor: '#0025cc',
+              },
+            }}
+          >
+            Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Users Warning Dialog */}
+      <Dialog
+        open={usersWarningOpen}
+        onClose={handleCloseUsersWarning}
+        aria-labelledby="users-warning-dialog-title"
+        aria-describedby="users-warning-dialog-description"
+        PaperProps={{
+          style: {
+            borderRadius: '12px',
+            minWidth: '400px',
+          },
+        }}
+      >
+        <DialogTitle id="users-warning-dialog-title" sx={{ pb: 1 }}>
+          <Typography variant="h6" sx={{ color: '#ff9800', fontWeight: 600 }}>
+            Cannot Delete Entity
+          </Typography>
+        </DialogTitle>
+        <DialogContent sx={{ pb: 2 }}>
+          <DialogContentText id="users-warning-dialog-description">
+            This entity has {assignedUsersCount} active user{assignedUsersCount !== 1 ? 's' : ''} assigned to it. 
+            Please reassign or remove the user{assignedUsersCount !== 1 ? 's' : ''} before deleting this entity.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button 
+            onClick={handleCloseUsersWarning}
+            variant="contained"
+            sx={{ 
+              borderRadius: '8px',
+              textTransform: 'none',
+              fontWeight: 500,
+              backgroundColor: '#0131ff',
+              '&:hover': {
+                backgroundColor: '#0025cc',
+              },
+            }}
+          >
+            Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteConfirmOpen}
@@ -375,12 +491,12 @@ const EntityManagement: React.FC = () => {
       >
         <DialogTitle id="delete-dialog-title" sx={{ pb: 1 }}>
           <Typography variant="h6" sx={{ color: '#d32f2f', fontWeight: 600 }}>
-            Delete User
+            Delete Entity
           </Typography>
         </DialogTitle>
         <DialogContent sx={{ pb: 2 }}>
           <DialogContentText id="delete-dialog-description">
-            Are you sure you want to delete this user? This action cannot be undone.
+            Are you sure you want to delete this entity? This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3 }}>
@@ -410,14 +526,14 @@ const EntityManagement: React.FC = () => {
               },
             }}
           >
-            {isDeleting ? 'Deleting...' : 'Delete User'}
+            {isDeleting ? 'Deleting...' : 'Delete Entity'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Error Snackbar */}
       <Snackbar
-        open={!!updateRoleError || !!updateEntityError}
+        open={!!errorMessage}
         autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -427,7 +543,7 @@ const EntityManagement: React.FC = () => {
           severity="error" 
           sx={{ width: '100%' }}
         >
-          {updateRoleError?.message || updateEntityError?.message || 'Failed to update user'}
+          {errorMessage || 'An error occurred'}
         </Alert>
       </Snackbar>
 
@@ -446,9 +562,6 @@ const EntityManagement: React.FC = () => {
           {successMessage}
         </Alert>
       </Snackbar>
-      
-      {/* Invite Modal */}
-      <InviteModal />
     </Box>
   );
 };

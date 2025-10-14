@@ -28,6 +28,7 @@ import { Alert, Snackbar } from '@mui/material';
 import { useAccountStore } from '../../store/accountStore';
 import { useInviteModalStore } from '../../store/modalStore';
 import { useUserManagement } from '../../hooks/user/useUserManagement';
+import { profileApi } from '../../lib/profileApi';
 import InviteModal from '../modals/InviteModal';
 import UserRow from './UserRow';
 import styles from './UserManagement.module.scss';
@@ -95,7 +96,7 @@ const formatUserStatus = (status: string): string => {
 };
 
 const UserManagement: React.FC = () => {
-  const { users: profileUsers, entities } = useAccountStore();
+  const { users: profileUsers, entities, setProfile } = useAccountStore();
   const { openModal } = useInviteModalStore();
   const { deleteUser, isDeleting, deleteError, updateUserRole, updateRoleError, updateUserEntity, updateEntityError } = useUserManagement(
     (message: string) => setSuccessMessage(message)
@@ -135,6 +136,8 @@ const UserManagement: React.FC = () => {
   const [users, setUsers] = useState(transformedUsers);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editingUserName, setEditingUserName] = useState<string>('');
 
   // Update users when transformedUsers changes
   React.useEffect(() => {
@@ -152,9 +155,59 @@ const UserManagement: React.FC = () => {
   };
 
   const handleEditUser = () => {
-    // TODO: Implement edit user functionality
-    console.log('Edit user:', selectedUser);
+    if (selectedUser) {
+      const user = profileUsers.find(u => u._id === selectedUser);
+      if (user) {
+        setEditingUserId(selectedUser);
+        setEditingUserName(user.fullName);
+      }
+    }
     handleCloseMenu();
+  };
+
+  const handleSaveUserName = async (userId: string) => {
+    const originalUser = profileUsers.find(u => u._id === userId);
+    
+    if (!originalUser) {
+      setEditingUserId(null);
+      setEditingUserName('');
+      return;
+    }
+
+    if (editingUserName.trim() === originalUser.fullName) {
+      setEditingUserId(null);
+      setEditingUserName('');
+      return;
+    }
+
+    if (!editingUserName.trim()) {
+      setErrorMessage('User name cannot be empty');
+      setEditingUserId(null);
+      setEditingUserName('');
+      return;
+    }
+
+    try {
+      await profileApi.updateUser(userId, { fullName: editingUserName.trim() });
+      
+      // Refresh profile data
+      const profileData = await profileApi.getProfile();
+      setProfile(profileData);
+      
+      setSuccessMessage('User name updated successfully');
+      setEditingUserId(null);
+      setEditingUserName('');
+    } catch (error) {
+      console.error('Failed to update user name:', error);
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update user name');
+      setEditingUserId(null);
+      setEditingUserName('');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingUserId(null);
+    setEditingUserName('');
   };
 
   const handleDeleteUser = () => {
@@ -323,6 +376,11 @@ const UserManagement: React.FC = () => {
               onRoleChange={handleRoleChange}
               onEntityChange={handleEntityChange}
               entities={entities}
+              isEditing={editingUserId === user.id}
+              editingName={editingUserName}
+              onNameChange={setEditingUserName}
+              onSaveName={() => handleSaveUserName(user.id)}
+              onCancel={handleCancelEdit}
             />
           ))}
         </Box>
