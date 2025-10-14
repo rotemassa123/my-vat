@@ -29,8 +29,8 @@ import { useAccountStore } from '../../store/accountStore';
 import { useInviteModalStore } from '../../store/modalStore';
 import { useUserManagement } from '../../hooks/user/useUserManagement';
 import InviteModal from '../modals/InviteModal';
-import UserRow from './UserRow';
-import styles from './UserManagement.module.scss';
+import EntityRow from './EntityRow';
+import styles from './EntityManagement.module.scss';
 
 // Helper function to create avatar initials
 const createAvatarInitials = (fullName: string): string => {
@@ -94,7 +94,7 @@ const formatUserStatus = (status: string): string => {
   return status.charAt(0).toUpperCase() + status.slice(1);
 };
 
-const UserManagement: React.FC = () => {
+const EntityManagement: React.FC = () => {
   const { users: profileUsers, entities } = useAccountStore();
   const { openModal } = useInviteModalStore();
   const { deleteUser, isDeleting, deleteError, updateUserRole, updateRoleError, updateUserEntity, updateEntityError } = useUserManagement(
@@ -242,7 +242,7 @@ const UserManagement: React.FC = () => {
       {/* Header */}
       <Box className={styles.header}>
         <Typography variant="h4" className={styles.pageTitle}>
-          User Management
+          Entity Management
         </Typography>
         <Button
           variant="contained"
@@ -250,14 +250,14 @@ const UserManagement: React.FC = () => {
           className={styles.addButton}
           onClick={openModal}
         >
-          Invite Users
+          Add Entity
         </Button>
       </Box>
 
       {/* Filters */}
       <Box className={styles.filtersContainer}>
         <TextField
-          placeholder="Search users..."
+          placeholder="Search entities..."
           value={searchTerm}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
           InputProps={{
@@ -316,7 +316,7 @@ const UserManagement: React.FC = () => {
         {/* Table Body (Scrollable) */}
         <Box className={styles.tableBody}>
           {filteredUsers.map((user) => (
-            <UserRow 
+            <EntityRow 
               key={user.id} 
               user={user} 
               onActionClick={handleActionClick}
@@ -453,4 +453,5 @@ const UserManagement: React.FC = () => {
   );
 };
 
-export default UserManagement; 
+export default EntityManagement;
+

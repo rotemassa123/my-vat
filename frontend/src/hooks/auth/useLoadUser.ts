@@ -1,13 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 import { authApi } from '../../lib/authApi';
 import { profileApi } from '../../lib/profileApi';
 import { loadAllData, isDataLoadingNeeded } from '../../services/invoiceService';
 
 export const useLoadUser = () => {
   const { login: loginUser, logout: logoutUser, setLoading: setAuthLoading, setError: setAuthError, user: currentUser } = useAuthStore();
-  const { setProfile, clearProfile, setLoading: setProfileLoading, setError: setProfileError, account: currentAccount } = useProfileStore();
+  const { setProfile, clearProfile, setLoading: setProfileLoading, setError: setProfileError, account: currentAccount } = useAccountStore();
 
   const loadUserMutation = useMutation({
     mutationFn: async () => {

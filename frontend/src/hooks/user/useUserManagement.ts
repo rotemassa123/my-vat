@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../../lib/profileApi';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 
 export const useUserManagement = (onSuccess?: (message: string) => void) => {
   const queryClient = useQueryClient();
-  const { setProfile } = useProfileStore();
+  const { setProfile } = useAccountStore();
 
   const deleteUserMutation = useMutation({
     mutationFn: profileApi.deleteUser,

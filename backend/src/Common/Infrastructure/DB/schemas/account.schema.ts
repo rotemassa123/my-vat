@@ -33,6 +33,9 @@ export class Account {
   company_name?: string;
 
   @Prop()
+  description?: string;
+
+  @Prop()
   tax_id?: string;
 
   @Prop()

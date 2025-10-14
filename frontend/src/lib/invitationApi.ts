@@ -2,7 +2,7 @@ import apiClient from './apiClient';
 
 export interface SendInvitationRequest {
   emails: string[];
-  entityId: string;
+  entityId?: string;
   role: 'admin' | 'member' | 'viewer';
   personalMessage?: string;
 }

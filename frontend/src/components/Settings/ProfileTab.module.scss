@@ -118,11 +118,37 @@
   border-radius: 4px;
 }
 
+.actionButtons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
 .saveButton {
-  background-color: #0131ff;
+  background-color: #9e9e9e;
   min-width: 140px;
   
   &:hover {
-    background-color: #001441;
+    background-color: #757575;
+  }
+}
+
+.saveButtonActive {
+  background-color: #0131ff !important;
+  
+  &:hover {
+    background-color: #001441 !important;
+  }
+}
+
+.cancelButton {
+  border-color: #9e9e9e;
+  color: #9e9e9e;
+  min-width: 100px;
+  
+  &:hover {
+    border-color: #757575;
+    color: #757575;
+    background-color: rgba(158, 158, 158, 0.04);
   }
 } 

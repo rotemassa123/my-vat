@@ -78,7 +78,7 @@ export class AuthenticationController {
         email: normalizedEmail, 
         status: user.status 
       });
-      throw new UnauthorizedException("Account is pending activation. Please check your email for an invitation link.");
+      throw new UnauthorizedException("User is pending activation. Please check your email for an invitation link.");
     }
 
     // Additional security: Ensure user has a password set

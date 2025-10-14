@@ -1,9 +1,9 @@
 import { useCallback } from 'react';
 import { profileApi } from '../../lib/profileApi';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 
 export const useRefreshProfile = () => {
-  const { setProfile, setLoading, setError } = useProfileStore();
+  const { setProfile, setLoading, setError } = useAccountStore();
 
   const refreshProfile = useCallback(async () => {
     try {

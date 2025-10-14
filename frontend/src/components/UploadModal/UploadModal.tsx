@@ -17,7 +17,7 @@ import {
   CloudUpload,
   CheckCircle,
 } from '@mui/icons-material';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 import { useUploadContext } from '../../contexts/UploadContext';
 import styles from './UploadModal.module.scss';
 
@@ -27,7 +27,7 @@ interface UploadModalProps {
 }
 
 const UploadModal: React.FC<UploadModalProps> = ({ open, onClose }) => {
-  const { entities } = useProfileStore();
+  const { entities } = useAccountStore();
   const { setGlobalEntityId, setPendingFiles, isUploading } = useUploadContext();
   
   // State management

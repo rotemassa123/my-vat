@@ -1,13 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 import { authApi } from '../../lib/authApi';
 
 export const useLogout = () => {
   const navigate = useNavigate();
   const { logout: logoutAuth } = useAuthStore();
-  const { clearProfile } = useProfileStore();
+  const { clearProfile } = useAccountStore();
 
   const logoutMutation = useMutation({
     mutationFn: authApi.logout,
@@ -18,7 +18,7 @@ export const useLogout = () => {
       
       // Clear any additional storage if needed
       sessionStorage.removeItem('auth-storage');
-      sessionStorage.removeItem('profile-storage');
+      sessionStorage.removeItem('account-storage');
       
       navigate('/login');
     },

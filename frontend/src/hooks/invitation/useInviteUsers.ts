@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { invitationApi, type SendInvitationRequest, type SendInvitationResponse, type ValidateInvitationRequest, type ValidateInvitationTokenRequest, type ValidateInvitationResponse, type CompleteSignupRequest, type CompleteSignupResponse } from '../../lib/invitationApi';
+import { invitationApi, type SendInvitationRequest, type SendInvitationResponse, type ValidateInvitationRequest, type ValidateInvitationResponse, type CompleteSignupRequest, type CompleteSignupResponse } from '../../lib/invitationApi';
 import { profileApi } from '../../lib/profileApi';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 import { type User } from '../../types/user';
 
 export const useInviteUsers = () => {
   const queryClient = useQueryClient();
-  const { setProfile, users: currentUsers } = useProfileStore();
+  const { setProfile, users: currentUsers } = useAccountStore();
 
   const { mutateAsync, isPending, isError, error, data } = useMutation<
     SendInvitationResponse,
@@ -47,7 +47,7 @@ export const useInviteUsers = () => {
       } catch (error) {
         console.error('Failed to refresh profile after invitation:', error);
         // Fallback: update with client-side data
-        const currentProfile = useProfileStore.getState();
+        const currentProfile = useAccountStore.getState();
         setProfile({
           account: currentProfile.account || undefined,
           entities: currentProfile.entities,
@@ -97,7 +97,7 @@ export const useValidateInvitationToken = (token?: string) => {
 
 export const useCompleteSignup = () => {
   const queryClient = useQueryClient();
-  const { setProfile } = useProfileStore();
+  const { setProfile } = useAccountStore();
 
   const { mutateAsync, isPending, isError, error, data } = useMutation<
     CompleteSignupResponse,

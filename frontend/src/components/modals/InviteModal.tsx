@@ -26,7 +26,7 @@ import {
   Email,
 } from '@mui/icons-material';
 import { useInviteModalStore } from '../../store/modalStore';
-import { useProfileStore } from '../../store/profileStore';
+import { useAccountStore } from '../../store/accountStore';
 import { useInviteUsers } from '../../hooks/invitation/useInviteUsers';
 import styles from './InviteModal.module.scss';
 
@@ -39,7 +39,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
   title = "Invite to users MyVat"
 }) => {
   const { isModalOpen, closeModal } = useInviteModalStore();
-  const { entities } = useProfileStore();
+  const { entities } = useAccountStore();
   const { sendInvitations, isLoading, isError, error, data } = useInviteUsers();
   
   // State management

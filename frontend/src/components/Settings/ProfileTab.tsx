@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -17,15 +17,20 @@ import styles from './ProfileTab.module.scss';
 
 const ProfileTab: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const { user, setUser } = useAuthStore();
   
   // Debug what we're rendering
   const currentImageSrc = profileImage || user?.profile_image_url;
   console.log('ProfileTab render - Image source:', currentImageSrc, {
     profileImage,
-    userProfileImageUrl: user?.profile_image_url
+    userProfileImageUrl: user?.profile_image_url,
+    hasUnsavedChanges,
+    pendingImageFile: pendingImageFile?.name
   });
 
+  // Mutation for actual upload (called on Save Changes)
   const { mutate: uploadImage, isPending: isUploading } = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
@@ -35,8 +40,10 @@ const ProfileTab: React.FC = () => {
     },
     onSuccess: (imageUrl) => {
       console.log('Upload success - received imageUrl:', imageUrl);
-      setProfileImage(imageUrl);
-      // Update user in auth store
+      setProfileImage(null); // Clear preview
+      setPendingImageFile(null); // Clear pending file
+      setHasUnsavedChanges(false); // Mark as saved
+      // Update user in auth store with final URL
       if (user) {
         setUser({ ...user, profile_image_url: imageUrl });
         console.log('Updated user store with new image URL');
@@ -51,14 +58,44 @@ const ProfileTab: React.FC = () => {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      uploadImage(file);
+      // Create preview URL for immediate display
+      const previewUrl = URL.createObjectURL(file);
+      setProfileImage(previewUrl);
+      setPendingImageFile(file);
+      setHasUnsavedChanges(true);
+      console.log('Image selected for preview:', file.name);
     }
   };
 
   const handleSaveChanges = () => {
-    // TODO: Implement save changes
-    console.log('Save changes clicked');
+    if (pendingImageFile) {
+      // Upload the pending image file
+      uploadImage(pendingImageFile);
+    } else {
+      // TODO: Save other form changes
+      console.log('Save other changes (no image changes)');
+    }
   };
+
+  const handleCancelChanges = () => {
+    // Revert image changes
+    if (profileImage) {
+      URL.revokeObjectURL(profileImage); // Clean up object URL
+    }
+    setProfileImage(null);
+    setPendingImageFile(null);
+    setHasUnsavedChanges(false);
+    console.log('Changes cancelled');
+  };
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (profileImage && profileImage.startsWith('blob:')) {
+        URL.revokeObjectURL(profileImage);
+      }
+    };
+  }, [profileImage]);
 
   return (
     <Card className={styles.card}>
@@ -133,22 +170,35 @@ const ProfileTab: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Bottom Section with Account Info and Save Button */}
+        {/* Bottom Section with Account Info and Action Buttons */}
         <Box className={styles.bottomSection}>
           <Box className={styles.accountInfo}>
             <Typography variant="caption" color="text.secondary">
               Account created: {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
             </Typography>
           </Box>
-                    <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSaveChanges}
-            className={styles.saveButton}
-            disabled={isUploading}
-          >
-            Save Changes
-          </Button>
+          
+          <Box className={styles.actionButtons}>
+            {hasUnsavedChanges && (
+              <Button
+                variant="outlined"
+                onClick={handleCancelChanges}
+                className={styles.cancelButton}
+                disabled={isUploading}
+              >
+                Cancel
+              </Button>
+            )}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSaveChanges}
+              className={`${styles.saveButton} ${hasUnsavedChanges ? styles.saveButtonActive : ''}`}
+              disabled={isUploading}
+            >
+              {isUploading ? 'Saving...' : hasUnsavedChanges ? 'Save Changes' : 'No Changes'}
+            </Button>
+          </Box>
         </Box>
       </CardContent>
     </Card>

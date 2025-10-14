@@ -5,7 +5,7 @@ import { type Account, type Entity, type ComprehensiveProfile } from '../types/p
 
 export type { ComprehensiveProfile };
 
-interface ProfileStore {
+interface AccountStore {
   // State
   account: Account | null;
   entities: Entity[];
@@ -25,8 +25,8 @@ interface ProfileStore {
   clearProfile: () => void;
 }
 
-export const useProfileStore = create(
-  persist<ProfileStore>(
+export const useAccountStore = create(
+  persist<AccountStore>(
     (set) => ({
       // Initial state
       account: null,
@@ -77,8 +77,9 @@ export const useProfileStore = create(
       }),
     }),
     {
-      name: 'profile-storage',
+      name: 'account-storage',
       storage: createJSONStorage(() => sessionStorage),
     }
   )
-); 
+);
+
