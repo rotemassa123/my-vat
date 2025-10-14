@@ -11,7 +11,6 @@ import {
   ListItemText,
 } from '@mui/material';
 import {
-  AccountCircle,
   Settings,
   Logout,
   KeyboardArrowDown,
@@ -38,12 +37,6 @@ export default function UserAvatarMenu() {
 
   const handleLogout = () => {
     logout();
-    handleClose();
-  };
-
-  const handleProfile = () => {
-    // Navigate to profile/account settings
-    navigate('/users');
     handleClose();
   };
 
@@ -125,16 +118,6 @@ export default function UserAvatarMenu() {
         <Divider className={styles.divider} />
 
         {/* Menu Items */}
-        <MenuItem onClick={handleProfile} className={styles.menuItem}>
-          <ListItemIcon className={styles.menuIcon}>
-            <AccountCircle sx={{ color: '#40578c' }} />
-          </ListItemIcon>
-          <ListItemText 
-            primary="Manage account" 
-            primaryTypographyProps={{ className: styles.menuText }}
-          />
-        </MenuItem>
-
         <MenuItem onClick={handleSettings} className={styles.menuItem}>
           <ListItemIcon className={styles.menuIcon}>
             <Settings sx={{ color: '#40578c' }} />
@@ -144,8 +127,6 @@ export default function UserAvatarMenu() {
             primaryTypographyProps={{ className: styles.menuText }}
           />
         </MenuItem>
-
-        <Divider className={styles.divider} />
 
         <MenuItem onClick={handleLogout} className={styles.menuItem}>
           <ListItemIcon className={styles.menuIcon}>
