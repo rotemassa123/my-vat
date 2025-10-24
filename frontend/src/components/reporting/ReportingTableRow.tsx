@@ -110,7 +110,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
     } else if (invoice.is_claimable === false) {
       return {
         status: 'unclaimable',
-        reason: null
+        reason: invoice.rejected_reason || 'Document not claimable'
       };
     }
 
@@ -182,14 +182,56 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
 
     if (reason) {
       return (
-        <Tooltip title={reason} arrow>
+        <Tooltip 
+          title={reason} 
+          arrow 
+          placement="top"
+          componentsProps={{
+            tooltip: {
+              sx: {
+                fontSize: '14px',
+                maxWidth: '300px',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              }
+            },
+            arrow: {
+              sx: {
+                color: 'rgba(0, 0, 0, 0.9)',
+              }
+            }
+          }}
+        >
           {chip}
         </Tooltip>
       );
     }
 
     return (
-      <Tooltip title={config.description} arrow>
+      <Tooltip 
+        title={config.description} 
+        arrow 
+        placement="top"
+        componentsProps={{
+          tooltip: {
+            sx: {
+              fontSize: '14px',
+              maxWidth: '300px',
+              padding: '12px 16px',
+              backgroundColor: 'rgba(0, 0, 0, 0.9)',
+              borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            }
+          },
+          arrow: {
+            sx: {
+              color: 'rgba(0, 0, 0, 0.9)',
+            }
+          }
+        }}
+      >
         {chip}
       </Tooltip>
     );
