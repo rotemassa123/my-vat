@@ -18,16 +18,24 @@ export interface ReportingQueryParams extends ReportingFilters {
   include_summary?: boolean;  // New parameter for including embedded summaries
 }
 
+export interface DetailedItem {
+  description: string;
+  amount: number;
+  vat_rate: number;
+}
+
 export interface SummaryContent {
   country?: string;
   supplier?: string;
   date?: string;
-  id?: string;
+  invoice_id?: string;
   description?: string;
-  net_amount?: string;
-  vat_amount?: string;
-  vat_rate?: string;
+  total_amount?: number;
+  net_amount?: number;
+  vat_amount?: number;
+  vat_rate?: number;
   currency?: string;
+  detailed_items?: DetailedItem[];
 }
 
 export interface ReportingInvoice {
@@ -53,11 +61,27 @@ export interface ReportingInvoice {
   source: string;
   error_message?: string;
   is_invoice?: boolean;
+  is_claimable?: boolean;
   status_updated_at: string;
   total_amount?: number;
   vendor_name?: string;
   supplier_name?: string;  // Added supplier name field for compatibility
   summary_content?: SummaryContent;  // Embedded summary data
+  
+  // Additional fields from database
+  source_id?: string;
+  last_executed_step?: number;
+  content_type?: string;
+  account_id?: string;
+  claimable_amount?: number;
+  rejected_reason?: string;
+  claim_submitted_at?: string;
+  claim_result_received_at?: string;
+  reason?: string; // error reason field
+  
+  
+  // Detailed items from summary
+  detailed_items?: DetailedItem[];
 }
 
 export interface ReportingMetadata {

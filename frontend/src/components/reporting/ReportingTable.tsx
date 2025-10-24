@@ -67,7 +67,6 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
           <ReportingTableRow
             key={invoice._id}
             invoice={invoice}
-            formatCurrency={formatCurrency}
             formatDate={formatDate}
           />
         ))}

@@ -66,12 +66,12 @@ export class ReportingQueryBuilderService {
   }
 
   getProjection(): Record<string, 1> {
-    // Only return fields needed for display
+    // Return all available fields from invoices collection
     return {
       _id: 1,
       name: 1,
       supplier: 1,
-      entity_id: 1, // Add entity_id to projection
+      entity_id: 1,
       invoice_date: 1,
       invoice_number: 1,
       net_amount: 1,
@@ -89,6 +89,17 @@ export class ReportingQueryBuilderService {
       error_message: 1,
       is_invoice: 1,
       status_updated_at: 1,
+      // Additional fields found in database
+      source_id: 1,
+      last_executed_step: 1,
+      content_type: 1,
+      account_id: 1,
+      is_claimable: 1,
+      claimable_amount: 1,
+      rejected_reason: 1,
+      claim_submitted_at: 1,
+      claim_result_received_at: 1,
+      reason: 1, // error reason field
     };
   }
 } 

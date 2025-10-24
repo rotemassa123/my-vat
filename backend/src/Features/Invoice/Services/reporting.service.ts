@@ -117,18 +117,27 @@ export class ReportingService {
         total_amount: this.calculateTotalAmount(invoice),
         entity_name: entity?.name || (invoice.supplier ? `${invoice.supplier} (Entity)` : 'Unknown Entity'),
         vendor_name: invoice.supplier || 'Unknown',
+        // Map reason field to error_message for consistency
+        error_message: invoice.reason || invoice.error_message || null,
       };
 
       // Add summary data if requested
       if (summary) {
         return {
           ...baseInvoice,
+          // Summary content fields
           country: summary.summary_content?.country || null,
           description: summary.summary_content?.description || invoice.description || null,
           vat_rate: summary.summary_content?.vat_rate || invoice.vat_rate || null,
           currency: summary.summary_content?.currency || invoice.currency || null,
           net_amount: summary.summary_content?.net_amount || invoice.net_amount || null,
           vat_amount: summary.summary_content?.vat_amount || invoice.vat_amount || null,
+          total_amount: summary.summary_content?.total_amount || this.calculateTotalAmount(invoice),
+          invoice_date: summary.summary_content?.date || invoice.invoice_date || null,
+          invoice_number: summary.summary_content?.invoice_id || invoice.invoice_number || null,
+          supplier: summary.summary_content?.supplier || invoice.supplier || null,
+          detailed_items: summary.summary_content?.detailed_items || null,
+          // Full summary content object
           summary_content: summary.summary_content || null,
         };
       }

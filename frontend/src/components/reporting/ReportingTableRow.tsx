@@ -4,7 +4,6 @@ import {
   Typography,
   IconButton, 
   Tooltip,
-  Button,
   Collapse
 } from '@mui/material';
 import {
@@ -16,73 +15,63 @@ import {
   CheckCircle as ClaimableIcon,
   Schedule as AwaitingIcon,
   ThumbUp as AcceptedIcon,
-  ThumbDown as RejectedIcon,
 } from '@mui/icons-material';
 import type { ReportingInvoice } from '../../types/reporting';
 import styles from './ReportingTableRow.module.scss';
 
-// Status configuration matching Figma design
+// Status configuration with beautiful, unique color palette
 const STATUS_CONFIG = {
+  failed: {
+    label: 'Failed',
+    color: '#dc2626', // Deep red
+    backgroundColor: '#fef2f2', // Light red background
+    icon: ErrorIcon,
+    description: '', // Will be overridden with actual reason
+  },
   processing: {
     label: 'Processing',
-    color: '#2196f3',
-    backgroundColor: '#e3f2fd',
+    color: '#2563eb', // Vibrant blue
+    backgroundColor: '#eff6ff', // Light blue background
     icon: ProcessingIcon,
     description: 'File is being processed',
   },
-  failed: {
-    label: 'Failed',
-    color: '#f44336',
-    backgroundColor: '#ffebee',
-    icon: ErrorIcon,
-    description: 'Processing failed',
+  claimable: {
+    label: 'Claimable',
+    color: '#059669', // Emerald green
+    backgroundColor: '#ecfdf5', // Light green background
+    icon: ClaimableIcon,
+    description: 'Awaiting submission',
   },
-  not_claimable: {
-    label: 'Not Claimable',
-    color: '#ff9800',
-    backgroundColor: '#fff3e0',
+  unclaimable: {
+    label: 'Unclaimable',
+    color: '#d97706', // Amber orange
+    backgroundColor: '#fffbeb', // Light amber background
     icon: NotClaimableIcon,
     description: 'Document not claimable',
   },
-  claimable: {
-    label: 'Ready to Claim',
-    color: '#4caf50',
-    backgroundColor: '#e8f5e8',
-    icon: ClaimableIcon,
-    description: 'Ready for submission',
-  },
-  awaiting_claim_result: {
-    label: 'Pending with Tax Office',
-    color: '#f97316',
-    backgroundColor: '#fff7ed',
+  submitted: {
+    label: 'Submitted',
+    color: '#7c3aed', // Purple
+    backgroundColor: '#faf5ff', // Light purple background
     icon: AwaitingIcon,
-    description: 'Awaiting result from tax office',
+    description: 'Claim submitted to tax office',
   },
-  claim_accepted: {
-    label: 'Approved',
-    color: '#189948',
-    backgroundColor: '#f0fdf4',
+  refunded: {
+    label: 'Refunded',
+    color: '#16a34a', // Forest green
+    backgroundColor: '#f0fdf4', // Light green background
     icon: AcceptedIcon,
-    description: 'Claim accepted',
-  },
-  claim_rejected: {
-    label: 'Rejected',
-    color: '#b91c1c',
-    backgroundColor: '#fef2f2',
-    icon: RejectedIcon,
-    description: 'Claim rejected',
+    description: 'Refund processed',
   },
 };
 
 interface ReportingTableRowProps {
   invoice: ReportingInvoice;
-  formatCurrency: (amount: string | null | undefined, currency: string | null | undefined) => string;
   formatDate: (dateString: string | undefined) => string;
 }
 
 const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
   invoice,
-  formatCurrency,
   formatDate,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -100,6 +89,59 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
+  };
+
+  // Determine status based on business logic
+  const determineStatus = (invoice: ReportingInvoice) => {
+    // 1. Failed - anyone with a failure
+    if (invoice.status === 'failed' || invoice.error_message) {
+      return {
+        status: 'failed',
+        reason: invoice.error_message || 'Processing failed'
+      };
+    }
+
+    // 2. Claimable/Unclaimable - based on is_claimable flag (check this BEFORE processing)
+    if (invoice.is_claimable === true) {
+      return {
+        status: 'claimable',
+        reason: null
+      };
+    } else if (invoice.is_claimable === false) {
+      return {
+        status: 'unclaimable',
+        reason: null
+      };
+    }
+
+    // 3. Processing - anyone without a failure and without is_claimable flag
+    if (!invoice.error_message && invoice.is_claimable === undefined) {
+      return {
+        status: 'processing',
+        reason: null
+      };
+    }
+
+    // 4. Submitted and Refunded - for future implementation
+    if (invoice.status === 'submitted') {
+      return {
+        status: 'submitted',
+        reason: null
+      };
+    }
+
+    if (invoice.status === 'refunded') {
+      return {
+        status: 'refunded',
+        reason: null
+      };
+    }
+
+    // Default fallback
+    return {
+      status: 'processing',
+      reason: null
+    };
   };
 
   const renderStatusChip = (status: string, reason?: string) => {
@@ -140,7 +182,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
 
     if (reason) {
       return (
-        <Tooltip title={`${config.description}. Reason: ${reason}`} arrow>
+        <Tooltip title={reason} arrow>
           {chip}
         </Tooltip>
       );
@@ -222,13 +264,31 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
         {/* VAT Amount */}
         <Box className={styles.cell} style={{ width: '14%' }}>
           <Typography variant="body2" className={styles.cellText}>
-            {formatCurrency(invoice.vat_amount, invoice.currency)}
+            {(() => {
+              // Handle null, undefined, empty string, or invalid values
+              if (!invoice.vat_amount || invoice.vat_amount === '' || invoice.vat_amount === null) {
+                return '-';
+              }
+              
+              const parsedAmount = parseFloat(String(invoice.vat_amount));
+              if (isNaN(parsedAmount) || parsedAmount === 0) {
+                return '-';
+              }
+              
+              return parsedAmount.toLocaleString('en-US', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+              });
+            })()}
           </Typography>
         </Box>
 
         {/* Status */}
         <Box className={styles.cell} style={{ width: '10%' }}>
-          {renderStatusChip(invoice.status)}
+          {(() => {
+            const statusInfo = determineStatus(invoice);
+            return renderStatusChip(statusInfo.status, statusInfo.reason || undefined);
+          })()}
         </Box>
       </Box>
 
