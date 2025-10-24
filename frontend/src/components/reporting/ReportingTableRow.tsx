@@ -17,6 +17,7 @@ import {
   ThumbUp as AcceptedIcon,
 } from '@mui/icons-material';
 import type { ReportingInvoice } from '../../types/reporting';
+import ReportingInvoiceDetailedItems from './ReportingInvoiceDetailedItems';
 import styles from './ReportingTableRow.module.scss';
 
 // Status configuration with beautiful, unique color palette
@@ -239,12 +240,19 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
 
   return (
     <Box className={styles.tableRow}>
-      <Box className={styles.rowContent}>
+      <Box 
+        className={styles.rowContent}
+        onClick={handleExpandClick}
+        sx={{ cursor: 'pointer' }}
+      >
         {/* Expand/Collapse Button */}
         <Box className={styles.expandButton}>
           <IconButton
             size="small"
-            onClick={handleExpandClick}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleExpandClick();
+            }}
             sx={{ 
               width: 20, 
               height: 20,
@@ -354,9 +362,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
       {/* Expanded Content */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         <Box className={styles.expandedContent}>
-          <Typography variant="body2" color="text.secondary">
-            Additional details for {getClaimId()} would appear here...
-          </Typography>
+          <ReportingInvoiceDetailedItems invoice={invoice} />
         </Box>
       </Collapse>
     </Box>
