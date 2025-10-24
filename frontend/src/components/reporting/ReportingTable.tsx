@@ -57,7 +57,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
         <Box className={styles.headerCell} style={{ width: '18%' }}>Entity</Box>
         <Box className={styles.headerCell} style={{ width: '14%' }}>Submitted On</Box>
         <Box className={styles.headerCell} style={{ width: '12%' }}>Currency</Box>
-        <Box className={styles.headerCell} style={{ width: '14%' }}>Amount</Box>
+        <Box className={styles.headerCell} style={{ width: '14%' }}>VAT Amount</Box>
         <Box className={styles.headerCell} style={{ width: '10%' }}>Status</Box>
       </Box>
 

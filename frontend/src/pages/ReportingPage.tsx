@@ -281,10 +281,20 @@ const ReportingPage: React.FC = () => {
     if (!amount) return '-';
     const numAmount = parseFloat(amount);
     if (isNaN(numAmount)) return '-';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency || 'EUR',
-    }).format(numAmount);
+    
+    // Handle non-standard currency codes like "ש״ח"
+    const validCurrencyCodes = ['EUR', 'USD', 'GBP', 'CAD', 'AUD', 'DKK', 'SEK', 'NOK', 'CHF', 'JPY', 'CNY', 'INR', 'BRL', 'MXN', 'ZAR', 'ILS'];
+    const safeCurrency = currency && validCurrencyCodes.includes(currency) ? currency : 'EUR';
+    
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: safeCurrency,
+      }).format(numAmount);
+    } catch (error) {
+      // Fallback for invalid currency codes
+      return `${numAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency || 'EUR'}`;
+    }
   }, []);
 
   const formatDate = useCallback((dateString: string | undefined) => {

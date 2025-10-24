@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Invoice, InvoiceDocument } from 'src/Common/Infrastructure/DB/schemas/invoice.schema';
 import { Entity, EntityDocument } from 'src/Common/Infrastructure/DB/schemas/entity.schema';
+import { Summary, SummaryDocument } from 'src/Common/Infrastructure/DB/schemas/summary.schema';
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { ReportingQueryBuilderService, UserContext } from './reporting-query-builder.service';
 import { ReportingCacheService } from './reporting-cache.service';
@@ -32,6 +33,8 @@ export class ReportingService {
     private readonly invoiceModel: Model<InvoiceDocument>,
     @InjectModel(Entity.name)
     private readonly entityModel: Model<EntityDocument>,
+    @InjectModel(Summary.name)
+    private readonly summaryModel: Model<SummaryDocument>,
     private readonly queryBuilder: ReportingQueryBuilderService,
     private readonly cacheService: ReportingCacheService,
   ) {}
@@ -81,7 +84,7 @@ export class ReportingService {
         .exec()
     ]);
 
-    // Enrich data with computed fields
+    // Enrich data with computed fields and optionally summary data
     const enrichedInvoices = await Promise.all(invoices.map(async (invoice: Record<string, unknown>) => {
       logger.info('Processing invoice for entity lookup', ReportingService.name, { 
         invoice_id: invoice._id,
@@ -94,19 +97,43 @@ export class ReportingService {
         entity = await this.entityModel.findById(invoice.entity_id).lean();
       }
       
+      // Get summary data only if include_summary is true
+      let summary = null;
+      if (invoice.name) {
+        summary = await this.summaryModel.findOne({ file_name: invoice.name }).lean();
+      }
+      
       logger.info('Entity lookup result', ReportingService.name, { 
         invoice_id: invoice._id,
         entity_id: invoice.entity_id,
         entity_found: !!entity,
-        entity_name: entity?.name || 'Not found'
+        entity_name: entity?.name || 'Not found',
+        summary_found: !!summary,
+        country: summary?.summary_content?.country || 'Not found'
       });
       
-      return {
+      const baseInvoice = {
         ...invoice,
         total_amount: this.calculateTotalAmount(invoice),
         entity_name: entity?.name || (invoice.supplier ? `${invoice.supplier} (Entity)` : 'Unknown Entity'),
         vendor_name: invoice.supplier || 'Unknown',
       };
+
+      // Add summary data if requested
+      if (summary) {
+        return {
+          ...baseInvoice,
+          country: summary.summary_content?.country || null,
+          description: summary.summary_content?.description || invoice.description || null,
+          vat_rate: summary.summary_content?.vat_rate || invoice.vat_rate || null,
+          currency: summary.summary_content?.currency || invoice.currency || null,
+          net_amount: summary.summary_content?.net_amount || invoice.net_amount || null,
+          vat_amount: summary.summary_content?.vat_amount || invoice.vat_amount || null,
+          summary_content: summary.summary_content || null,
+        };
+      }
+
+      return baseInvoice;
     }));
 
     const result: ReportingResult = {

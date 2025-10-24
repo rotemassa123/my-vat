@@ -219,10 +219,10 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
           </Typography>
         </Box>
 
-        {/* Amount */}
+        {/* VAT Amount */}
         <Box className={styles.cell} style={{ width: '14%' }}>
           <Typography variant="body2" className={styles.cellText}>
-            {formatCurrency(invoice.claim_amount?.toString(), invoice.currency)}
+            {formatCurrency(invoice.vat_amount, invoice.currency)}
           </Typography>
         </Box>
 

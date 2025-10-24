@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsString, IsOptional, IsNumber, Min, Max, IsArray, IsIn } from "class-validator";
+import { IsString, IsOptional, IsNumber, Min, Max, IsArray, IsIn, IsBoolean } from "class-validator";
 import { Type } from "class-transformer";
 
 export class ReportingQueryRequest {
