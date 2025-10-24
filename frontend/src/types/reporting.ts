@@ -118,6 +118,9 @@ export const SORTABLE_FIELDS = [
   'currency',
   'name',
   'invoice_number',
+  // New sortable fields
+  'submitted_on', // Maps to status_updated_at
+  'vat_amount_numeric', // For proper numeric sorting of VAT amounts
 ] as const;
 
 export type SortableField = typeof SORTABLE_FIELDS[number];

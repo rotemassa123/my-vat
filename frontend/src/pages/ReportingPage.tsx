@@ -1,11 +1,10 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   Box,
   Typography,
   TextField,
   MenuItem,
   Chip,
-  Button,
   Alert,
   Snackbar,
   Popover,
@@ -83,31 +82,102 @@ const applyInvoiceFilters = (
   });
 };
 
+// Helper function to determine calculated status (same logic as in ReportingTableRow)
+const determineCalculatedStatus = (invoice: ReportingInvoice): string => {
+  // 1. Failed - anyone with a failure
+  if (invoice.status === 'failed' || invoice.error_message) {
+    return 'failed';
+  }
+
+  // 2. Claimable/Unclaimable - based on is_claimable flag (check this BEFORE processing)
+  if (invoice.is_claimable === true) {
+    return 'claimable';
+  } else if (invoice.is_claimable === false) {
+    return 'unclaimable';
+  }
+
+  // 3. Processing - anyone without a failure and without is_claimable flag
+  if (!invoice.error_message && invoice.is_claimable === undefined) {
+    return 'processing';
+  }
+
+  // 4. Submitted and Refunded - for future implementation
+  if (invoice.status === 'submitted') {
+    return 'submitted';
+  }
+
+  if (invoice.status === 'refunded') {
+    return 'refunded';
+  }
+
+  // Default fallback
+  return 'processing';
+};
+
+// Status priority for logical sorting order
+const STATUS_PRIORITY = {
+  'failed': 1,
+  'processing': 2,
+  'unclaimable': 3,
+  'claimable': 4,
+  'submitted': 5,
+  'refunded': 6,
+};
+
 const sortInvoices = (
   invoices: ReportingInvoice[],
   sortConfig: SortConfig
 ): ReportingInvoice[] => {
   return [...invoices].sort((a, b) => {
-    let aValue: any = a[sortConfig.field as keyof ReportingInvoice];
-    let bValue: any = b[sortConfig.field as keyof ReportingInvoice];
+    let aValue: any;
+    let bValue: any;
     
-    // Handle nested summary_content fields
-    if (sortConfig.field.startsWith('summary_content.')) {
-      const summaryField = sortConfig.field.replace('summary_content.', '');
-      aValue = a.summary_content?.[summaryField as keyof typeof a.summary_content] || '';
-      bValue = b.summary_content?.[summaryField as keyof typeof b.summary_content] || '';
+    // Handle special sortable fields
+    switch (sortConfig.field) {
+      case 'submitted_on':
+        // Map submitted_on to status_updated_at
+        aValue = a.status_updated_at;
+        bValue = b.status_updated_at;
+        break;
+      case 'vat_amount_numeric':
+        // Handle VAT amount as numeric for proper sorting
+        aValue = parseFloat(String(a.vat_amount || 0));
+        bValue = parseFloat(String(b.vat_amount || 0));
+        break;
+      case 'status':
+        // Use calculated status for sorting with priority order
+        aValue = STATUS_PRIORITY[determineCalculatedStatus(a) as keyof typeof STATUS_PRIORITY] || 999;
+        bValue = STATUS_PRIORITY[determineCalculatedStatus(b) as keyof typeof STATUS_PRIORITY] || 999;
+        break;
+      default:
+        aValue = a[sortConfig.field as keyof ReportingInvoice];
+        bValue = b[sortConfig.field as keyof ReportingInvoice];
+        
+        // Handle nested summary_content fields
+        if (sortConfig.field.startsWith('summary_content.')) {
+          const summaryField = sortConfig.field.replace('summary_content.', '');
+          aValue = a.summary_content?.[summaryField as keyof typeof a.summary_content] || '';
+          bValue = b.summary_content?.[summaryField as keyof typeof b.summary_content] || '';
+        }
+        break;
     }
+    
+    // Handle null/undefined values
+    if (aValue === null || aValue === undefined) aValue = '';
+    if (bValue === null || bValue === undefined) bValue = '';
     
     // Convert to comparable values
     if (typeof aValue === 'string') aValue = aValue.toLowerCase();
     if (typeof bValue === 'string') bValue = bValue.toLowerCase();
     
-    // Handle numeric strings
-    const aNum = parseFloat(aValue);
-    const bNum = parseFloat(bValue);
-    if (!isNaN(aNum) && !isNaN(bNum)) {
-      aValue = aNum;
-      bValue = bNum;
+    // Handle numeric strings (for fields that aren't already numeric)
+    if (sortConfig.field !== 'vat_amount_numeric') {
+      const aNum = parseFloat(aValue);
+      const bNum = parseFloat(bValue);
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        aValue = aNum;
+        bValue = bNum;
+      }
     }
     
     // Sort
@@ -146,7 +216,6 @@ const ReportingPage: React.FC = () => {
 
   // Computed values
   const totalCount = getTotalInvoiceCount();
-  const filteredCount = allInvoices.length;
   const hasMore = false; // No pagination needed with preloaded data
   const isFetchingNextPage = false;
   const isError = !!error;
@@ -168,9 +237,6 @@ const ReportingPage: React.FC = () => {
     });
   }, []);
 
-  const handleClearFilters = useCallback(() => {
-    setActiveFilters({});
-  }, []);
 
   const refreshInvoices = useCallback(async () => {
     try {
@@ -448,6 +514,13 @@ const ReportingPage: React.FC = () => {
         onPrefetchNext={prefetchNext}
         formatCurrency={formatCurrency}
         formatDate={formatDate}
+        sortConfig={sortConfig}
+        onSort={(field) => {
+          setSortConfig(prev => ({
+            field,
+            order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+          }));
+        }}
       />
 
       {/* Export Success Snackbar */}

@@ -39,6 +39,20 @@ export class ReportingService {
     private readonly cacheService: ReportingCacheService,
   ) {}
 
+  // Helper function to clean VAT amounts from European format to numeric
+  private cleanVatAmount(vatAmount: any): number | null {
+    if (!vatAmount) return null;
+    
+    const cleanAmount = String(vatAmount)
+      .replace(/[€$£¥]/g, '') // Remove currency symbols
+      .replace(/\./g, '') // Remove thousands separators (dots)
+      .replace(/,/g, '.') // Replace comma with dot for decimal
+      .trim();
+    
+    const parsed = parseFloat(cleanAmount);
+    return isNaN(parsed) ? null : parsed;
+  }
+
   async getReportingData(user: UserContext, params: ReportingQueryRequest): Promise<ReportingResult> {
     const startTime = Date.now();
     
@@ -131,7 +145,7 @@ export class ReportingService {
           vat_rate: summary.summary_content?.vat_rate || invoice.vat_rate || null,
           currency: summary.summary_content?.currency || invoice.currency || null,
           net_amount: summary.summary_content?.net_amount || invoice.net_amount || null,
-          vat_amount: summary.summary_content?.vat_amount || invoice.vat_amount || null,
+          vat_amount: this.cleanVatAmount(summary.summary_content?.vat_amount) || this.cleanVatAmount(invoice.vat_amount) || null,
           total_amount: summary.summary_content?.total_amount || this.calculateTotalAmount(invoice),
           invoice_date: summary.summary_content?.date || invoice.invoice_date || null,
           invoice_number: summary.summary_content?.invoice_id || invoice.invoice_number || null,

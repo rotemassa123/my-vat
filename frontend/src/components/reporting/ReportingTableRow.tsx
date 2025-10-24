@@ -76,16 +76,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
 }) => {
   const [expanded, setExpanded] = useState(false);
 
-  // Debug logging for entity information
-  React.useEffect(() => {
-    console.log('Invoice data:', {
-      id: invoice._id,
-      entity_id: invoice.entity_id,
-      entity_name: invoice.entity_name,
-      supplier: invoice.supplier,
-      vendor_name: invoice.vendor_name
-    });
-  }, [invoice]);
+  
 
   const handleExpandClick = () => {
     setExpanded(!expanded);
@@ -237,11 +228,8 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
     );
   };
 
-  // Generate claim ID from invoice name or id
+  // Generate claim ID from invoice_id field
   const getClaimId = () => {
-    if (invoice.name && invoice.name.includes('VAT')) {
-      return invoice.name;
-    }
     const invoiceId = invoice._id;
     if (invoiceId) {
       return `VAT${invoiceId.toString().slice(-5).toUpperCase()}`;
@@ -267,7 +255,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
           </IconButton>
         </Box>
 
-        {/* Claim ID */}
+        {/* Invoice ID */}
         <Box className={styles.cell} style={{ width: '18%' }}>
           <Typography className={styles.claimId}>
             <span className={styles.hashSymbol}>#</span>
@@ -309,11 +297,40 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
             {(() => {
               // Handle null, undefined, empty string, or invalid values
               if (!invoice.vat_amount || invoice.vat_amount === '' || invoice.vat_amount === null) {
+                // Log invoices with claimable status but no VAT amount
+                if (invoice.is_claimable === true || invoice.is_claimable === false) {
+                  const logData = {
+                    invoice_id: invoice._id,
+                    name: invoice.name,
+                    is_claimable: invoice.is_claimable,
+                    vat_amount: invoice.vat_amount,
+                    supplier: invoice.supplier,
+                    country: invoice.country,
+                    summary_content: invoice.summary_content
+                  };
+                  console.log('🚨 Invoice with claimable status but no VAT amount:');
+                  console.log(JSON.stringify(logData, null, 2));
+                }
                 return '-';
               }
               
               const parsedAmount = parseFloat(String(invoice.vat_amount));
               if (isNaN(parsedAmount) || parsedAmount === 0) {
+                // Log invoices with claimable status but zero/invalid VAT amount
+                if (invoice.is_claimable === true || invoice.is_claimable === false) {
+                  const logData = {
+                    invoice_id: invoice._id,
+                    name: invoice.name,
+                    is_claimable: invoice.is_claimable,
+                    vat_amount: invoice.vat_amount,
+                    parsed_amount: parsedAmount,
+                    supplier: invoice.supplier,
+                    country: invoice.country,
+                    summary_content: invoice.summary_content
+                  };
+                  console.log('🚨 Invoice with claimable status but zero/invalid VAT amount:');
+                  console.log(JSON.stringify(logData, null, 2));
+                }
                 return '-';
               }
               

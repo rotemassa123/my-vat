@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { ArrowUpward, ArrowDownward, UnfoldMore } from '@mui/icons-material';
 import ReportingTableRow from './ReportingTableRow';
 import type { ReportingInvoice } from '../../types/reporting';
 import styles from './ReportingTable.module.scss';
@@ -13,6 +14,12 @@ interface ReportingTableProps {
   onPrefetchNext: () => void;
   formatCurrency: (amount: string | null | undefined, currency: string | null | undefined) => string;
   formatDate: (dateString: string | undefined) => string;
+  // Sorting props
+  sortConfig?: {
+    field: string;
+    order: 'asc' | 'desc';
+  };
+  onSort?: (field: string) => void;
 }
 
 const ReportingTable: React.FC<ReportingTableProps> = ({
@@ -24,6 +31,8 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
   onPrefetchNext,
   formatCurrency,
   formatDate,
+  sortConfig,
+  onSort,
 }) => {
   // Auto-load more when scrolling near bottom
   const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
@@ -35,6 +44,42 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
       onLoadMore();
     }
   }, [hasMore, onLoadMore, isFetchingNextPage]);
+
+  // Helper function to render sortable header
+  const renderSortableHeader = (field: string, label: string, width: string) => {
+    const isActive = sortConfig?.field === field;
+    const isAsc = isActive && sortConfig?.order === 'asc';
+    const isDesc = isActive && sortConfig?.order === 'desc';
+
+    return (
+      <Box 
+        className={styles.headerCell} 
+        style={{ width, cursor: onSort ? 'pointer' : 'default' }}
+        onClick={() => onSort?.(field)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          '&:hover': onSort ? { backgroundColor: '#f5f5f5' } : {},
+        }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 500 }}>
+          {label}
+        </Typography>
+        {onSort && (
+          <Box sx={{ display: 'flex', flexDirection: 'column', ml: 0.5 }}>
+            {isAsc ? (
+              <ArrowUpward sx={{ fontSize: 16, color: '#1976d2' }} />
+            ) : isDesc ? (
+              <ArrowDownward sx={{ fontSize: 16, color: '#1976d2' }} />
+            ) : (
+              <UnfoldMore sx={{ fontSize: 16, color: '#999' }} />
+            )}
+          </Box>
+        )}
+      </Box>
+    );
+  };
 
   if (isLoading && invoices.length === 0) {
     return (
@@ -52,18 +97,18 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
       {/* Table Header */}
       <Box className={styles.tableHeader}>
         <Box className={styles.headerSpacer} style={{ width: '48px' }}></Box>
-        <Box className={styles.headerCell} style={{ width: '18%' }}>Claim ID</Box>
-        <Box className={styles.headerCell} style={{ width: '14%' }}>Country</Box>
-        <Box className={styles.headerCell} style={{ width: '18%' }}>Entity</Box>
-        <Box className={styles.headerCell} style={{ width: '14%' }}>Submitted On</Box>
-        <Box className={styles.headerCell} style={{ width: '12%' }}>Currency</Box>
-        <Box className={styles.headerCell} style={{ width: '14%' }}>VAT Amount</Box>
-        <Box className={styles.headerCell} style={{ width: '10%' }}>Status</Box>
+        {renderSortableHeader('name', 'Invoice ID', '18%')}
+        {renderSortableHeader('country', 'Country', '14%')}
+        {renderSortableHeader('entity_name', 'Entity', '18%')}
+        {renderSortableHeader('submitted_on', 'Submitted On', '14%')}
+        {renderSortableHeader('currency', 'Currency', '12%')}
+        {renderSortableHeader('vat_amount_numeric', 'VAT Amount', '14%')}
+        {renderSortableHeader('status', 'Status', '10%')}
       </Box>
 
       {/* Table Body - Non-virtualized for proper expansion */}
       <Box className={styles.tableBody} onScroll={handleScroll}>
-        {invoices.map((invoice, index) => (
+        {invoices.map((invoice) => (
           <ReportingTableRow
             key={invoice._id}
             invoice={invoice}
