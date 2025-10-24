@@ -4,15 +4,18 @@ import {
   Param,
   Query,
   NotFoundException,
+  UseGuards,
 } from "@nestjs/common";
 import { ApiTags, ApiParam, ApiQuery, ApiOperation } from "@nestjs/swagger";
 import { InvoiceFilterRequest, InvoicePaginationRequest, CombinedInvoiceFilterRequest } from "../Requests/invoice.requests";
 import { InvoiceResponse, InvoiceListResponse, CombinedInvoiceListResponse } from "../Responses/invoice.responses";
 import { IInvoiceRepository } from "src/Common/ApplicationCore/Services/IInvoiceRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
+import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 
 @ApiTags("invoices")
 @Controller("invoices")
+@UseGuards(AuthenticationGuard)
 export class InvoiceController {
   constructor(private invoiceService: IInvoiceRepository) {}
 
