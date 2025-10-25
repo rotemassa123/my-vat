@@ -392,12 +392,8 @@ const ReportingPage: React.FC = () => {
         totalCount={totalCount}
         isLoading={isLoading}
         isExporting={isExporting}
-        activeFiltersCount={getActiveFiltersCount()}
         activeFiltersText={getActiveFiltersText()}
-        onFilterClick={handleFilterClick}
         onExportClick={handleExport}
-        onRefreshClick={() => refreshInvoices()}
-        isFilterOpen={isFilterOpen}
       />
 
       {/* Export Error Alert */}
