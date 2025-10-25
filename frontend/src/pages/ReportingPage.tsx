@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { useInvoiceStore } from '../store/invoiceStore';
 import { refreshAllData } from '../services/invoiceService';
 import { InvoiceApiService } from '../lib/invoiceApi';
+import { useDownloadInvoice } from '../hooks/invoice/useDownloadInvoice';
 import type { ReportingFilters, ReportingInvoice } from '../types/reporting';
 import { ReportingHeader, ReportingTable } from '../components/reporting';
 import styles from './ReportingPage.module.scss';
@@ -207,6 +208,10 @@ const ReportingPage: React.FC = () => {
     error,
     getTotalInvoiceCount,
   } = useInvoiceStore();
+
+  // Download hook
+  const { downloadFile, isDownloading, downloadError, clearError } = useDownloadInvoice();
+  const [downloadingInvoiceId, setDownloadingInvoiceId] = useState<string | null>(null);
 
   // Compute filtered and sorted invoices locally
   const allInvoices = useMemo(() => {
@@ -510,6 +515,16 @@ const ReportingPage: React.FC = () => {
         onPrefetchNext={prefetchNext}
         formatCurrency={formatCurrency}
         formatDate={formatDate}
+        onDownloadInvoice={async (invoice) => {
+          setDownloadingInvoiceId(invoice._id);
+          try {
+            await downloadFile(invoice._id, invoice.name);
+          } finally {
+            setDownloadingInvoiceId(null);
+          }
+        }}
+        isDownloading={isDownloading}
+        downloadingInvoiceId={downloadingInvoiceId || undefined}
         sortConfig={sortConfig}
         onSort={(field) => {
           setSortConfig(prev => ({
@@ -528,6 +543,18 @@ const ReportingPage: React.FC = () => {
       >
         <Alert onClose={() => setExportSuccess(false)} severity="success" sx={{ width: '100%' }}>
           Export completed successfully!
+        </Alert>
+      </Snackbar>
+
+      {/* Download Error Snackbar */}
+      <Snackbar
+        open={!!downloadError}
+        autoHideDuration={6000}
+        onClose={clearError}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert onClose={clearError} severity="error" sx={{ width: '100%' }}>
+          {downloadError}
         </Alert>
       </Snackbar>
     </Box>

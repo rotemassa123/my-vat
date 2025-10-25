@@ -10,19 +10,27 @@ import {
   UploadedFiles,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiConsumes, ApiBody, ApiParam, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Readable } from 'stream';
 import { IGCSService } from 'src/Common/ApplicationCore/Services/IGCSService';
+import { IInvoiceRepository } from 'src/Common/ApplicationCore/Services/IInvoiceRepository';
 import { CurrentAccountId } from 'src/Common/decorators/current-account-id.decorator';
+import { CurrentEntityId } from 'src/Common/decorators/current-entity-id.decorator';
 import { UploadFileResponse, FileInfoResponse, MultipleUploadResponse } from '../Requests/files.requests';
 
 @ApiTags('files')
 @Controller('files')
 export class FilesController {
-  constructor(private readonly gcsService: IGCSService) {}
+  private readonly logger = new Logger(FilesController.name);
+
+  constructor(
+    private readonly gcsService: IGCSService,
+    private readonly invoiceService: IInvoiceRepository
+  ) {}
 
   @Post('upload')
   @UseInterceptors(
@@ -213,6 +221,79 @@ export class FilesController {
     }
   }
 
+  @Get('download/:invoiceId')
+  @ApiOperation({
+    summary: 'Download file by invoice ID',
+    description: 'Download the original file associated with an invoice by its ID. The file will be streamed directly to the client.'
+  })
+  @ApiParam({ name: 'invoiceId', type: String, description: 'Invoice ID to download file for' })
+  @ApiResponse({
+    status: 200,
+    description: 'File downloaded successfully',
+    content: {
+      'application/octet-stream': {
+        schema: { type: 'string', format: 'binary' }
+      }
+    }
+  })
+  @ApiResponse({ status: 404, description: 'Invoice not found or file not found' })
+  @ApiResponse({ status: 400, description: 'Bad request - invalid invoice ID' })
+  async downloadFileByInvoiceId(
+    @Param('invoiceId') invoiceId: string,
+    @CurrentAccountId() accountId: string,
+    @CurrentEntityId() entityId: string,
+    @Res() res: Response
+  ): Promise<void> {
+    try {
+      // Get invoice by ID
+      const invoice = await this.invoiceService.findInvoiceById(invoiceId);
+      
+      if (!invoice) {
+        throw new NotFoundException(`Invoice with ID ${invoiceId} not found`);
+      }
+
+      // Use invoice's account_id and entity_id as fallbacks (for admin users)
+      const finalAccountId = accountId || invoice.account_id?.toString();
+      const finalEntityId = entityId || invoice.entity_id?.toString();
+
+      if (!finalAccountId || !finalEntityId) {
+        throw new BadRequestException('Unable to determine account or entity for file path');
+      }
+
+      // Extract file path from source_id (assuming source_id contains the GCS path)
+      const filePath = `${finalAccountId}/${finalEntityId}/original_invoices/${invoice.size}_${invoice.name}`;
+      
+      if (!filePath) {
+        throw new BadRequestException('Invoice has no associated file');
+      }
+
+      // Get file stream from GCS
+      const { stream, metadata } = await this.gcsService.downloadFileStream(filePath);
+
+      // Set appropriate headers
+      const fileName = invoice.name || 'download';
+      const contentType = invoice.content_type || 'application/octet-stream';
+      
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+      res.setHeader('Content-Length', String(metadata.size || 0));
+      
+      // Stream file to client
+      stream.pipe(res);
+
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+
+      if (error.message?.includes('not found')) {
+        throw new NotFoundException('File not found in storage');
+      }
+
+      throw new BadRequestException(`Failed to download file: ${error.message}`);
+    }
+  }
+
   @Get('download/:fileName(*)')
   @ApiOperation({ 
     summary: 'Download file',
@@ -302,4 +383,5 @@ export class FilesController {
       throw new BadRequestException(`Failed to get file info: ${error.message}`);
     }
   }
+
 } 

@@ -182,4 +182,12 @@ export const invoiceApi = {
     const response = await apiClient.get('/invoices/summary', { params: filters });
     return response.data;
   },
+
+  // Download invoice file
+  downloadInvoice: async (invoiceId: string): Promise<Blob> => {
+    const response = await apiClient.get(`/files/download/${invoiceId}`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
 }; 

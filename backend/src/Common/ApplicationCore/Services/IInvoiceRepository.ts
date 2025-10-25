@@ -1,7 +1,10 @@
 // ==================== INVOICE TYPES ====================
+import mongoose from 'mongoose';
+
 export interface InvoiceData {
   _id?: string;
-  account_id: string;
+  account_id: mongoose.Types.ObjectId;
+  entity_id: mongoose.Types.ObjectId;
   name: string;
   source_id: string;
   size: number;
@@ -81,7 +84,8 @@ export interface SummaryFilters {
 export interface CombinedInvoiceData {
   // Core invoice fields
   _id: string;
-  account_id: string;
+  account_id: mongoose.Types.ObjectId;
+  entity_id: mongoose.Types.ObjectId;
   name: string;
   source_id: string;
   size: number;

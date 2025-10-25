@@ -32,7 +32,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private mapDocumentToInvoiceData(doc: InvoiceDocument): InvoiceData {
     return {
       _id: doc._id.toString(),
-      account_id: doc.account_id.toString(),
+      account_id: doc.account_id, // Keep as ObjectId
+      entity_id: doc.entity_id, // Add missing entity_id
       name: doc.name,
       source_id: doc.source_id,
       size: doc.size,
@@ -128,7 +129,7 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private mapDocumentToSummaryData(doc: SummaryDocument): SummaryData {
     return {
       _id: doc._id.toString(),
-      account_id: doc.account_id.toString(),
+      account_id: doc.account_id.toString(), // SummaryData still uses string
       file_id: doc.file_id,
       file_name: doc.file_name,
       is_invoice: doc.is_invoice,
@@ -341,7 +342,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
       // The aggregation result should already be flattened
       // Just ensure we have the required structure
       _id: doc._id?.toString() || '',
-      account_id: doc.account_id?.toString() || '',
+      account_id: doc.account_id, // Keep as ObjectId
+      entity_id: doc.entity_id, // Add missing entity_id
       name: doc.name || '',
       source_id: doc.source_id || '',
       size: doc.size || 0,

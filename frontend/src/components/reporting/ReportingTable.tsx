@@ -14,6 +14,9 @@ interface ReportingTableProps {
   onPrefetchNext: () => void;
   formatCurrency: (amount: string | null | undefined, currency: string | null | undefined) => string;
   formatDate: (dateString: string | undefined) => string;
+  onDownloadInvoice?: (invoice: ReportingInvoice) => void;
+  isDownloading?: boolean;
+  downloadingInvoiceId?: string;
   // Sorting props
   sortConfig?: {
     field: string;
@@ -31,6 +34,9 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
   onPrefetchNext,
   formatCurrency,
   formatDate,
+  onDownloadInvoice,
+  isDownloading = false,
+  downloadingInvoiceId,
   sortConfig,
   onSort,
 }) => {
@@ -113,6 +119,8 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
             key={invoice._id}
             invoice={invoice}
             formatDate={formatDate}
+            onDownloadInvoice={onDownloadInvoice}
+            isDownloading={isDownloading && downloadingInvoiceId === invoice._id}
           />
         ))}
         

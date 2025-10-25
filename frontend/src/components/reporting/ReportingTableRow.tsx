@@ -4,17 +4,17 @@ import {
   Typography,
   IconButton, 
   Tooltip,
-  Collapse
+  Collapse,
+  CircularProgress
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   HourglassTop as ProcessingIcon,
   Error as ErrorIcon,
   Cancel as NotClaimableIcon,
   CheckCircle as ClaimableIcon,
   Schedule as AwaitingIcon,
   ThumbUp as AcceptedIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material';
 import type { ReportingInvoice } from '../../types/reporting';
 import ReportingInvoiceDetailedItems from './ReportingInvoiceDetailedItems';
@@ -69,11 +69,15 @@ const STATUS_CONFIG = {
 interface ReportingTableRowProps {
   invoice: ReportingInvoice;
   formatDate: (dateString: string | undefined) => string;
+  onDownloadInvoice?: (invoice: ReportingInvoice) => void;
+  isDownloading?: boolean;
 }
 
 const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
   invoice,
   formatDate,
+  onDownloadInvoice,
+  isDownloading = false,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -245,23 +249,41 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
         onClick={handleExpandClick}
         sx={{ cursor: 'pointer' }}
       >
-        {/* Expand/Collapse Button */}
-        <Box className={styles.expandButton}>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleExpandClick();
-            }}
-            sx={{ 
-              width: 20, 
-              height: 20,
-              color: '#7f7f7f'
-            }}
-          >
-            {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-          </IconButton>
-        </Box>
+        {/* Download Button - Replaces Chevron */}
+        {onDownloadInvoice && (
+          <Box className={styles.expandButton}>
+            <Tooltip title={isDownloading ? "Downloading..." : "Download Invoice"} arrow>
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isDownloading) {
+                    onDownloadInvoice(invoice);
+                  }
+                }}
+                disabled={isDownloading}
+                sx={{ 
+                  width: 24, 
+                  height: 24,
+                  color: isDownloading ? '#ccc' : '#7f7f7f',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {isDownloading ? (
+                  <CircularProgress 
+                    size={20} 
+                    thickness={6}
+                    sx={{ color: '#2563eb' }}
+                  />
+                ) : (
+                  <DownloadIcon fontSize="small" />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
 
         {/* Invoice ID */}
         <Box className={styles.cell} style={{ width: '18%' }}>
@@ -357,6 +379,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
             return renderStatusChip(statusInfo.status, statusInfo.reason || undefined);
           })()}
         </Box>
+
       </Box>
 
       {/* Expanded Content */}

@@ -43,7 +43,7 @@ export class InvoiceController {
         data: result.data.map(invoice => ({
           // Core invoice fields
           _id: invoice._id,
-          account_id: invoice.account_id,
+          account_id: invoice.account_id.toString(),
           name: invoice.name,
           source_id: invoice.source_id,
           size: invoice.size,
@@ -140,7 +140,10 @@ export class InvoiceController {
       ]);
 
       return {
-        data: invoices as InvoiceResponse[],
+        data: invoices.map(invoice => ({
+          ...invoice,
+          account_id: invoice.account_id.toString(),
+        })) as InvoiceResponse[],
         metadata: {
           total,
           limit,
@@ -173,7 +176,10 @@ export class InvoiceController {
         throw new NotFoundException(`Invoice with ID ${id} not found`);
       }
 
-      return invoice as InvoiceResponse;
+      return {
+        ...invoice,
+        account_id: invoice.account_id.toString(),
+      } as InvoiceResponse;
     } catch (error) {
       logger.error("Error fetching invoice by ID", InvoiceController.name, { 
         error: error.message, 
