@@ -22,10 +22,11 @@ const UploadProgressManager: React.FC = () => {
     entityId: globalEntityId,
     onComplete: () => {
       setIsUploading(false);
-      // Keep progress visible for a few seconds after completion
+      // Auto-close after 10 seconds when all uploads complete
       setTimeout(() => {
         resetProgress();
-      }, 3000);
+        hookReset();
+      }, 10000);
     }
   });
 

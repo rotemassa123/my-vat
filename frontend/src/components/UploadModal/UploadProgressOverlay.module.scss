@@ -1,43 +1,63 @@
-// Google Drive Style Upload Progress Overlay
+// Modern Upload Progress Overlay
 .overlay {
   position: fixed;
-  bottom: 80px; // Above the floating action button
+  bottom: 120px; // Higher above the floating action button
   right: 24px;
-  width: 320px;
-  max-height: 400px;
+  width: 360px;
+  max-height: 450px;
   background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.08);
   border: 1px solid #e5e7eb;
   z-index: 1001; // Above floating action button
   overflow: hidden;
-  animation: slideInUp 0.3s ease-out;
+  animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(10px);
 }
 
 @keyframes slideInUp {
   from {
-    transform: translateY(20px);
+    transform: translateY(30px) scale(0.95);
     opacity: 0;
   }
   to {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     opacity: 1;
   }
 }
 
 // Header Section
 .header {
-  padding: 16px;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 24px 28px 0 28px; // Top and sides only, no bottom padding
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e2e8f0;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background-color 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #60a5fa);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
 
   &:hover {
-    background-color: #f3f4f6;
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    &::before {
+      opacity: 1;
+    }
   }
 }
 
@@ -55,68 +75,80 @@
 }
 
 .title {
-  font-size: 14px !important;
-  font-weight: 600 !important;
-  color: #1f2937 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
   margin: 0 !important;
+  letter-spacing: -0.01em;
 }
 
 .overallProgress {
-  height: 4px !important;
-  border-radius: 2px !important;
-  background-color: #e5e7eb !important;
+  height: 6px !important;
+  border-radius: 3px !important;
+  background-color: #e2e8f0 !important;
+  overflow: hidden;
 
   .MuiLinearProgress-bar {
-    background-color: #2563eb !important;
-    border-radius: 2px !important;
-    transition: all 0.3s ease !important;
+    background: linear-gradient(90deg, #2563eb, #3b82f6) !important;
+    border-radius: 3px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3);
   }
 
   &.completed .MuiLinearProgress-bar {
-    background-color: #10b981 !important;
+    background: linear-gradient(90deg, #10b981, #34d399) !important;
+    box-shadow: 0 1px 3px rgba(16, 185, 129, 0.3);
   }
 
   &.failed .MuiLinearProgress-bar {
-    background-color: #ef4444 !important;
+    background: linear-gradient(90deg, #ef4444, #f87171) !important;
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
   }
 }
 
 // Files List
 .filesList {
-  max-height: 280px;
+  max-height: 320px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 12px 16px;
+  background-color: #fafbfc;
 
   &::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 3px;
+    background: #f1f5f9;
+    border-radius: 4px;
   }
 
   &::-webkit-scrollbar-thumb {
-    background: #c1c1c1;
-    border-radius: 3px;
+    background: linear-gradient(180deg, #cbd5e1, #94a3b8);
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
   }
 
   &::-webkit-scrollbar-thumb:hover {
-    background: #a8a8a8;
+    background: linear-gradient(180deg, #94a3b8, #64748b);
   }
 }
 
 .fileItem {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  margin-bottom: 4px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
   &:hover {
-    background-color: #f9fafb;
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -128,14 +160,15 @@
 }
 
 .fileName {
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: #374151 !important;
-  margin: 0 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  margin  : 0 !important;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .fileStatus {
@@ -154,50 +187,62 @@
 }
 
 .fileProgress {
-  height: 3px !important;
-  border-radius: 1.5px !important;
-  background-color: #e5e7eb !important;
+  height: 4px !important;
+  border-radius: 2px !important;
+  background-color: #e2e8f0 !important;
+  overflow: hidden;
 
   .MuiLinearProgress-bar {
-    background-color: #2563eb !important;
-    border-radius: 1.5px !important;
-    transition: all 0.3s ease !important;
+    background: linear-gradient(90deg, #2563eb, #3b82f6) !important;
+    border-radius: 2px !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
   }
 
   &.completed .MuiLinearProgress-bar {
-    background-color: #10b981 !important;
+    background: linear-gradient(90deg, #10b981, #34d399) !important;
+    box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
   }
 
   &.failed .MuiLinearProgress-bar {
-    background-color: #ef4444 !important;
+    background: linear-gradient(90deg, #ef4444, #f87171) !important;
+    box-shadow: 0 1px 2px rgba(239, 68, 68, 0.2);
   }
 }
 
 .errorText {
-  font-size: 11px !important;
-  color: #ef4444 !important;
+  font-size: 12px !important;
+  color: #dc2626 !important;
   margin: 0 !important;
   font-style: italic;
-  padding-left: 4px;
+  padding: 4px 8px;
+  background-color: #fef2f2;
+  border-radius: 6px;
+  border-left: 3px solid #ef4444;
 }
 
 // Responsive Design
 @media (max-width: 768px) {
   .overlay {
     right: 16px;
-    bottom: 72px;
-    width: 280px;
+    bottom: 100px; // Higher on mobile too
+    width: 320px;
+    max-height: 400px;
   }
 
   .header {
-    padding: 12px;
+    padding: 20px 24px 0 24px; // Top and sides only on mobile, no bottom padding
   }
 
   .title {
-    font-size: 13px !important;
+    font-size: 14px !important;
   }
 
   .fileName {
-    font-size: 11px !important;
+    font-size: 12px !important;
+  }
+
+  .fileItem {
+    padding: 10px 14px;
   }
 }
