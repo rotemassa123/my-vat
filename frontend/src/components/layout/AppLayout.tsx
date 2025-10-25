@@ -9,7 +9,7 @@ import {
   Search as SearchIcon,
   Dashboard as DashboardIcon,
   Analytics as AnalyticsIcon,
-  Assessment as ReportIcon,
+  FormatListBulleted as InvoiceIcon,
   Settings,
   People as PeopleIcon,
   Domain as DomainIcon,
@@ -51,8 +51,8 @@ export default function AppLayout() {
     },
     {
       path: '/reporting',
-      label: 'Reporting',
-      icon: <ReportIcon className={styles.icon} />,
+      label: 'Invoices',
+      icon: <InvoiceIcon className={styles.icon} />,
     },
   ];
 

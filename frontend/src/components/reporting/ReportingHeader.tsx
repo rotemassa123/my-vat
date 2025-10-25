@@ -30,14 +30,14 @@ const ReportingHeader: React.FC<ReportingHeaderProps> = ({
     <Box className={styles.header}>
       <Box className={styles.titleSection}>
         <Typography className={styles.pageTitle}>
-          Invoice Claims Reporting
+          Invoices
         </Typography>
         <Typography className={styles.subtitle}>
           {totalCount > 0 
-            ? `${totalCount} claims found${activeFiltersText}` 
+            ? `${totalCount} invoices found${activeFiltersText}` 
             : isLoading 
               ? 'Loading...' 
-              : 'No claims found'
+              : 'No invoices found'
           }
         </Typography>
       </Box>

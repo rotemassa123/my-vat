@@ -92,7 +92,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
       <Box className={styles.loadingContainer}>
         <CircularProgress />
         <Typography variant="body2" sx={{ mt: 2 }}>
-          Loading claims...
+          Loading invoices...
         </Typography>
       </Box>
     );
@@ -129,7 +129,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
           <Box className={styles.loaderRow}>
             <CircularProgress size={24} />
             <Typography variant="body2" sx={{ ml: 1 }}>
-              Loading more claims...
+              Loading more invoices...
             </Typography>
           </Box>
         )}
@@ -140,7 +140,7 @@ const ReportingTable: React.FC<ReportingTableProps> = ({
         <Box className={styles.bottomLoader}>
           <CircularProgress size={24} />
           <Typography variant="body2" sx={{ ml: 1 }}>
-            Loading more claims...
+            Loading more invoices...
           </Typography>
         </Box>
       )}
