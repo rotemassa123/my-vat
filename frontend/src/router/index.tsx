@@ -18,6 +18,7 @@ const ReportingPage = lazy(() => import("../pages/ReportingPage"));
 const ManagePage = lazy(() => import("../pages/ManagePage"));
 const EntitiesPage = lazy(() => import("../pages/EntitiesPage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
+const ChatPage = lazy(() => import("../pages/ChatPage"));
 const LandingPage = lazy(() => import("../components/LandingPage/landing-page"));
 
 function Router() {
@@ -41,6 +42,7 @@ function Router() {
           <Route path="/users" element={<ManagePage />} />
           <Route path="/entities" element={<EntitiesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/chat" element={<ChatPage />} />
         </Route>
       </Route>
     )

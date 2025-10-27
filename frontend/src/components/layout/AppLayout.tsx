@@ -13,6 +13,7 @@ import {
   Settings,
   People as PeopleIcon,
   Domain as DomainIcon,
+  Chat as ChatIcon,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
@@ -53,6 +54,11 @@ export default function AppLayout() {
       path: '/reporting',
       label: 'Invoices',
       icon: <InvoiceIcon className={styles.icon} />,
+    },
+    {
+      path: '/chat',
+      label: 'AI Chat',
+      icon: <ChatIcon className={styles.icon} />,
     },
   ];
 

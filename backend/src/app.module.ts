@@ -7,6 +7,7 @@ import { ProfileModule } from "./Features/Profile/profile.module";
 import { AuthModule } from "src/Features/Auth/auth.module";
 import { InvoiceModule } from "./Features/Invoice/invoice.module";
 import { FilesModule } from "./Features/Files/files.module";
+import { ChatModule } from "./Features/Chat/chat.module";
 import { APP_GUARD } from '@nestjs/core';
 import { AuthenticationGuard } from './Common/Infrastructure/guards/authentication.guard';
 
@@ -18,6 +19,7 @@ import { AuthenticationGuard } from './Common/Infrastructure/guards/authenticati
     ProfileModule,
     InvoiceModule,
     FilesModule,
+    ChatModule,
     AutomapperModule.forRoot({
       strategyInitializer: classes()
     })
