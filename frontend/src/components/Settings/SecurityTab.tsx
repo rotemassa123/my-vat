@@ -21,12 +21,7 @@ const SecurityTab: React.FC = () => {
         <Typography variant="h6" className={styles.sectionTitle}>
           Security Settings
         </Typography>
-
         <Box className={styles.securitySection}>
-          <Typography variant="subtitle1" className={styles.subsectionTitle}>
-            Password Management
-          </Typography>
-          
           <Box className={styles.passwordSection}>
             <TextField
               fullWidth
