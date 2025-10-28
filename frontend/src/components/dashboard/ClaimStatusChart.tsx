@@ -21,9 +21,27 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
         height: 430px !important;
       }
       
+      .claim-status-chart-svg {
+        width: 200px !important;
+        height: 200px !important;
+      }
+      
+      .claim-status-chart-legend {
+        font-size: 16px !important;
+      }
+      
       @media (min-width: 1600px) {
         .claim-status-chart-container {
           height: auto !important;
+        }
+        
+        .claim-status-chart-svg {
+          width: 250px !important;
+          height: 250px !important;
+        }
+        
+        .claim-status-chart-legend {
+          font-size: 18px !important;
         }
       }
     `;
@@ -61,14 +79,16 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
       {/* Pie Chart */}
       <div style={{
         position: 'relative',
-        width: '242px',
+        width: '100%',
         height: '242px',
-        margin: '0 auto 30px auto',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
+        marginBottom: '30px'
       }}>
-        <svg width="242" height="242" viewBox="0 0 242 242" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg className="claim-status-chart-svg" width="242" height="242" viewBox="0 0 242 242" fill="none" xmlns="http://www.w3.org/2000/svg" style={{
+          position: 'absolute',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)'
+        }}>
           {/* Refunded segments (Blue) */}
           <path d="M120.992 217.796V242C87.579 242 57.3346 228.453 35.4471 206.549L52.5591 189.434C70.0986 206.976 94.2853 217.796 120.992 217.796Z" fill="#3270FF"/>
           <path d="M52.5594 189.434L35.4473 206.548C13.5452 184.658 0 154.395 0 121.007H24.2015C24.2015 147.747 35.0494 171.937 52.5594 189.434Z" fill="#3270FF"/>
@@ -122,7 +142,7 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
             backgroundColor: '#3270FF',
             borderRadius: '50%'
           }} />
-          <span style={{
+          <span className="claim-status-chart-legend" style={{
             fontSize: '18px',
             fontWeight: '500',
             fontFamily: 'Poppins, sans-serif',
@@ -144,7 +164,7 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
             backgroundColor: '#F59E0B',
             borderRadius: '50%'
           }} />
-          <span style={{
+          <span className="claim-status-chart-legend" style={{
             fontSize: '18px',
             fontWeight: '500',
             fontFamily: 'Poppins, sans-serif',
@@ -166,7 +186,7 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
             backgroundColor: '#EF4444',
             borderRadius: '50%'
           }} />
-          <span style={{
+          <span className="claim-status-chart-legend" style={{
             fontSize: '18px',
             fontWeight: '500',
             fontFamily: 'Poppins, sans-serif',
