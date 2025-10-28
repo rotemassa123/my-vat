@@ -13,9 +13,27 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
         height: 430px !important;
       }
       
+      @media (max-width: 1599px) {
+        .monthly-trends-y-axis {
+          top: -24px !important;
+        }
+        
+        .monthly-trends-x-axis {
+          bottom: 44px !important;
+        }
+      }
+      
       @media (min-width: 1600px) {
         .monthly-trends-chart-container {
           height: auto !important;
+        }
+        
+        .monthly-trends-y-axis {
+          top: 20px !important;
+        }
+        
+        .monthly-trends-x-axis {
+          bottom: 0px !important;
         }
       }
     `;
@@ -114,10 +132,9 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
         padding: '20px'
       }}>
         {/* Y-axis labels */}
-        <div style={{
+        <div className="monthly-trends-y-axis" style={{
           position: 'absolute',
           left: '0',
-          top: '20px',
           height: '305px',
           width: '40px',
           display: 'flex',
@@ -139,9 +156,8 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
         </div>
 
         {/* X-axis labels */}
-        <div style={{
+        <div className="monthly-trends-x-axis" style={{
           position: 'absolute',
-          bottom: '0',
           left: '40px',
           right: '0',
           height: '40px',
@@ -174,7 +190,7 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
           borderRadius: '4px'
         }}>
           {/* Combined Chart with both lines */}
-          <svg width="100%" height="100%" viewBox="0 0 483 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: 0, left: 0 }}>
+          <svg width="100%" height="100%" viewBox="0 0 483 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: '-20px', left: 0 }}>
             {/* Grid lines */}
             {/* Horizontal grid lines */}
             <line x1="0" y1="40" x2="483" y2="40" stroke="#E5E7EB" strokeWidth="1" strokeDasharray="2,2"/>
