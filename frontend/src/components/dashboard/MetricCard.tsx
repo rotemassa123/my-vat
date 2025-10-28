@@ -44,7 +44,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, title, amount, growth, th
       borderRadius: '20px',
       padding: '20px',
       position: 'relative',
-      minWidth: '350px',
+      width: 'calc(25% - 24px)',
       height: '135px',
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       overflow: 'hidden',

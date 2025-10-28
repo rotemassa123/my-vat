@@ -29,7 +29,7 @@ const DashboardPage: React.FC = () => {
   return (
     <div>
       <h1 className="text-3xl font-bold" style={{ width: '100%', marginBottom: '24px' }}>Dashboard</h1>
-      <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', marginRight: '48px'}}>
+      <div style={{display: 'flex', flexDirection: 'row', gap: '32px'}}>
         <MetricCard 
           icon="$"
           title="Total Claimed"
@@ -58,7 +58,7 @@ const DashboardPage: React.FC = () => {
           theme="red"
         />
       </div>
-      <div style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between', height: '100%', marginTop: '48px', marginRight: '48px'}}>
+      <div style={{display: 'flex', flexDirection: 'row', gap: '32px', height: '100%', marginTop: '48px' }}>
         <MonthlyTrendsChart />
         <ClaimStatusChart 
           refunded={70}

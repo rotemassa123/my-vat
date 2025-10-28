@@ -15,7 +15,7 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
 }) => {
   return (
     <div style={{
-      width: '350px',
+      width: 'calc(25% - 24px)',
       backgroundColor: 'white',
       borderRadius: '20px',
       padding: '30px',
@@ -23,7 +23,6 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
       display: 'flex',
       flexDirection: 'column',
-      marginBottom: '32px',
       justifyContent: 'space-between',
     }} className={className}>
       {/* Title */}

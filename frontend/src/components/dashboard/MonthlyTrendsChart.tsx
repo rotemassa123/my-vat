@@ -7,7 +7,7 @@ interface MonthlyTrendsChartProps {
 const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) => {
   return (
     <div style={{
-      width: '738px',
+      width: 'calc(50% - 16px)',
       height: '100%',
       backgroundColor: 'white',
       borderRadius: '20px',

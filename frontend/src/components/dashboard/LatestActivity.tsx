@@ -7,7 +7,7 @@ import TimeIconSVG from '../../assets/temp/7d9d577969e0fc64ec7a15a836ccf3e70010a
 const LatestActivity: React.FC = () => {
   return (
     <div style={{
-      width: '350px',
+      width: 'calc(25% - 24px)',
       backgroundColor: 'white',
       borderRadius: '20px',
       padding: '30px',
