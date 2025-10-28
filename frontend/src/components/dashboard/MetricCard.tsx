@@ -38,6 +38,60 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, title, amount, growth, th
 
   const colors = themeColors[theme];
 
+  // Add responsive styles
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .metric-card-icon {
+        width: 52px !important;
+        height: 52px !important;
+        font-size: 30px !important;
+        top: 20px !important;
+      }
+      
+      @media (max-width: 1200px) {
+        .metric-card-icon {
+          width: 48px !important;
+          height: 48px !important;
+          font-size: 28px !important;
+          top: 25px !important;
+        }
+      }
+      
+      @media (max-width: 992px) {
+        .metric-card-icon {
+          width: 44px !important;
+          height: 44px !important;
+          font-size: 26px !important;
+          top: 30px !important;
+        }
+      }
+      
+      @media (max-width: 768px) {
+        .metric-card-icon {
+          width: 40px !important;
+          height: 40px !important;
+          font-size: 24px !important;
+          top: 35px !important;
+        }
+      }
+      
+      @media (max-width: 576px) {
+        .metric-card-icon {
+          width: 36px !important;
+          height: 36px !important;
+          font-size: 22px !important;
+          top: 40px !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <div style={{
       backgroundColor: colors.background,
@@ -50,19 +104,16 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, title, amount, growth, th
       overflow: 'hidden',
     }}>
       {/* Icon */}
-      <div style={{
+      <div className="metric-card-icon" style={{
         position: 'absolute',
-        top: '20px',
+        top: '50%',
         right: '20px',
-        width: '70px',
-        height: '70px',
         backgroundColor: 'white',
         borderRadius: '50%',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '40px',
         color: colors.iconColor
       }}>
         {typeof icon === 'string' ? icon : icon}

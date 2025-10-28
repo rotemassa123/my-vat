@@ -45,7 +45,7 @@ const DashboardPage: React.FC = () => {
         />
         <MetricCard 
           icon={<ClockIcon />}
-          title="Pending with Tax Offices"
+          title="Pending in Tax Offices"
           amount="$2458.90"
           growth={12.3}
           theme="orange"
