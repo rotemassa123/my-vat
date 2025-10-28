@@ -13,8 +13,29 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
   rejected, 
   className 
 }) => {
+  // Add responsive CSS for height control
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .claim-status-chart-container {
+        height: 430px !important;
+      }
+      
+      @media (min-width: 1600px) {
+        .claim-status-chart-container {
+          height: auto !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
-    <div style={{
+    <div className={`claim-status-chart-container ${className || ''}`} style={{
       width: 'calc(25% - 24px)',
       backgroundColor: 'white',
       borderRadius: '20px',
@@ -24,7 +45,7 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'space-between',
-    }} className={className}>
+    }}>
       {/* Title */}
       <div style={{
         fontSize: '20px',

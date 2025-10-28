@@ -5,16 +5,36 @@ interface MonthlyTrendsChartProps {
 }
 
 const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) => {
+  // Add responsive CSS for height control
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .monthly-trends-chart-container {
+        height: 430px !important;
+      }
+      
+      @media (min-width: 1600px) {
+        .monthly-trends-chart-container {
+          height: auto !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
-    <div style={{
+    <div className={`monthly-trends-chart-container ${className || ''}`} style={{
       width: 'calc(50% - 16px)',
-      height: '100%',
       backgroundColor: 'white',
       borderRadius: '20px',
       padding: '30px',
       position: 'relative',
       boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-    }} className={className}>
+    }}>
       {/* Title */}
       <div style={{
         fontSize: '20px',

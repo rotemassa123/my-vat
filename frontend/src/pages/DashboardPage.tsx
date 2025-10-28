@@ -5,6 +5,38 @@ import ClaimStatusChart from '../components/dashboard/ClaimStatusChart';
 import LatestActivity from '../components/dashboard/LatestActivity';
 
 const DashboardPage: React.FC = () => {
+  // Add responsive CSS for margin adjustments
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      div.dashboard-charts-row {
+        margin-top: 48px !important;
+      }
+      
+      @media (min-width: 1400px) {
+        div.dashboard-charts-row {
+          margin-top: 32px !important;
+        }
+      }
+      
+      @media (max-width: 768px) {
+        div.dashboard-charts-row {
+          margin-top: 24px !important;
+        }
+      }
+      
+      @media (max-width: 576px) {
+        div.dashboard-charts-row {
+          margin-top: 16px !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   // SVG icon for the cycle/refresh icon
   const CycleIcon = () => (
     <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">

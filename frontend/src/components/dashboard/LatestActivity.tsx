@@ -5,8 +5,29 @@ import CycleIconSVG from '../../assets/temp/8c6c466f87263f735293c9722be522061380
 import TimeIconSVG from '../../assets/temp/7d9d577969e0fc64ec7a15a836ccf3e70010a4ff.svg';
 
 const LatestActivity: React.FC = () => {
+  // Add responsive CSS for height/width control
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .latest-activity-container {
+        height: 430px !important;
+      }
+      
+      @media (min-width: 1600px) {
+        .latest-activity-container {
+          height: auto !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
-    <div style={{
+    <div className="latest-activity-container" style={{
       width: 'calc(25% - 24px)',
       backgroundColor: 'white',
       borderRadius: '20px',
@@ -32,7 +53,8 @@ const LatestActivity: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         gap: '24px',
-        flex: 1
+        flex: 1,
+        overflowY: 'auto'
       }}>
         {/* Activity Item 1 */}
         <div style={{
