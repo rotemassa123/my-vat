@@ -15,11 +15,50 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
       
       @media (max-width: 1599px) {
         .monthly-trends-y-axis {
-          top: -24px !important;
+          top: -40px !important;
         }
         
         .monthly-trends-x-axis {
-          bottom: 44px !important;
+          bottom: 60px !important;
+          z-index: 10 !important;
+        }
+        
+        .monthly-trends-legend {
+          position: absolute !important;
+          top: 33px !important;
+          right: 20px !important;
+          margin-top: 0 !important;
+          display: flex !important;
+          gap: 8px !important;
+          z-index: 10 !important;
+        }
+        
+        .monthly-trends-legend > div {
+          border: 0.5px solid #c6c6c6 !important;
+          border-radius: 50px !important;
+          padding: 8px 10px !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 10px !important;
+          height: 28px !important;
+          background: white !important;
+        }
+        
+        .monthly-trends-legend span {
+          font-size: 12px !important;
+          font-weight: 500 !important;
+          font-family: Poppins, sans-serif !important;
+          color: black !important;
+        }
+        
+        .monthly-trends-legend .legend-dot {
+          width: 10px !important;
+          height: 10px !important;
+          border-radius: 50% !important;
+        }
+        
+        .monthly-trends-chart-svg {
+          top: -60px !important;
         }
       }
       
@@ -34,6 +73,10 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
         
         .monthly-trends-x-axis {
           bottom: 0px !important;
+        }
+        
+        .monthly-trends-legend {
+          margin-top: 20px !important;
         }
       }
     `;
@@ -64,63 +107,6 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
         Monthly Trends
       </div>
 
-      {/* Time Period Filters */}
-      <div style={{
-        position: 'absolute',
-        top: '33px',
-        right: '20px',
-        display: 'flex',
-        gap: '8px'
-      }}>
-        <div style={{
-          border: '0.5px solid #c6c6c6',
-          borderRadius: '50px',
-          padding: '8px 10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          height: '28px'
-        }}>
-          <div style={{
-            width: '10px',
-            height: '10px',
-            backgroundColor: '#3b82f6',
-            borderRadius: '50%'
-          }} />
-          <span style={{
-            fontSize: '12px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: 'black'
-          }}>
-            6 Months
-          </span>
-        </div>
-        <div style={{
-          border: '0.5px solid #c6c6c6',
-          borderRadius: '50px',
-          padding: '8px 10px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          height: '28px'
-        }}>
-          <div style={{
-            width: '10px',
-            height: '10px',
-            backgroundColor: '#10b981',
-            borderRadius: '50%'
-          }} />
-          <span style={{
-            fontSize: '12px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: 'black'
-          }}>
-            1 Year
-          </span>
-        </div>
-      </div>
 
       {/* Chart Area */}
       <div style={{
@@ -190,7 +176,7 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
           borderRadius: '4px'
         }}>
           {/* Combined Chart with both lines */}
-          <svg width="100%" height="100%" viewBox="0 0 483 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: '-20px', left: 0 }}>
+          <svg className="monthly-trends-chart-svg" width="100%" height="100%" viewBox="0 0 483 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: '-20px', left: 0 }}>
             {/* Grid lines */}
             {/* Horizontal grid lines */}
             <line x1="0" y1="40" x2="483" y2="40" stroke="#E5E7EB" strokeWidth="1" strokeDasharray="2,2"/>
@@ -245,7 +231,7 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
       </div>
 
       {/* Legend */}
-      <div style={{
+      <div className="monthly-trends-legend" style={{
         display: 'flex',
         gap: '32px',
         justifyContent: 'center',
@@ -256,11 +242,8 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
           alignItems: 'center',
           gap: '8px'
         }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            backgroundColor: '#3b82f6',
-            borderRadius: '50%'
+          <div className="legend-dot" style={{
+            backgroundColor: '#3b82f6'
           }} />
           <span style={{
             fontSize: '18px',
@@ -276,11 +259,8 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
           alignItems: 'center',
           gap: '8px'
         }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            backgroundColor: '#10b981',
-            borderRadius: '50%'
+          <div className="legend-dot" style={{
+            backgroundColor: '#10b981'
           }} />
           <span style={{
             fontSize: '18px',
