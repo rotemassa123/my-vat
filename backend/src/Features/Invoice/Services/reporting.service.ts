@@ -44,9 +44,7 @@ export class ReportingService {
     if (!vatAmount) return null;
     
     const cleanAmount = String(vatAmount)
-      .replace(/[€$£¥]/g, '') // Remove currency symbols
-      .replace(/\./g, '') // Remove thousands separators (dots)
-      .replace(/,/g, '.') // Replace comma with dot for decimal
+      .replace(/[€$£¥]/g, '') // Remove currency symbols only
       .trim();
     
     const parsed = parseFloat(cleanAmount);

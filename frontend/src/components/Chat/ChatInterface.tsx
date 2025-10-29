@@ -3,7 +3,6 @@ import {
   Box,
   TextField,
   Button,
-  Paper,
   Typography,
   CircularProgress,
 } from '@mui/material';
@@ -71,52 +70,20 @@ const ChatInterface: React.FC = () => {
   return (
     <Box
       sx={{
-        height: '100%', // Take full available height
+        height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        width: '100%', // Take full width
-        padding: 2,
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)',
-        borderRadius: 3,
+        width: '100%',
+        px: 4,
       }}
     >
-      {/* Header */}
-      <Paper
-        elevation={3}
-        sx={{
-          p: 2,
-          mb: 2,
-          borderRadius: 4, // Much more rounded
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white',
-          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <ChatIcon sx={{ fontSize: 24, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
-          <Typography variant="h6" sx={{ fontWeight: 700, textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
-            MyVAT AI Assistant
-          </Typography>
-          <Box sx={{ flexGrow: 1 }} />
-          <Typography variant="body2" sx={{ opacity: 0.9, fontWeight: 500 }}>
-            {isConnected ? '🟢 Connected' : '🔴 Connecting...'}
-          </Typography>
-        </Box>
-      </Paper>
-
       {/* Messages Area */}
-      <Paper
-        elevation={2}
+      <Box
         sx={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           overflow: 'hidden',
-          mb: 2,
-          borderRadius: 4, // Much more rounded
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-          border: '1px solid rgba(102, 126, 234, 0.1)',
         }}
       >
         <Box
@@ -126,7 +93,7 @@ const ChatInterface: React.FC = () => {
             p: 2,
             display: 'flex',
             flexDirection: 'column',
-            gap: 1.5,
+            gap: 1,
           }}
         >
           {allMessages.length === 0 ? (
@@ -136,10 +103,10 @@ const ChatInterface: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100%',
-                color: 'text.secondary',
+                color: '#666',
               }}
             >
-              <Typography variant="body2"> {/* Smaller text */}
+              <Typography variant="body1">
                 {isConnected ? 'Start a conversation with your VAT assistant!' : 'Connecting to AI assistant...'}
               </Typography>
             </Box>
@@ -150,44 +117,35 @@ const ChatInterface: React.FC = () => {
                 sx={{
                   display: 'flex',
                   justifyContent: message.isUser ? 'flex-end' : 'flex-start',
-                  mb: 1,
+                  mb: 2,
                 }}
               >
-                <Paper
-                  elevation={2}
+                <Box
                   sx={{
-                    p: 2,
                     maxWidth: '80%',
-                    borderRadius: 4, // Much more rounded
+                    p: 2,
+                    borderRadius: '12px',
                     background: message.isError 
-                      ? 'linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%)' // Red gradient for errors
+                      ? '#fee2e2'
                       : message.isUser 
-                        ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                        : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                    color: 'white',
-                    boxShadow: message.isError
-                      ? '0 4px 15px rgba(255, 107, 107, 0.4)' // Red shadow for errors
+                        ? '#3b82f6'
+                        : '#f0f9ff',
+                    color: message.isError 
+                      ? '#dc2626'
                       : message.isUser 
-                        ? '0 4px 15px rgba(102, 126, 234, 0.3)' 
-                        : '0 4px 15px rgba(240, 147, 251, 0.3)',
-                    border: '1px solid rgba(255,255,255,0.2)',
+                        ? 'white'
+                        : '#1e40af',
+                    border: message.isError 
+                      ? '1px solid #fecaca'
+                      : message.isUser 
+                        ? 'none'
+                        : '1px solid #dbeafe',
                   }}
                 >
-                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}> {/* Smaller text */}
+                  <Typography variant="body1" sx={{ wordBreak: 'break-word', lineHeight: 1.6 }}>
                     {message.content}
                   </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      display: 'block',
-                      mt: 0.25, // Smaller margin
-                      opacity: 0.7,
-                      fontSize: '0.7rem', // Smaller font
-                    }}
-                  >
-                    {formatTime(message.timestamp)}
-                  </Typography>
-                </Paper>
+                </Box>
               </Box>
             ))
           )}
@@ -197,50 +155,46 @@ const ChatInterface: React.FC = () => {
               sx={{
                 display: 'flex',
                 justifyContent: 'flex-start',
-                mb: 1,
+                mb: 2,
               }}
             >
-              <Paper
-                elevation={2}
+              <Box
                 sx={{
                   p: 2,
-                  borderRadius: 4, // Much more rounded
-                  background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                  color: 'white',
+                  borderRadius: '12px',
+                  background: '#f0f9ff',
+                  color: '#1e40af',
+                  border: '1px solid #dbeafe',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1.5,
-                  boxShadow: '0 4px 15px rgba(240, 147, 251, 0.3)',
-                  border: '1px solid rgba(255,255,255,0.2)',
+                  gap: 1,
                 }}
               >
-                <CircularProgress size={16} sx={{ color: 'white' }} />
-                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                <CircularProgress size={16} sx={{ color: '#1e40af' }} />
+                <Typography variant="body1">
                   AI is thinking...
                 </Typography>
-              </Paper>
+              </Box>
             </Box>
           )}
           
           <div ref={messagesEndRef} />
         </Box>
-      </Paper>
+      </Box>
 
       {/* Input Area */}
-      <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 2, 
-          borderRadius: 4, // Much more rounded
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          boxShadow: '0 8px 32px rgba(102, 126, 234, 0.3)',
+      <Box
+        sx={{
+          py: 3,
+          px: 2,
+          borderTop: '1px solid #e5e7eb',
         }}
       >
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-end' }}>
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'flex-end' }}>
           <TextField
             fullWidth
             multiline
-            maxRows={3}
+            maxRows={4}
             placeholder="Ask me about your invoices, VAT rules, or anything else..."
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
@@ -250,17 +204,23 @@ const ChatInterface: React.FC = () => {
             size="small"
             sx={{
               '& .MuiOutlinedInput-root': {
-                borderRadius: 3,
-                backgroundColor: 'rgba(255,255,255,0.9)',
+                borderRadius: '12px',
+                backgroundColor: '#ffffff',
                 '& fieldset': {
-                  borderColor: 'rgba(255,255,255,0.3)',
+                  borderColor: '#d1d5db',
                 },
                 '&:hover fieldset': {
-                  borderColor: 'rgba(255,255,255,0.5)',
+                  borderColor: '#3b82f6',
                 },
                 '&.Mui-focused fieldset': {
-                  borderColor: 'rgba(255,255,255,0.8)',
+                  borderColor: '#3b82f6',
                 },
+                '& .MuiInputBase-input': {
+                  color: '#374151',
+                  '&::placeholder': {
+                    color: '#9ca3af',
+                  }
+                }
               },
             }}
           />
@@ -272,24 +232,23 @@ const ChatInterface: React.FC = () => {
               minWidth: 'auto', 
               px: 2, 
               py: 1.5,
-              borderRadius: 3,
-              background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-              boxShadow: '0 4px 15px rgba(240, 147, 251, 0.4)',
+              borderRadius: '12px',
+              background: '#3b82f6',
+              color: 'white',
               '&:hover': {
-                background: 'linear-gradient(135deg, #f5576c 0%, #f093fb 100%)',
-                boxShadow: '0 6px 20px rgba(240, 147, 251, 0.6)',
+                background: '#2563eb',
               },
               '&:disabled': {
-                background: 'rgba(255,255,255,0.3)',
-                color: 'rgba(255,255,255,0.5)',
-              }
+                background: '#d1d5db',
+                color: '#9ca3af',
+              },
             }}
             size="small"
           >
-            <SendIcon fontSize="small" />
+            <SendIcon sx={{ fontSize: 18 }} />
           </Button>
         </Box>
-      </Paper>
+      </Box>
     </Box>
   );
 };
