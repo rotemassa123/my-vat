@@ -65,27 +65,27 @@ const DashboardPage: React.FC = () => {
         <MetricCard 
           icon="$"
           title="Total Claimed"
-          amount="$2458.90"
+          amount="$31,103.90"
           growth={12.3}
         />
         <MetricCard 
           icon={<CycleIcon />}
           title="Total Refunded"
-          amount="$2458.90"
+          amount="$26,675.43"
           growth={12.3}
           theme="green"
         />
         <MetricCard 
           icon={<ClockIcon />}
           title="Pending in Tax Offices"
-          amount="$2458.90"
+          amount="$4207.04"
           growth={12.3}
           theme="orange"
         />
         <MetricCard 
           icon={<AlertIcon />}
           title="Rejected Claims"
-          amount="$2458.90"
+          amount="$221.42"
           growth={12.3}
           theme="red"
         />
