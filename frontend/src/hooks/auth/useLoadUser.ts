@@ -3,10 +3,10 @@ import { useAuthStore } from '../../store/authStore';
 import { useAccountStore } from '../../store/accountStore';
 import { authApi } from '../../lib/authApi';
 import { profileApi } from '../../lib/profileApi';
-import { loadAllData, isDataLoadingNeeded } from '../../services/invoiceService';
+import { loadAllData } from '../../services/invoiceService';
 
 export const useLoadUser = () => {
-  const { login: loginUser, logout: logoutUser, setLoading: setAuthLoading, setError: setAuthError, user: currentUser } = useAuthStore();
+  const { login: loginUser, logout: logoutUser, setLoading: setAuthLoading, setError: setAuthError } = useAuthStore();
   const { setProfile, clearProfile, setLoading: setProfileLoading, setError: setProfileError, account: currentAccount } = useAccountStore();
 
   const loadUserMutation = useMutation({
@@ -17,27 +17,24 @@ export const useLoadUser = () => {
       // Step 2: Load profile data
       const profileData = await profileApi.getProfile();
       
-      // Step 3: Load all invoices and summaries if needed
+      // Step 3: Always load invoices during login to ensure spinner stays active
+      // This ensures the login spinner waits for both profile and invoices requests
       let dataResult = null;
-      if (await isDataLoadingNeeded()) {
-        console.log('🔄 Data loading needed, fetching all data...');
-        try {
-          dataResult = await loadAllData();
-        } catch (error) {
-          console.warn('⚠️ Failed to load data during auth, will retry later:', error);
-          // Don't fail the entire auth flow if data loading fails
-        }
-      } else {
-        console.log('📦 Data is cached and valid, skipping data load');
+      console.log('🔄 Loading invoices data during login...');
+      try {
+        dataResult = await loadAllData();
+        console.log('✅ Successfully loaded invoices during login');
+      } catch (error) {
+        console.warn('⚠️ Failed to load data during auth, will retry later:', error);
+        // Don't fail the entire auth flow if data loading fails
       }
       
       return { auth: authResponse, profile: profileData, data: dataResult };
     },
     onMutate: () => {
-      // Only set loading if we don't already have data
-      if (!currentUser) {
-        setAuthLoading(true);
-      }
+      // Always set loading when called from login flow to ensure spinner stays active
+      // This ensures the spinner continues until both profile and invoices requests complete
+      setAuthLoading(true);
       if (!currentAccount) {
         setProfileLoading(true);
       }
