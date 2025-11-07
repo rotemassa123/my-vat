@@ -17,6 +17,10 @@ import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfile
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { CurrentAccountId } from "../../../common/decorators/current-account-id.decorator";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
+import { UseGuards } from "@nestjs/common";
+import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
+import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
+import { UserType } from "src/Common/consts/userType";
 
 @ApiTags("entities")
 @Controller("entities")
@@ -30,6 +34,19 @@ export class EntityController {
     } catch (error) {
       logger.error("Error fetching entities", EntityController.name, { error: error.message, accountId });
       throw new InternalServerErrorException("Failed to fetch entities");
+    }
+  }
+
+  @Get("all")
+  @UseGuards(AuthenticationGuard)
+  @RequireRoles(UserType.operator)
+  async getAllEntities(): Promise<EntityResponse[]> {
+    try {
+      const entities = await this.entityService.getAllEntities();
+      return entities as EntityResponse[];
+    } catch (error) {
+      logger.error("Error fetching all entities", EntityController.name, { error: error.message });
+      throw error;
     }
   }
 

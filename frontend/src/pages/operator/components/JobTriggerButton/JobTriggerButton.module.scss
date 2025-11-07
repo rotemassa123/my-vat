@@ -1,0 +1,31 @@
+.triggerButton {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 0.875rem;
+  text-transform: none;
+  box-shadow: none;
+  border: 1px solid #e5e7eb;
+  background-color: white;
+  color: #001441;
+  
+  &:hover {
+    background-color: #f8f9fa;
+    border-color: #0131ff;
+    color: #0131ff;
+    box-shadow: 0 2px 4px rgba(1, 49, 255, 0.1);
+  }
+  
+  &:disabled {
+    background-color: #f8f9fa;
+    border-color: #e5e7eb;
+    color: #93a4cc;
+    cursor: not-allowed;
+  }
+}
+
+.loader {
+  color: #93a4cc;
+}
+

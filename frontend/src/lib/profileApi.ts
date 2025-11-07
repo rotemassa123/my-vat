@@ -204,4 +204,28 @@ export const profileApi = {
       throw new Error('An error occurred while deleting the entity');
     }
   },
+
+  getAllAccounts: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/accounts/all');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return [];
+      }
+      throw new Error('Failed to fetch accounts');
+    }
+  },
+
+  getAllEntities: async (): Promise<any[]> => {
+    try {
+      const response = await apiClient.get('/entities/all');
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return [];
+      }
+      throw new Error('Failed to fetch all entities');
+    }
+  },
 }; 

@@ -1,0 +1,64 @@
+.tableRow {
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid #e5e7eb;
+  min-height: 70px;
+  background-color: white;
+  
+  &:hover {
+    background-color: #f8f9fa;
+  }
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.jobNameCell {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: 250px;
+  border-right: 1px solid #e5e7eb;
+  background-color: #fafbfc;
+}
+
+.jobNameContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.jobIconSmall {
+  font-size: 24px;
+  color: #0131ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jobNameText {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  color: #001441;
+  font-size: 0.9rem;
+}
+
+.entityCell {
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  flex: 1;
+  min-width: 150px;
+  border-right: 1px solid #e5e7eb;
+  background-color: white;
+  
+  &:last-child {
+    border-right: none;
+  }
+}
+

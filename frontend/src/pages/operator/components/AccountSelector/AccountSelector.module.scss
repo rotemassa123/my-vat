@@ -1,0 +1,46 @@
+.label {
+  font-family: 'Roboto', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.select {
+  background-color: #fff;
+  
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: #e0e0e0;
+  }
+  
+  &:hover :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: #ccc;
+  }
+  
+  &:global(.Mui-focused) :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: #0131ff;
+    border-width: 2px;
+  }
+}
+
+.loader {
+  margin-right: 8px;
+}
+
+.disabledMenuItem {
+  opacity: 0.5;
+}
+
+.menuItemContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.entityCount {
+  color: #40578c;
+  margin-left: 8px;
+}
+

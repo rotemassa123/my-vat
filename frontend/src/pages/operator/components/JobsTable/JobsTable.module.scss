@@ -1,0 +1,81 @@
+.jobsCard {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.tableContainer {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.headerCellJobType {
+  font-weight: 600;
+  color: #001441;
+  font-family: 'Poppins', sans-serif;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  width: 250px;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+}
+
+.headerCellEntity {
+  font-weight: 600;
+  color: #001441;
+  font-family: 'Poppins', sans-serif;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 0.875rem;
+  flex: 1;
+  min-width: 150px;
+  background-color: #f8f9fa;
+}
+
+.tableBody {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  max-height: 500px;
+  
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+    
+    &:hover {
+      background: #a8a8a8;
+    }
+  }
+  
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 #f1f1f1;
+}
+

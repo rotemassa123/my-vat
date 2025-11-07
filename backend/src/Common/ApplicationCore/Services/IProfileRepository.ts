@@ -206,6 +206,7 @@ export abstract class IProfileRepository {
   // Account methods
   abstract findAccountById(accountId: string): Promise<AccountData | null>;
   abstract findAccountByEmail(email: string): Promise<AccountData | null>;
+  abstract getAllAccounts(): Promise<AccountData[]>;
   abstract createAccount(accountData: CreateAccountData): Promise<AccountData>;
   abstract updateAccount(accountId: string, updateData: UpdateAccountData): Promise<boolean>;
   abstract deleteAccount(accountId: string): Promise<boolean>;
@@ -225,6 +226,7 @@ export abstract class IProfileRepository {
   // Entity methods
   abstract findEntityById(entityId: string): Promise<EntityData | null>;
   abstract getEntitiesForAccount(): Promise<EntityData[]>;
+  abstract getAllEntities(): Promise<EntityData[]>;
   abstract createEntity(entityData: CreateEntityData): Promise<EntityData>;
   abstract updateEntity(entityId: string, updateData: UpdateEntityData): Promise<boolean>;
   abstract deleteEntity(entityId: string): Promise<boolean>;

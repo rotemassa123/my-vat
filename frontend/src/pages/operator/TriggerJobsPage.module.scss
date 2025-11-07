@@ -1,0 +1,66 @@
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 120px);
+  
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+.title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 2rem;
+  color: #001441;
+  margin-bottom: 8px;
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+}
+
+.subtitle {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.selectionCard {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.accountSelectorContainer {
+  margin-bottom: 24px;
+}
+
+.jobsSection {
+  margin-top: 32px;
+}
+
+.jobsTitle {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 1.75rem;
+  color: #001441;
+  margin-bottom: 8px;
+}
+
+.jobsDescription {
+  margin-bottom: 24px;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.alert {
+  width: 100%;
+}
+

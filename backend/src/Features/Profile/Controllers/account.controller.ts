@@ -16,6 +16,10 @@ import { AccountResponse, CreateAccountResponse } from "../Responses/profile.res
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
+import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
+import { UserType } from "src/Common/consts/userType";
+import { UseGuards } from "@nestjs/common";
+import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 
 @ApiTags("accounts")
 @Controller("accounts")
@@ -52,6 +56,20 @@ export class AccountController {
       throw error;
     }
   }
+
+  @Get("all")
+  @UseGuards(AuthenticationGuard)
+  @RequireRoles(UserType.operator)
+  async getAllAccounts(): Promise<AccountResponse[]> {
+    try {
+      const accounts = await this.accountService.getAllAccounts();
+      return accounts as AccountResponse[];
+    } catch (error) {
+      logger.error("Error fetching all accounts", AccountController.name, { error: error.message });
+      throw error;
+    }
+  }
+
 
   @Get(":id")
   @ApiParam({ name: "id", type: String })

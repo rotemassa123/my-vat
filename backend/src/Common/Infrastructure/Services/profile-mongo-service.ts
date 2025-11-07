@@ -64,6 +64,11 @@ export class ProfileMongoService implements IProfileRepository {
     return doc ? this.mapDocumentToAccountData(doc) : null;
   }
 
+  async getAllAccounts(): Promise<AccountData[]> {
+    const docs = await this.accountModel.find().exec();
+    return docs.map(doc => this.mapDocumentToAccountData(doc));
+  }
+
   async createAccount(accountData: CreateAccountData): Promise<AccountData> {
     const account = new this.accountModel({
       ...accountData,
@@ -245,6 +250,15 @@ export class ProfileMongoService implements IProfileRepository {
   async getEntitiesForAccount(): Promise<EntityData[]> {
     // account_id scoping handled by TenantScopePlugin
     const docs = await this.entityModel.find().exec();
+    return docs.map(doc => this.mapDocumentToEntityData(doc));
+  }
+
+  async getAllEntities(): Promise<EntityData[]> {
+    // Bypass account scope for operators to get all entities
+    const docs = await this.entityModel
+      .find()
+      .setOptions({ disableAccountScope: true })
+      .exec();
     return docs.map(doc => this.mapDocumentToEntityData(doc));
   }
 
