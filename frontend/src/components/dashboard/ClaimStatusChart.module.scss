@@ -20,22 +20,21 @@
   text-align: left;
 }
 
-.chartSvg {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 12.5vw;
-  height: 12.5vw;
-  min-width: 200px;
-  min-height: 200px;
+.chartContainer {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.875vw;
+}
 
-  @media (min-width: 1600px) {
-    width: 15.625vw;
-    height: 15.625vw;
-    min-width: 250px;
-    min-height: 250px;
-  }
+.chartSvg {
+  width: clamp(160px, 12vw, 220px);
+  height: clamp(160px, 12vw, 220px);
+  aspect-ratio: 1;
 }
 
 .legend {
