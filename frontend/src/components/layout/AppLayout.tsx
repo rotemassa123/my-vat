@@ -7,13 +7,6 @@ import {
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  Dashboard as DashboardIcon,
-  Analytics as AnalyticsIcon,
-  FormatListBulleted as InvoiceIcon,
-  Settings,
-  People as PeopleIcon,
-  Domain as DomainIcon,
-  Chat as ChatIcon,
 } from '@mui/icons-material';
 import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
@@ -24,6 +17,7 @@ import UploadProgressManager from '../UploadProgressManager/UploadProgressManage
 import { UploadProvider } from '../../contexts/UploadContext';
 import styles from './AppLayout.module.scss';
 import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
+import { getNavigationItems, getUserTypeIndicator } from '../../consts/navigationItems';
 
 export default function AppLayout() {
   const location = useLocation();
@@ -38,64 +32,8 @@ export default function AppLayout() {
     setIsUploadModalOpen(false);
   };
 
-  // Navigation items with dynamic items based on user type
-  const navigationItems = [
-    {
-      path: '/dashboard',
-      label: 'Dashboard',
-      icon: <DashboardIcon className={styles.icon} />,
-    },
-    {
-      path: '/analysis',
-      label: 'Analysis',
-      icon: <AnalyticsIcon className={styles.icon} />,
-    },
-    {
-      path: '/reporting',
-      label: 'Invoices',
-      icon: <InvoiceIcon className={styles.icon} />,
-    },
-    {
-      path: '/chat',
-      label: 'AI Chat',
-      icon: <ChatIcon className={styles.icon} />,
-    },
-  ];
-
-  // Add admin-specific navigation items
-  if (user?.userType === 1) {
-    navigationItems.push(
-      {
-        path: '/users',
-        label: 'Users',
-        icon: <PeopleIcon className={styles.icon} />,
-      },
-      {
-        path: '/entities',
-        label: 'Entities',
-        icon: <DomainIcon className={styles.icon} />,
-      },
-      {
-        path: '/settings',
-        label: 'Settings',
-        icon: <Settings className={styles.icon} />,
-      }
-    );
-  } else if (user?.userType === 2) {
-    // For operators, only add Settings
-    navigationItems.push({
-      path: '/settings',
-      label: 'Settings',
-      icon: <Settings className={styles.icon} />,
-    });
-  } else {
-    // For members/viewers, only add Settings
-    navigationItems.push({
-      path: '/settings',
-      label: 'Settings',
-      icon: <Settings className={styles.icon} />,
-    });
-  }
+  const navigationItems = getNavigationItems(user?.userType);
+  const userTypeIndicator = getUserTypeIndicator(user?.userType);
 
   return (
     <Box className={styles.appContainer}>
@@ -108,14 +46,10 @@ export default function AppLayout() {
             alt="MyVAT Logo"
             style={{ height: '40px', width: 'auto' }}
           />
-          {user?.userType === 2 && (
-            <Typography className={styles.userTypeOperator}>Operator</Typography>
-          )}
-          {user?.userType === 1 && (
-            <Typography className={styles.userTypeAdmin}>admin</Typography>
-          )}
-          {user?.userType === 4 && (
-            <Typography className={styles.userTypeGuest}>guest</Typography>
+          {userTypeIndicator && (
+            <Typography className={styles[userTypeIndicator.className]}>
+              {userTypeIndicator.text}
+            </Typography>
           )}
         </Box>
 
@@ -158,18 +92,21 @@ export default function AppLayout() {
         {/* Sidebar */}
         <Box className={styles.sidebar}>
           <Box className={styles.navigation}>
-            {navigationItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                className={`${styles.navItem} ${
-                  location.pathname === item.path ? styles.active : ''
-                }`}
-              >
-                {item.icon}
-                <Typography className={styles.label}>{item.label}</Typography>
-              </Link>
-            ))}
+                {navigationItems.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      className={`${styles.navItem} ${
+                        location.pathname === item.path ? styles.active : ''
+                      }`}
+                    >
+                      <IconComponent className={styles.icon} />
+                      <Typography className={styles.label}>{item.label}</Typography>
+                    </Link>
+                  );
+                })}
           </Box>
         </Box>
 

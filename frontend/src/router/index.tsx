@@ -20,6 +20,11 @@ const EntitiesPage = lazy(() => import("../pages/EntitiesPage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
 const ChatPage = lazy(() => import("../pages/ChatPage"));
 const LandingPage = lazy(() => import("../components/LandingPage/landing-page"));
+// Operator pages
+const MagicLinkPage = lazy(() => import("../pages/operator/MagicLinkPage"));
+const TriggerJobsPage = lazy(() => import("../pages/operator/TriggerJobsPage"));
+const CreateAccountsPage = lazy(() => import("../pages/operator/CreateAccountsPage"));
+const SupportPage = lazy(() => import("../pages/operator/SupportPage"));
 
 function Router() {
   useAuth();
@@ -43,6 +48,11 @@ function Router() {
           <Route path="/entities" element={<EntitiesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/chat" element={<ChatPage />} />
+          {/* Operator Routes */}
+          <Route path="/operator/magic-link" element={<MagicLinkPage />} />
+          <Route path="/operator/trigger-jobs" element={<TriggerJobsPage />} />
+          <Route path="/operator/create-accounts" element={<CreateAccountsPage />} />
+          <Route path="/operator/support" element={<SupportPage />} />
         </Route>
       </Route>
     )
