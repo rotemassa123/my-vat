@@ -43,11 +43,13 @@
   padding: 16px;
   display: flex;
   align-items: center;
+  justify-content: center;
   flex-shrink: 0;
   font-size: 0.875rem;
   flex: 1;
   min-width: 150px;
   background-color: #f8f9fa;
+  text-align: center;
 }
 
 .tableBody {

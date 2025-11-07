@@ -35,8 +35,20 @@
   border-radius: 12px;
 }
 
+.selectionContent {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
 .accountSelectorContainer {
-  margin-bottom: 24px;
+  flex: 1;
+  min-width: 0;
+}
+
+.accountInfoContainer {
+  flex: 1;
+  min-width: 0;
 }
 
 .jobsSection {

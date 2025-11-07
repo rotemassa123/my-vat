@@ -7,14 +7,10 @@ import {
   Card,
   CardContent,
 } from '@mui/material';
-import {
-  CloudUpload as CloudUploadIcon,
-  DriveFolderUpload as DriveFolderUploadIcon,
-  Summarize as SummarizeIcon,
-  CheckCircle as CheckCircleIcon,
-} from '@mui/icons-material';
 import { triggerJob, getJobConfig, type JobType } from '../../services/jobTriggerService';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
+import type { LoadingJobsState } from './types';
+import { INITIAL_LOADING_JOBS_STATE, JOB_CONFIGS, SNACKBAR_DURATION, TEXT_CONSTANTS } from './consts';
 import AccountSelector from './components/AccountSelector/AccountSelector';
 import AccountInfo from './components/AccountInfo/AccountInfo';
 import JobsTable from './components/JobsTable/JobsTable';
@@ -26,12 +22,7 @@ const TriggerJobsPage: React.FC = () => {
   
   // State
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
-  const [loadingJobs, setLoadingJobs] = useState<Record<JobType, boolean>>({
-    google_drive_discover: false,
-    upload_to_cloud: false,
-    summarize_invoices: false,
-    check_claimability: false,
-  });
+  const [loadingJobs, setLoadingJobs] = useState<LoadingJobsState>(INITIAL_LOADING_JOBS_STATE);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
@@ -43,7 +34,7 @@ const TriggerJobsPage: React.FC = () => {
   // Trigger a job for a specific entity
   const handleTriggerJob = useCallback(async (jobType: JobType, entityId: string) => {
     if (!selectedAccountId) {
-      setError('Please select an account');
+      setError(TEXT_CONSTANTS.SELECT_ACCOUNT_ERROR);
       return;
     }
 
@@ -68,30 +59,6 @@ const TriggerJobsPage: React.FC = () => {
     }
   }, [selectedAccountId, storeEntities]);
 
-  // Job button configuration
-  const jobConfigs = [
-    {
-      type: 'google_drive_discover' as JobType,
-      label: 'Google Drive Discover',
-      icon: <DriveFolderUploadIcon />,
-    },
-    {
-      type: 'upload_to_cloud' as JobType,
-      label: 'Upload to Cloud from Google Drive',
-      icon: <CloudUploadIcon />,
-    },
-    {
-      type: 'summarize_invoices' as JobType,
-      label: 'Summarize Invoices',
-      icon: <SummarizeIcon />,
-    },
-    {
-      type: 'check_claimability' as JobType,
-      label: 'Check Claimability',
-      icon: <CheckCircleIcon />,
-    },
-  ];
-
   const selectedAccount = storeAccounts.find((acc) => acc._id === selectedAccountId);
   const accountEntities = selectedAccountId
     ? storeEntities.filter((entity) => entity.accountId === selectedAccountId)
@@ -101,33 +68,37 @@ const TriggerJobsPage: React.FC = () => {
   return (
     <Box className={styles.container}>
       <Typography variant="h4" className={styles.title}>
-        Trigger Jobs
+        {TEXT_CONSTANTS.PAGE_TITLE}
       </Typography>
       <Typography variant="body1" className={styles.subtitle}>
-        Select an account to trigger background jobs for its entities
+        {TEXT_CONSTANTS.PAGE_SUBTITLE}
       </Typography>
 
       {/* Selection Card */}
       <Card className={styles.selectionCard}>
         <CardContent>
-          <Box className={styles.accountSelectorContainer}>
-            <AccountSelector
-              accounts={storeAccounts}
-              entities={storeEntities}
-              selectedAccountId={selectedAccountId}
-              loading={storeLoading}
-              disabled={isAnyJobLoading}
-              onAccountChange={handleAccountChange}
-            />
-          </Box>
+          <Box className={styles.selectionContent}>
+            <Box className={styles.accountSelectorContainer}>
+              <AccountSelector
+                accounts={storeAccounts}
+                entities={storeEntities}
+                selectedAccountId={selectedAccountId}
+                loading={storeLoading}
+                disabled={isAnyJobLoading}
+                onAccountChange={handleAccountChange}
+              />
+            </Box>
 
-          {/* Selected Account Info */}
-          {selectedAccount && (
-            <AccountInfo
-              account={selectedAccount}
-              entityCount={accountEntities.length}
-            />
-          )}
+            {/* Selected Account Info */}
+            {selectedAccount && (
+              <Box className={styles.accountInfoContainer}>
+                <AccountInfo
+                  account={selectedAccount}
+                  entityCount={accountEntities.length}
+                />
+              </Box>
+            )}
+          </Box>
         </CardContent>
       </Card>
 
@@ -135,24 +106,24 @@ const TriggerJobsPage: React.FC = () => {
       {selectedAccountId && (
         <Box className={styles.jobsSection}>
           <Typography variant="h5" className={styles.jobsTitle}>
-            Available Jobs
+            {TEXT_CONSTANTS.JOBS_TITLE}
           </Typography>
           <Typography variant="body2" color="text.secondary" className={styles.jobsDescription}>
-            Select an account above to see available jobs for each entity. Jobs may take up to 3 minutes to complete.
+            {TEXT_CONSTANTS.JOBS_DESCRIPTION}
           </Typography>
 
           {accountEntities.length === 0 ? (
             <Card className={styles.selectionCard}>
               <CardContent>
                 <Typography variant="body2" color="text.secondary" className={styles.emptyState}>
-                  No entities available for this account.
+                  {TEXT_CONSTANTS.NO_ENTITIES_MESSAGE}
                 </Typography>
               </CardContent>
             </Card>
           ) : (
             <JobsTable
               entities={accountEntities}
-              jobConfigs={jobConfigs}
+              jobConfigs={JOB_CONFIGS}
               loadingJobs={loadingJobs}
               isAnyJobLoading={isAnyJobLoading}
               onTriggerJob={handleTriggerJob}
@@ -164,7 +135,7 @@ const TriggerJobsPage: React.FC = () => {
       {/* Error Snackbar */}
       <Snackbar
         open={!!error}
-        autoHideDuration={6000}
+        autoHideDuration={SNACKBAR_DURATION.ERROR}
         onClose={() => setError(null)}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
@@ -180,7 +151,7 @@ const TriggerJobsPage: React.FC = () => {
       {/* Success Snackbar */}
       <Snackbar
         open={!!successMessage}
-        autoHideDuration={6000}
+        autoHideDuration={SNACKBAR_DURATION.SUCCESS}
         onClose={() => setSuccessMessage(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >

@@ -1,12 +1,8 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import type { Account, Entity } from '../../../../types/profile';
+import type { AccountInfoProps } from '../../types';
+import { TEXT_CONSTANTS } from '../../consts';
 import styles from './AccountInfo.module.scss';
-
-interface AccountInfoProps {
-  account: Account;
-  entityCount: number;
-}
 
 const AccountInfo: React.FC<AccountInfoProps> = ({ account, entityCount }) => {
   return (
@@ -16,7 +12,7 @@ const AccountInfo: React.FC<AccountInfoProps> = ({ account, entityCount }) => {
       </Typography>
       {entityCount > 0 && (
         <Typography variant="body2" color="text.secondary">
-          <strong>Entities:</strong> {entityCount} {entityCount === 1 ? 'entity' : 'entities'} available
+          <strong>Entities:</strong> {entityCount} {entityCount === 1 ? TEXT_CONSTANTS.ENTITY_SINGULAR : TEXT_CONSTANTS.ENTITY_PLURAL} available
         </Typography>
       )}
     </Box>

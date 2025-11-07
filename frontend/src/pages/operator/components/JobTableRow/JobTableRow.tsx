@@ -1,19 +1,8 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import type { Entity } from '../../../../types/profile';
-import type { JobType } from '../../../../services/jobTriggerService';
+import type { JobTableRowProps } from '../../types';
 import JobTriggerButton from '../JobTriggerButton/JobTriggerButton';
 import styles from './JobTableRow.module.scss';
-
-interface JobTableRowProps {
-  jobType: JobType;
-  jobLabel: string;
-  jobIcon: React.ReactNode;
-  entities: Entity[];
-  isLoading: boolean;
-  isAnyJobLoading: boolean;
-  onTriggerJob: (jobType: JobType, entityId: string) => void;
-}
 
 const JobTableRow: React.FC<JobTableRowProps> = ({
   jobType,

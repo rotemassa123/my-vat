@@ -1,12 +1,8 @@
 import React from 'react';
 import { Button, CircularProgress } from '@mui/material';
+import type { JobTriggerButtonProps } from '../../types';
+import { TEXT_CONSTANTS } from '../../consts';
 import styles from './JobTriggerButton.module.scss';
-
-interface JobTriggerButtonProps {
-  isLoading: boolean;
-  disabled: boolean;
-  onClick: () => void;
-}
 
 const JobTriggerButton: React.FC<JobTriggerButtonProps> = ({
   isLoading,
@@ -22,7 +18,7 @@ const JobTriggerButton: React.FC<JobTriggerButtonProps> = ({
       startIcon={isLoading ? <CircularProgress size={16} className={styles.loader} /> : null}
       className={styles.triggerButton}
     >
-      {isLoading ? 'Processing...' : 'Trigger'}
+      {isLoading ? TEXT_CONSTANTS.BUTTON_PROCESSING : TEXT_CONSTANTS.BUTTON_TRIGGER}
     </Button>
   );
 };

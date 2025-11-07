@@ -1,23 +1,9 @@
 import React from 'react';
 import { Box, Typography, Card } from '@mui/material';
-import type { Entity } from '../../../../types/profile';
-import type { JobType } from '../../../../services/jobTriggerService';
+import type { JobsTableProps } from '../../types';
+import { TEXT_CONSTANTS } from '../../consts';
 import JobTableRow from '../JobTableRow/JobTableRow';
 import styles from './JobsTable.module.scss';
-
-interface JobConfig {
-  type: JobType;
-  label: string;
-  icon: React.ReactNode;
-}
-
-interface JobsTableProps {
-  entities: Entity[];
-  jobConfigs: JobConfig[];
-  loadingJobs: Record<JobType, boolean>;
-  isAnyJobLoading: boolean;
-  onTriggerJob: (jobType: JobType, entityId: string) => void;
-}
 
 const JobsTable: React.FC<JobsTableProps> = ({
   entities,
@@ -36,7 +22,7 @@ const JobsTable: React.FC<JobsTableProps> = ({
         {/* Table Header */}
         <Box className={styles.tableHeader}>
           <Box className={styles.headerCellJobType}>
-            Job Type
+            {TEXT_CONSTANTS.TABLE_HEADER_JOB_TYPE}
           </Box>
           {entities.map((entity) => (
             <Box key={entity._id} className={styles.headerCellEntity}>
