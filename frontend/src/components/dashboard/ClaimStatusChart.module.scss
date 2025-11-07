@@ -1,0 +1,110 @@
+.container {
+  width: calc(25% - 1.5vw);
+  background-color: white;
+  border-radius: 1.25vw;
+  padding: 1.875vw;
+  position: relative;
+  box-shadow: 0 0.25vw 0.75vw rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 26.875vh;
+  min-height: 300px;
+
+  @media (min-width: 1600px) {
+    height: auto;
+  }
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: #1a1a1a;
+  margin-bottom: 1.875vw;
+  text-align: left;
+}
+
+.chartContainer {
+  position: relative;
+  width: 100%;
+  height: 15.125vh;
+  min-height: 242px;
+  margin-bottom: 1.875vw;
+}
+
+.chartSvg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 12.5vw;
+  height: 12.5vw;
+  min-width: 200px;
+  min-height: 200px;
+
+  @media (min-width: 1600px) {
+    width: 15.625vw;
+    height: 15.625vw;
+    min-width: 250px;
+    min-height: 250px;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75vw;
+  width: 100%;
+  margin-left: 0;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 1.5vw;
+}
+
+.legendDot {
+  width: 1vw;
+  height: 1vw;
+  min-width: 16px;
+  min-height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legendText {
+  font-size: 1.125rem;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+
+  @media (min-width: 1600px) {
+    font-size: 1.125rem;
+  }
+}
+
+.refundedDot {
+  background-color: #3270FF;
+}
+
+.refundedText {
+  color: #3270FF;
+}
+
+.pendingDot {
+  background-color: #F59E0B;
+}
+
+.pendingText {
+  color: #F59E0B;
+}
+
+.rejectedDot {
+  background-color: #EF4444;
+}
+
+.rejectedText {
+  color: #EF4444;
+}
+

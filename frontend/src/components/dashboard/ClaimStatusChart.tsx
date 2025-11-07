@@ -1,4 +1,6 @@
 import React from 'react';
+import classNames from 'classnames';
+import styles from './ClaimStatusChart.module.scss';
 
 interface ClaimStatusChartProps {
   refunded: number; // percentage (0-100)
@@ -7,88 +9,48 @@ interface ClaimStatusChartProps {
   className?: string;
 }
 
+interface LegendItemProps {
+  label: string;
+  value: number;
+  dotClassName: string;
+  textClassName: string;
+}
+
+const LegendItem: React.FC<LegendItemProps> = ({ 
+  label, 
+  value, 
+  dotClassName, 
+  textClassName 
+}) => (
+  <div className={styles.legendItem}>
+    <div className={classNames(styles.legendDot, dotClassName)} />
+    <span className={classNames(styles.legendText, textClassName)}>
+      {label}: {value}%
+    </span>
+  </div>
+);
+
 const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({ 
   refunded, 
   pending, 
   rejected, 
   className 
 }) => {
-  // Add responsive CSS for height control
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .claim-status-chart-container {
-        height: 430px !important;
-      }
-      
-      .claim-status-chart-svg {
-        width: 200px !important;
-        height: 200px !important;
-      }
-      
-      .claim-status-chart-legend {
-        font-size: 16px !important;
-      }
-      
-      @media (min-width: 1600px) {
-        .claim-status-chart-container {
-          height: auto !important;
-        }
-        
-        .claim-status-chart-svg {
-          width: 250px !important;
-          height: 250px !important;
-        }
-        
-        .claim-status-chart-legend {
-          font-size: 18px !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
   return (
-    <div className={`claim-status-chart-container ${className || ''}`} style={{
-      width: 'calc(25% - 24px)',
-      backgroundColor: 'white',
-      borderRadius: '20px',
-      padding: '30px',
-      position: 'relative',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-    }}>
-      {/* Title */}
-      <div style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        fontFamily: 'Poppins, sans-serif',
-        color: '#1a1a1a',
-        marginBottom: '30px',
-        textAlign: 'left'
-      }}>
+    <div className={classNames(styles.container, className)}>
+      <div className={styles.title}>
         Claim Status
       </div>
 
-      {/* Pie Chart */}
-      <div style={{
-        position: 'relative',
-        width: '100%',
-        height: '242px',
-        marginBottom: '30px'
-      }}>
-        <svg className="claim-status-chart-svg" width="242" height="242" viewBox="0 0 242 242" fill="none" xmlns="http://www.w3.org/2000/svg" style={{
-          position: 'absolute',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)'
-        }}>
+      <div className={styles.chartContainer}>
+        <svg 
+          className={styles.chartSvg} 
+          width="242" 
+          height="242" 
+          viewBox="0 0 242 242" 
+          fill="none" 
+          xmlns="http://www.w3.org/2000/svg"
+        >
           {/* Refunded segments (Blue) */}
           <path d="M120.992 217.796V242C87.579 242 57.3346 228.453 35.4471 206.549L52.5591 189.434C70.0986 206.976 94.2853 217.796 120.992 217.796Z" fill="#3270FF"/>
           <path d="M52.5594 189.434L35.4473 206.548C13.5452 184.658 0 154.395 0 121.007H24.2015C24.2015 147.747 35.0494 171.937 52.5594 189.434Z" fill="#3270FF"/>
@@ -122,79 +84,25 @@ const ClaimStatusChart: React.FC<ClaimStatusChartProps> = ({
         </svg>
       </div>
 
-      {/* Legend */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        width: '100%',
-        marginLeft: '0'
-      }}>
-        {/* Refunded */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '24px'
-        }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            backgroundColor: '#3270FF',
-            borderRadius: '50%'
-          }} />
-          <span className="claim-status-chart-legend" style={{
-            fontSize: '18px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: '#3270FF'
-          }}>
-            Refunded: {refunded}%
-          </span>
-        </div>
-
-        {/* Pending */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '24px'
-        }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            backgroundColor: '#F59E0B',
-            borderRadius: '50%'
-          }} />
-          <span className="claim-status-chart-legend" style={{
-            fontSize: '18px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: '#F59E0B'
-          }}>
-            Pending: {pending}%
-          </span>
-        </div>
-
-        {/* Rejected */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '24px'
-        }}>
-          <div style={{
-            width: '16px',
-            height: '16px',
-            backgroundColor: '#EF4444',
-            borderRadius: '50%'
-          }} />
-          <span className="claim-status-chart-legend" style={{
-            fontSize: '18px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: '#EF4444'
-          }}>
-            Rejected: {rejected}%
-          </span>
-        </div>
+      <div className={styles.legend}>
+        <LegendItem 
+          label="Refunded"
+          value={refunded}
+          dotClassName={styles.refundedDot}
+          textClassName={styles.refundedText}
+        />
+        <LegendItem 
+          label="Pending"
+          value={pending}
+          dotClassName={styles.pendingDot}
+          textClassName={styles.pendingText}
+        />
+        <LegendItem 
+          label="Rejected"
+          value={rejected}
+          dotClassName={styles.rejectedDot}
+          textClassName={styles.rejectedText}
+        />
       </div>
     </div>
   );
