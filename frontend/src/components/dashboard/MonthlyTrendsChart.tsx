@@ -1,182 +1,59 @@
 import React from 'react';
+import classNames from 'classnames';
+import styles from './MonthlyTrendsChart.module.scss';
 
 interface MonthlyTrendsChartProps {
   className?: string;
 }
 
-const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) => {
-  // Add responsive CSS for height control
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .monthly-trends-chart-container {
-        height: 430px !important;
-      }
-      
-      @media (max-width: 1599px) {
-        .monthly-trends-y-axis {
-          top: -40px !important;
-        }
-        
-        .monthly-trends-x-axis {
-          bottom: 60px !important;
-          z-index: 10 !important;
-        }
-        
-        .monthly-trends-legend {
-          position: absolute !important;
-          top: 33px !important;
-          right: 20px !important;
-          margin-top: 0 !important;
-          display: flex !important;
-          gap: 8px !important;
-          z-index: 10 !important;
-        }
-        
-        .monthly-trends-legend > div {
-          border: 0.5px solid #c6c6c6 !important;
-          border-radius: 50px !important;
-          padding: 8px 10px !important;
-          display: flex !important;
-          align-items: center !important;
-          gap: 10px !important;
-          height: 28px !important;
-          background: white !important;
-        }
-        
-        .monthly-trends-legend span {
-          font-size: 12px !important;
-          font-weight: 500 !important;
-          font-family: Poppins, sans-serif !important;
-          color: black !important;
-        }
-        
-        .monthly-trends-legend .legend-dot {
-          width: 10px !important;
-          height: 10px !important;
-          border-radius: 50% !important;
-        }
-        
-        .monthly-trends-chart-svg {
-          top: -60px !important;
-        }
-      }
-      
-      @media (min-width: 1600px) {
-        .monthly-trends-chart-container {
-          height: auto !important;
-        }
-        
-        .monthly-trends-y-axis {
-          top: 20px !important;
-        }
-        
-        .monthly-trends-x-axis {
-          bottom: 0px !important;
-        }
-        
-        .monthly-trends-legend {
-          margin-top: 20px !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
+interface LegendItemProps {
+  dotClassName: string;
+  textClassName: string;
+  label: string;
+}
 
+const LegendItem: React.FC<LegendItemProps> = ({ dotClassName, textClassName, label }) => (
+  <div className={styles.legendItem}>
+    <div className={classNames(styles.legendDot, dotClassName)} />
+    <span className={classNames(styles.legendText, textClassName)}>
+      {label}
+    </span>
+  </div>
+);
+
+const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) => {
   return (
-    <div className={`monthly-trends-chart-container ${className || ''}`} style={{
-      width: 'calc(50% - 16px)',
-      backgroundColor: 'white',
-      borderRadius: '20px',
-      padding: '30px',
-      position: 'relative',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-    }}>
-      {/* Title */}
-      <div style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        fontFamily: 'Poppins, sans-serif',
-        color: '#1a1a1a',
-        marginBottom: '20px'
-      }}>
+    <div className={classNames(styles.container, className)}>
+      <div className={styles.title}>
         Monthly Trends
       </div>
 
-
-      {/* Chart Area */}
-      <div style={{
-        height: '345px',
-        width: '100%',
-        marginTop: '60px',
-        position: 'relative',
-        borderRadius: '8px',
-        padding: '20px'
-      }}>
-        {/* Y-axis labels */}
-        <div className="monthly-trends-y-axis" style={{
-          position: 'absolute',
-          left: '0',
-          height: '305px',
-          width: '40px',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          alignItems: 'flex-end',
-          paddingRight: '10px'
-        }}>
+      <div className={styles.chartArea}>
+        <div className={styles.yAxis}>
           {['$38k', '$28.5k', '$19k', '$9.5k', '$0k'].map((label, index) => (
-            <div key={index} style={{
-              fontSize: '17px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f',
-              textAlign: 'right'
-            }}>
+            <div key={index} className={styles.yAxisLabel}>
               {label}
             </div>
           ))}
         </div>
 
-        {/* X-axis labels */}
-        <div className="monthly-trends-x-axis" style={{
-          position: 'absolute',
-          left: '40px',
-          right: '0',
-          height: '40px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingLeft: '20px',
-          paddingRight: '20px'
-        }}>
+        <div className={styles.xAxis}>
           {['Feb', 'Apr', 'Jun', 'Aug', 'Oct', 'Dec'].map((label, index) => (
-            <div key={index} style={{
-              fontSize: '17px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f',
-              textAlign: 'center'
-            }}>
+            <div key={index} className={styles.xAxisLabel}>
               {label}
             </div>
           ))}
         </div>
 
-        {/* Chart visualization - Static SVG from Figma */}
-        <div style={{
-          position: 'absolute',
-          top: '20px',
-          left: '60px',
-          right: '20px',
-          bottom: '40px',
-          backgroundColor: 'white',
-          borderRadius: '4px'
-        }}>
-          {/* Combined Chart with both lines */}
-          <svg className="monthly-trends-chart-svg" width="100%" height="100%" viewBox="0 0 483 200" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', top: '-20px', left: 0 }}>
+        <div className={styles.chartVisualization}>
+          <svg 
+            className={styles.chartSvg} 
+            width="100%" 
+            height="100%" 
+            viewBox="0 0 483 200" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+          >
             {/* Grid lines */}
             {/* Horizontal grid lines */}
             <line x1="0" y1="40" x2="483" y2="40" stroke="#E5E7EB" strokeWidth="1" strokeDasharray="2,2"/>
@@ -230,47 +107,17 @@ const MonthlyTrendsChart: React.FC<MonthlyTrendsChartProps> = ({ className }) =>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="monthly-trends-legend" style={{
-        display: 'flex',
-        gap: '32px',
-        justifyContent: 'center',
-        marginTop: '20px'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <div className="legend-dot" style={{
-            backgroundColor: '#3b82f6'
-          }} />
-          <span style={{
-            fontSize: '18px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: '#3b82f6'
-          }}>
-            Amount Claimed
-          </span>
-        </div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-          <div className="legend-dot" style={{
-            backgroundColor: '#10b981'
-          }} />
-          <span style={{
-            fontSize: '18px',
-            fontWeight: '500',
-            fontFamily: 'Poppins, sans-serif',
-            color: '#10b981'
-          }}>
-            Amount Refunded
-          </span>
-        </div>
+      <div className={styles.legend}>
+        <LegendItem 
+          label="Amount Claimed"
+          dotClassName={styles.claimedDot}
+          textClassName={styles.claimedText}
+        />
+        <LegendItem 
+          label="Amount Refunded"
+          dotClassName={styles.refundedDot}
+          textClassName={styles.refundedText}
+        />
       </div>
     </div>
   );
