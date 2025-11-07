@@ -108,6 +108,15 @@ export default function AppLayout() {
             alt="MyVAT Logo"
             style={{ height: '40px', width: 'auto' }}
           />
+          {user?.userType === 2 && (
+            <Typography className={styles.userTypeOperator}>Operator</Typography>
+          )}
+          {user?.userType === 1 && (
+            <Typography className={styles.userTypeAdmin}>admin</Typography>
+          )}
+          {user?.userType === 4 && (
+            <Typography className={styles.userTypeGuest}>guest</Typography>
+          )}
         </Box>
 
         {/* Search Bar */}
