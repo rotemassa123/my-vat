@@ -30,6 +30,55 @@ export class MCPQueryProcessor {
     });
   }
 
+  /**
+   * Parse MCP format JSON from Phase 1 and fetch the requested data
+   */
+  async parseAndFetchData(mcpJsonResponse: string, userContext: UserContext): Promise<any> {
+    console.log('🔍 MCP Phase 2: Parsing and fetching data from:', mcpJsonResponse);
+    try {
+      // Parse the JSON array from Phase 1
+      const dataRequests: DataRequest[] = JSON.parse(mcpJsonResponse);
+      console.log(`🔍 MCP Phase 2: Parsed ${dataRequests.length} data request(s):`, JSON.stringify(dataRequests, null, 2));
+      
+      // If no data requests, return null (general question)
+      if (!dataRequests || dataRequests.length === 0) {
+        console.log('🔍 MCP Phase 2: No data requests, treating as general question');
+        return null;
+      }
+      
+      // Fetch relevant data
+      console.log(`🔍 MCP Phase 2: Fetching data for user: ${userContext.userId}`);
+      const contextData = await this.fetchRelevantData(dataRequests, userContext);
+      
+      // Log detailed information about fetched data
+      if (contextData) {
+        console.log('🔍 MCP Phase 2: Data fetched successfully');
+        if (contextData.invoices) {
+          const invoiceCount = Array.isArray(contextData.invoices) ? contextData.invoices.length : 0;
+          console.log(`   📊 INVOICES: ${invoiceCount} invoices`);
+          if (invoiceCount > 0 && Array.isArray(contextData.invoices)) {
+            const sample = contextData.invoices[0];
+            console.log(`   📊 Sample Invoice Fields: ${Object.keys(sample).join(', ')}`);
+          }
+        }
+        if (contextData.entities) {
+          console.log(`   🏢 ENTITIES: ${Array.isArray(contextData.entities) ? contextData.entities.length : 'N/A'} entities`);
+        }
+        if (contextData.summaries) {
+          console.log(`   📈 SUMMARIES: ${Array.isArray(contextData.summaries) ? contextData.summaries.length : 'N/A'} summaries`);
+        }
+      } else {
+        console.log('🔍 MCP Phase 2: No context data returned');
+      }
+      
+      return contextData;
+    } catch (error) {
+      console.error('🔍 MCP Phase 2: Error parsing/fetching data:', error.message);
+      console.error('🔍 MCP Phase 2: Error stack:', error.stack);
+      return null; // Return null on error
+    }
+  }
+
   async processQuery(query: string, userContext: UserContext): Promise<any> {
     console.log('🔍 MCP: Starting processQuery for:', query);
     try {
@@ -131,8 +180,10 @@ export class MCPQueryProcessor {
 
   // REAL IMPLEMENTATION - Fetch actual invoice data
   private async getInvoices(userId: string, filters: any, fields: string[]): Promise<any[]> {
-    console.log('🔍 MCP: Fetching real invoices for user:', userId);
-    console.log('🔍 MCP: Requested fields:', fields);
+    console.log('\n🔍 MCP getInvoices() called:');
+    console.log(`   User ID: ${userId}`);
+    console.log(`   Filters: ${JSON.stringify(filters, null, 2)}`);
+    console.log(`   Requested Fields: ${fields.length > 0 ? fields.join(', ') : 'ALL FIELDS'}`);
     
     try {
       // Convert MCP filters to InvoiceFilters
@@ -141,10 +192,14 @@ export class MCPQueryProcessor {
         ...filters
       };
       
+      console.log(`   Invoice Filters Applied: ${JSON.stringify(invoiceFilters, null, 2)}`);
+      console.log(`   Query Limit: 100, Skip: 0`);
+      
       // Fetch real invoices from database
       const invoices = await this.invoiceService.findInvoices(invoiceFilters, 100, 0);
       
-      console.log('🔍 MCP: Found', invoices.length, 'real invoices');
+      console.log(`\n🔍 MCP getInvoices() RESULT:`);
+      console.log(`   📊 TOTAL INVOICES FETCHED: ${invoices.length}`);
       
       // Debug: Log the first invoice to see its structure
       if (invoices.length > 0) {
@@ -153,13 +208,18 @@ export class MCPQueryProcessor {
       }
       
       // Debug: Count invoices by status
-      const statusCounts = invoices.reduce((acc, invoice) => {
+      const statusCounts = invoices.reduce((acc: any, invoice: any) => {
         const status = invoice.status || 'unknown';
         acc[status] = (acc[status] || 0) + 1;
         return acc;
       }, {});
-      console.log('🔍 MCP: Invoice status breakdown:', statusCounts);
-      console.log('🔍 MCP: Total invoices being sent to AI:', invoices.length);
+      console.log(`   📊 Invoice Status Breakdown:`, JSON.stringify(statusCounts, null, 2));
+      console.log(`   📊 Total invoices being sent to AI: ${invoices.length}`);
+      
+      // Warn if we hit the limit
+      if (invoices.length === 100) {
+        console.warn(`   ⚠️  WARNING: Hit invoice limit of 100! There may be more invoices in the database.`);
+      }
       
       // If no specific fields requested, return all data
       if (!fields || fields.length === 0) {

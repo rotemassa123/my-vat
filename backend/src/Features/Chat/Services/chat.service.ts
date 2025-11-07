@@ -66,23 +66,72 @@ export class ChatService {
     const messageId = uuidv4();
     const userContext = { userId };
 
+    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log('💬 CHAT REQUEST START');
+    console.log('═══════════════════════════════════════════════════════════');
+    console.log(`📝 User Message: "${messageDto.message}"`);
+    console.log(`👤 User ID: ${userId}`);
+    console.log(`🆔 Message ID: ${messageId}`);
+
     // Get user profile for personalized experience
     const userProfile = await this.userProfileService.getUserProfile(userId);
+    console.log(`👨‍💼 User Profile: ${userProfile.firstName} ${userProfile.lastName} (${userProfile.email})`);
+    console.log(`🏢 Company: ${userProfile.companyName || 'N/A'}`);
 
     // Check if this is the first message
     const isFirstMessage = this.threadCache.isFirstMessage(userId);
+    console.log(`🔄 Is First Message: ${isFirstMessage}`);
 
-    // Step 1: Use MCP to analyze query and fetch relevant data (skip for first message)
+    // Get user's persistent thread (with 1h TTL)
+    const threadId = await this.threadCache.getUserThread(userId);
+    console.log(`🧵 Thread ID: ${threadId}`);
+
     let contextData = null;
+
+    // PHASE 1: Ask LLM what data it needs (skip for first message - use greeting)
     if (!isFirstMessage) {
-      contextData = await this.mcpProcessor.processQuery(messageDto.message, userContext);
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📤 PHASE 1: Asking LLM what data it needs');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      const mcpJsonResponse = await this.openaiService.requestDataRequirements(
+        messageDto.message,
+        userProfile
+      );
+      console.log(`📥 Phase 1 Response (MCP JSON): ${mcpJsonResponse}`);
+
+      // PHASE 2: Parse MCP response and fetch the requested data
+      console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📤 PHASE 2: Parsing and fetching requested data');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      contextData = await this.mcpProcessor.parseAndFetchData(mcpJsonResponse, userContext);
+      
+      if (contextData) {
+        // Log invoice count specifically
+        if (contextData.invoices && Array.isArray(contextData.invoices)) {
+          console.log(`📊 INVOICE COUNT: ${contextData.invoices.length} invoices fetched`);
+          console.log(`📊 Invoice Status Breakdown:`, 
+            contextData.invoices.reduce((acc: any, inv: any) => {
+              const status = inv.status || 'unknown';
+              acc[status] = (acc[status] || 0) + 1;
+              return acc;
+            }, {})
+          );
+        }
+        console.log(`📦 Context Data Keys: ${Object.keys(contextData).join(', ')}`);
+        console.log(`📦 Context Data Size: ${JSON.stringify(contextData).length} characters`);
+      } else {
+        console.log('📦 No context data fetched (general question)');
+      }
+    } else {
+      console.log('⏭️  Skipping Phase 1 & 2 (first message - showing greeting)');
     }
 
-    // Step 2: Get user's persistent thread (with 1h TTL)
-    const threadId = await this.threadCache.getUserThread(userId);
-
-    // Step 3: Process message and stream response
-    const stream = await this.openaiService.processMessage(
+    // PHASE 3: Send message with fetched data to LLM and stream the final response
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📤 PHASE 3: Sending message with data to LLM for final response');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    const stream = await this.openaiService.processMessageWithData(
       messageDto.message,
       threadId,
       contextData,
@@ -90,16 +139,29 @@ export class ChatService {
       userProfile
     );
 
-    // Step 4: Stream the response chunks
+    // Stream the response chunks to the client
+    let fullResponse = '';
+    let chunkCount = 0;
     for await (const chunk of stream) {
+      fullResponse += chunk;
+      chunkCount++;
       onChunk(chunk);
     }
+
+    console.log(`\n📥 PHASE 3 Response Received:`);
+    console.log(`   Chunks: ${chunkCount}`);
+    console.log(`   Response Length: ${fullResponse.length} characters`);
+    console.log(`   Response Preview: ${fullResponse.substring(0, 200)}...`);
 
     // Mark first message as complete
     if (isFirstMessage) {
       this.threadCache.markFirstMessageComplete(userId);
     }
 
+    console.log('\n═══════════════════════════════════════════════════════════');
+    console.log('✅ CHAT REQUEST COMPLETE');
+    console.log('═══════════════════════════════════════════════════════════\n');
+    
     return messageId;
   }
 

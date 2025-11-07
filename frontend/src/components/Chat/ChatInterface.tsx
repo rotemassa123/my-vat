@@ -20,26 +20,26 @@ interface ChatMessage {
 
 const ChatInterface: React.FC = () => {
   const { user } = useAuth();
-  const { messages, sendMessage, isConnected, isLoading } = useChatWebSocket(user?.email || 'demo-user');
+  const { messages, sendMessage, isConnected, isLoading } = useChatWebSocket(user?._id || 'demo-user');
   const [inputMessage, setInputMessage] = useState('');
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Add initial AI greeting if no messages
+  // Add initial AI greeting only if no messages exist (first time user)
   useEffect(() => {
-    if (localMessages.length === 0 && isConnected) {
+    if (messages.length === 0 && localMessages.length === 0 && isConnected) {
       const greetingMessage: ChatMessage = {
         id: 'greeting',
-        content: `Good morning ${user?.name || 'there'}! I am your MyVAT personal assistant. I can help with your invoices and data, or general VAT rules. How can I help?`,
+        content: `Good morning ${user?.fullName || user?.name || 'there'}! I am your MyVAT personal assistant. I can help with your invoices and data, or general VAT rules. How can I help?`,
         isUser: false,
         timestamp: new Date(),
       };
       setLocalMessages([greetingMessage]);
     }
-  }, [isConnected, user?.name]);
+  }, [isConnected, user?.fullName, user?.name, messages.length]);
 
-  // Combine local messages with WebSocket messages
-  const allMessages = [...localMessages, ...messages];
+  // Combine local messages with WebSocket messages (localMessages is just for greeting)
+  const allMessages = [...messages, ...localMessages];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

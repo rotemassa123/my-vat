@@ -40,6 +40,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Use userId from payload instead of extracting from socket
     const userId = payload.userId || this.extractUserId(client);
     
+    console.log(`\n🔌 WebSocket Gateway: Received message from client ${client.id}`);
+    console.log(`   User ID: ${userId}`);
+    console.log(`   Message: "${payload.message}"`);
+    
     let messageId: string;
     
     try {
@@ -57,6 +61,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         }
       );
       
+      console.log(`✅ WebSocket Gateway: Message processed successfully (ID: ${messageId})`);
+      
       // Send final response
       this.server.to(`user-${userId}`).emit('ai-response-complete', {
         messageId,
@@ -64,7 +70,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       });
       
     } catch (error) {
-      console.error('Error processing message:', error);
+      console.error('❌ WebSocket Gateway: Error processing message:', error);
+      console.error('   Error details:', error.message);
+      console.error('   Stack:', error.stack);
       this.server.to(`user-${userId}`).emit('ai-response-error', {
         messageId: messageId || 'unknown',
         error: 'Message failed! Please try again.',

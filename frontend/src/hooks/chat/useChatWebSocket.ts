@@ -9,19 +9,108 @@ interface ChatMessage {
   isError?: boolean; // Optional error flag for styling
 }
 
+// LocalStorage helper for chat messages
+const CHAT_STORAGE_KEY_PREFIX = 'chat_messages_';
+const MAX_STORED_MESSAGES = 100; // Limit to prevent localStorage bloat
+
+const getStorageKey = (userId: string): string => {
+  return `${CHAT_STORAGE_KEY_PREFIX}${userId}`;
+};
+
+const saveMessagesToStorage = (userId: string, messages: ChatMessage[]): void => {
+  try {
+    // Only keep the last N messages to prevent storage bloat
+    const messagesToSave = messages.slice(-MAX_STORED_MESSAGES);
+    const serialized = messagesToSave.map(msg => ({
+      ...msg,
+      timestamp: msg.timestamp.toISOString(), // Convert Date to string for JSON
+    }));
+    localStorage.setItem(getStorageKey(userId), JSON.stringify(serialized));
+  } catch (error) {
+    console.error('Failed to save messages to localStorage:', error);
+    // If storage is full, try to clear old messages
+    try {
+      const messagesToSave = messages.slice(-Math.floor(MAX_STORED_MESSAGES / 2));
+      const serialized = messagesToSave.map(msg => ({
+        ...msg,
+        timestamp: msg.timestamp.toISOString(),
+      }));
+      localStorage.setItem(getStorageKey(userId), JSON.stringify(serialized));
+    } catch (retryError) {
+      console.error('Failed to save messages after retry:', retryError);
+    }
+  }
+};
+
+const loadMessagesFromStorage = (userId: string): ChatMessage[] => {
+  try {
+    const stored = localStorage.getItem(getStorageKey(userId));
+    if (!stored) return [];
+    
+    const parsed = JSON.parse(stored) as Array<{
+      id: string;
+      content: string;
+      isUser: boolean;
+      timestamp: string; // ISO string
+      isError?: boolean;
+    }>;
+    
+    // Convert timestamp strings back to Date objects
+    return parsed.map(msg => ({
+      ...msg,
+      timestamp: new Date(msg.timestamp),
+    }));
+  } catch (error) {
+    console.error('Failed to load messages from localStorage:', error);
+    return [];
+  }
+};
+
+const clearMessagesFromStorage = (userId: string): void => {
+  try {
+    localStorage.removeItem(getStorageKey(userId));
+  } catch (error) {
+    console.error('Failed to clear messages from localStorage:', error);
+  }
+};
+
 interface UseChatWebSocketReturn {
   socket: Socket | null;
   isConnected: boolean;
   messages: ChatMessage[];
   sendMessage: (message: string) => void;
   isLoading: boolean;
+  clearMessages: () => void;
 }
+
+// Export clearMessages function for external use
+export const clearChatMessages = (userId: string): void => {
+  clearMessagesFromStorage(userId);
+};
 
 export const useChatWebSocket = (userId: string): UseChatWebSocketReturn => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  // Load messages from localStorage on mount
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load messages from localStorage when userId changes
+  useEffect(() => {
+    if (userId && userId !== 'demo-user') {
+      const storedMessages = loadMessagesFromStorage(userId);
+      setMessages(storedMessages);
+    } else {
+      setMessages([]);
+    }
+  }, [userId]);
+
+  // Save messages to localStorage whenever they change
+  useEffect(() => {
+    if (userId && userId !== 'demo-user' && messages.length > 0) {
+      saveMessagesToStorage(userId, messages);
+    }
+  }, [messages, userId]);
 
   useEffect(() => {
     console.log('Attempting to connect to WebSocket...');
@@ -54,7 +143,7 @@ export const useChatWebSocket = (userId: string): UseChatWebSocketReturn => {
       // Update the last AI message with the new chunk
       setMessages(prev => {
         const lastMessage = prev[prev.length - 1];
-        if (lastMessage && !lastMessage.isUser) {
+        if (lastMessage && !lastMessage.isUser && lastMessage.id === data.messageId) {
           // Update existing AI message
           return prev.map((msg, index) => 
             index === prev.length - 1 
@@ -116,11 +205,19 @@ export const useChatWebSocket = (userId: string): UseChatWebSocketReturn => {
     }
   }, [socket, userId]);
 
+  const clearMessages = useCallback(() => {
+    setMessages([]);
+    if (userId && userId !== 'demo-user') {
+      clearMessagesFromStorage(userId);
+    }
+  }, [userId]);
+
   return { 
     socket, 
     isConnected, 
     messages, 
     sendMessage, 
-    isLoading 
+    isLoading,
+    clearMessages
   };
 };
