@@ -3,6 +3,7 @@ import { Reflector } from '@nestjs/core';
 import { UserType } from 'src/Common/consts/userType';
 import { ConfigService } from "@nestjs/config";
 import * as httpContext from 'express-http-context';
+import { UserContext } from '../types/user-context.type';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -15,7 +16,8 @@ export class RolesGuard implements CanActivate {
         }
 
         const requiredRoles: UserType[] = this.reflector.get<UserType[]>('roles', context.getHandler()) || [];
-        const userType = httpContext.get('user_type') as UserType;
+        const userContext = httpContext.get('user_context') as UserContext | undefined;
+        const userType = userContext?.userType;
 
         if (!userType || !requiredRoles.includes(userType)) {
             throw new ForbiddenException("You do not have permission to access this resource.");

@@ -1,6 +1,7 @@
 import { Schema, Query, Aggregate, Types } from 'mongoose';
 import * as httpContext from 'express-http-context';
 import mongoose from 'mongoose';
+import { UserContext } from '../Infrastructure/types/user-context.type';
 
 /**
  * EntityScopePlugin
@@ -27,8 +28,8 @@ export function EntityScopePlugin(schema: Schema, options?: { is_required?: bool
   /* Helpers                                                                    */
   /* -------------------------------------------------------------------------- */
   const getEntityId = (): string | undefined => {
-    const id = httpContext.get('entity_id');
-    return typeof id === 'string' && id ? id : undefined;
+    const userContext = httpContext.get('user_context') as UserContext | undefined;
+    return userContext?.entityId;
   };
 
   /** Apply entity filter to the current mongoose Query */

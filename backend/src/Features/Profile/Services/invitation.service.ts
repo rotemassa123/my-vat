@@ -5,6 +5,7 @@ import { UserType } from 'src/Common/consts/userType';
 import { SendInvitationRequest, InvitationResult, SendInvitationResponse } from '../Requests/invitation.requests';
 import { TokenService } from 'src/Common/Infrastructure/Services/token.service';
 import * as httpContext from 'express-http-context';
+import { UserContext } from 'src/Common/Infrastructure/types/user-context.type';
 
 interface InvitationEmailData {
   email: string;
@@ -28,8 +29,9 @@ export class InvitationService {
   async sendInvitations(request: SendInvitationRequest): Promise<SendInvitationResponse> {
     try {
       // Get context information
-      const accountId = httpContext.get('account_id') as string;
-      const userId = httpContext.get('user_id') as string;
+      const userContext = httpContext.get('user_context') as UserContext | undefined;
+      const accountId = userContext?.accountId;
+      const userId = userContext?.userId;
 
       if (!accountId || !userId) {
         throw new BadRequestException('Missing account or user context');

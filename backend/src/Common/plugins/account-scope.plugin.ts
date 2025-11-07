@@ -1,6 +1,7 @@
 import { Schema, Query, Aggregate, Types } from 'mongoose';
 import * as httpContext from 'express-http-context';
 import mongoose from 'mongoose';
+import { UserContext } from '../Infrastructure/types/user-context.type';
 
 /**
  * AccountScopePlugin
@@ -26,8 +27,8 @@ export function AccountScopePlugin(schema: Schema, options?: { is_required?: boo
   /* Helpers                                                                    */
   /* -------------------------------------------------------------------------- */
   const getAccountId = (): string | undefined => {
-    const id = httpContext.get('account_id');
-    return typeof id === 'string' && id ? id : undefined;
+    const userContext = httpContext.get('user_context') as UserContext | undefined;
+    return userContext?.accountId;
   };
 
   /** Apply account filter to the current mongoose Query */

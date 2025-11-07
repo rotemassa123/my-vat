@@ -5,6 +5,8 @@ import {ConfigService} from "@nestjs/config";
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/publicEndpoint.decorator';
 import { UserType } from '../../consts/userType';
+import * as httpContext from 'express-http-context';
+import { UserContext } from '../types/user-context.type';
 
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -40,9 +42,15 @@ export class AuthenticationGuard implements CanActivate {
             }
 
             this.validateUserTypeConsistency(jwt);
-            
-            request['jwt'] = jwt;
-            request.user = jwt;
+
+            // Populate httpContext as a single object for downstream guards and interceptors
+            const userContext: UserContext = {
+                accountId: jwt.accountId,
+                userId: jwt.userId,
+                userType: jwt.userType,
+                entityId: jwt.entityId,
+            };
+            httpContext.set('user_context', userContext);
 
         } catch (error) {
             throw new UnauthorizedException(error.message);

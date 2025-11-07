@@ -10,9 +10,11 @@ import {
   Param,
   UploadedFile,
   UseInterceptors,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { Request } from "express";
 import { ComprehensiveProfileResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
@@ -22,6 +24,8 @@ import { IImageStorageProvider } from "src/Common/ApplicationCore/Providers/IIma
 import { CurrentAccountId } from "src/Common/decorators/current-account-id.decorator";
 import { CurrentUserId } from "src/Common/decorators/current-user-id.decorator";
 import * as path from "path";
+import * as httpContext from 'express-http-context';
+import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
 
 @ApiTags("profile")
 @Controller("profile")
@@ -33,17 +37,22 @@ export class ProfileController {
 
   @Get()
   @UseGuards(AuthenticationGuard)
-  async getProfile(@Req() request: any): Promise<ComprehensiveProfileResponse> {
+  async getProfile(@Req() request: Request): Promise<ComprehensiveProfileResponse> {
     try {
-      const user = request.user;
-      const userType = user.userType;
+      const userContext = httpContext.get('user_context') as UserContext | undefined;
+      
+      if (!userContext) {
+        throw new UnauthorizedException('User context not found');
+      }
+
+      const userType = userContext.userType;
 
       // Operator: No additional data to return
       if (userType === UserType.operator) {
         return {};
       }
 
-      const account = await this.profileService.findAccountById(user.accountId);
+      const account = await this.profileService.findAccountById(userContext.accountId);
       if (!account) {
         throw new NotFoundException('Account not found');
       }
@@ -62,7 +71,7 @@ export class ProfileController {
 
       // Member/Guest: Account data + their specific entity
       if (userType === UserType.member || userType === UserType.viewer) {
-        const entity = await this.profileService.findEntityById(user.entityId);
+        const entity = await this.profileService.findEntityById(userContext.entityId);
          if (!entity) {
           throw new NotFoundException('Entity not found');
         }
@@ -75,9 +84,10 @@ export class ProfileController {
 
       throw new BadRequestException('Invalid user type');
     } catch (error) {
+      const userContext = httpContext.get('user_context') as UserContext | undefined;
       logger.error("Error fetching comprehensive profile", ProfileController.name, { 
         error: error.message, 
-        userId: request.user?.userId 
+        userId: userContext?.userId 
       });
       throw error;
     }

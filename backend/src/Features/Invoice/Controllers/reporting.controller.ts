@@ -5,14 +5,18 @@ import {
   UseGuards,
   Req,
   Delete,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ApiTags, ApiOperation, ApiQuery } from "@nestjs/swagger";
+import { Request } from "express";
 import { ReportingQueryRequest } from "../Requests/reporting.requests";
 import { ReportingService } from "../Services/reporting.service";
 import { ReportingCacheService } from "../Services/reporting-cache.service";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 import { UserType } from "src/Common/consts/userType";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
+import * as httpContext from 'express-http-context';
+import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
 
 @ApiTags("reporting")
 @Controller("reporting")
@@ -29,20 +33,25 @@ export class ReportingController {
   @ApiQuery({ name: "skip", required: false, type: Number })
   async getReportingData(
     @Query() params: ReportingQueryRequest,
-    @Req() request: { user: { accountId: string; entityId?: string; userType: UserType; userId: string } }
+    @Req() request: Request
   ) {
     try {
-      const user = request.user;
+      const userContextFromHttp = httpContext.get('user_context') as UserContext | undefined;
+      
+      if (!userContextFromHttp) {
+        throw new UnauthorizedException('User context not found');
+      }
+
       const userContext = {
-        accountId: user.accountId,
-        entityId: user.entityId,
-        userType: user.userType, // Keep numeric
+        accountId: userContextFromHttp.accountId,
+        entityId: userContextFromHttp.entityId,
+        userType: userContextFromHttp.userType, // Keep numeric
       };
 
       logger.info("Fetching reporting data", ReportingController.name, { 
         params: JSON.stringify(params),
         user: userContext,
-        originalUserType: user.userType // Log original for debugging
+        originalUserType: userContext.userType // Log original for debugging
       });
 
       const result = await this.reportingService.getReportingData(userContext, params);
@@ -57,10 +66,11 @@ export class ReportingController {
       return result;
 
     } catch (error) {
+      const userContextFromHttp = httpContext.get('user_context') as UserContext | undefined;
       logger.error("Error fetching reporting data", ReportingController.name, { 
         error: error.message, 
         params: JSON.stringify(params),
-        userId: request.user?.userId 
+        userId: userContextFromHttp?.userId 
       });
       throw error;
     }

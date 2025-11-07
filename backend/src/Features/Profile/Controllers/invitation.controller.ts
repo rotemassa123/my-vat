@@ -9,6 +9,7 @@ import { PublicEndpointGuard } from 'src/Common/Infrastructure/decorators/public
 import { PasswordService } from 'src/Common/ApplicationCore/Features/password.service';
 import { TokenService } from 'src/Common/Infrastructure/Services/token.service';
 import * as httpContext from 'express-http-context';
+import { UserContext } from 'src/Common/Infrastructure/types/user-context.type';
 
 @ApiTags('invitations')
 @Controller('invitations')
@@ -26,7 +27,8 @@ export class InvitationController {
   @Post('send')
   async sendInvitations(@Body() request: SendInvitationRequest): Promise<SendInvitationResponse> {
     // Get context information for user creation
-    const accountId = httpContext.get('account_id') as string;
+    const userContext = httpContext.get('user_context') as UserContext | undefined;
+    const accountId = userContext?.accountId;
 
     // Remove duplicate emails (case-insensitive) from the request
     const uniqueRequestEmails = [...new Set(request.emails.map(email => email.toLowerCase()))];

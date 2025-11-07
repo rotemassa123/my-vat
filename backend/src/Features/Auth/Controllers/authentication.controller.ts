@@ -19,6 +19,8 @@ import { IGoogleOAuthService } from "src/Common/ApplicationCore/Services/IGoogle
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { UserType } from "src/Common/consts/userType";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
+import * as httpContext from 'express-http-context';
+import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
 
 interface UserResponse {
   _id: string;
@@ -149,12 +151,24 @@ export class AuthenticationController {
   async getGuardProtected(
     @Req() request: Request
   ): Promise<UserResponse> {
-    const user = (request as any).user;
+    // Get user context from httpContext
+    const userContext = httpContext.get('user_context') as UserContext | undefined;
+    
+    if (!userContext?.userId) {
+      throw new UnauthorizedException('User not authenticated');
+    }
+
+    // Fetch full user data from repository
+    const user = await this.userService.findUserById(userContext.userId);
+    
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
 
     return {
       fullName: user.fullName,
       email: user.email,
-      _id: user.userId,
+      _id: user._id!,
       userType: user.userType,
       accountId: user.accountId,
       entityId: user.entityId,
