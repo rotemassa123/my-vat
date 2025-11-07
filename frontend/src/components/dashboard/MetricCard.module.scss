@@ -1,0 +1,149 @@
+.container {
+  border-radius: 1.25vw;
+  padding: 1.25vw;
+  position: relative;
+  width: calc(25% - 1.5vw);
+  height: 8.4375vh;
+  min-height: 135px;
+  box-shadow: 0 0.25vw 0.5vw rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.icon {
+  position: absolute;
+  top: 50%;
+  right: 1.25vw;
+  background-color: white;
+  border-radius: 50%;
+  box-shadow: 0 0.125vw 0.5vw rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25vw;
+  height: 3.25vw;
+  min-width: 52px;
+  min-height: 52px;
+  font-size: 1.875vw;
+  transform: translateY(-50%);
+  
+  @media (max-width: 1200px) {
+    width: 3vw;
+    height: 3vw;
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 1.75vw;
+    top: 1.5625vh;
+    transform: none;
+  }
+  
+  @media (max-width: 992px) {
+    width: 2.75vw;
+    height: 2.75vw;
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 1.625vw;
+    top: 1.875vh;
+    transform: none;
+  }
+  
+  @media (max-width: 768px) {
+    width: 2.5vw;
+    height: 2.5vw;
+    min-width: 40px;
+    min-height: 40px;
+    font-size: 1.5vw;
+    top: 2.1875vh;
+    transform: none;
+  }
+  
+  @media (max-width: 576px) {
+    width: 2.25vw;
+    height: 2.25vw;
+    min-width: 36px;
+    min-height: 36px;
+    font-size: 1.375vw;
+    top: 2.5vh;
+    transform: none;
+  }
+}
+
+.content {
+  width: 12.5625vw;
+  min-width: 201px;
+}
+
+.title {
+  font-size: clamp(14px, 0.875vw, 16px);
+  color: #7f7f7f;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 0.375vw;
+}
+
+.value {
+  font-size: clamp(20px, 1.5vw, 28px);
+  color: #1a1a1a;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  margin-bottom: 0.375vw;
+}
+
+.changeContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.375vw;
+}
+
+.growthIcon {
+  font-size: clamp(16px, 1.125vw, 20px);
+}
+
+.changeText {
+  font-size: clamp(11px, 0.75vw, 14px);
+  color: #555555;
+  font-family: 'Inter', sans-serif;
+  font-weight: normal;
+}
+
+.growthValue {
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+}
+
+.changeLabel {
+  font-family: 'Poppins', sans-serif;
+}
+
+// Theme colors
+.blue {
+  background-color: #e4f3ff;
+  
+  .icon {
+    color: #0131ff;
+  }
+}
+
+.green {
+  background-color: #e1ffe5;
+  
+  .icon {
+    color: #10b981;
+  }
+}
+
+.orange {
+  background-color: #fff7ed;
+  
+  .icon {
+    color: #f97316;
+  }
+}
+
+.red {
+  background-color: #fef2f2;
+  
+  .icon {
+    color: #ef4444;
+  }
+}
+
