@@ -24,22 +24,22 @@ export interface NavigationItem {
 // Icons are stored as component references, className will be applied in AppLayout
 export const OPERATOR_NAVIGATION: NavigationItem[] = [
   {
-    path: '/operator/magic-link',
+    path: '/magic-link',
     label: 'Magic Link',
     icon: LinkIcon,
   },
   {
-    path: '/operator/trigger-jobs',
+    path: '/trigger-jobs',
     label: 'Trigger Jobs',
     icon: PlayArrowIcon,
   },
   {
-    path: '/operator/create-accounts',
+    path: '/create-accounts',
     label: 'Create Accounts',
     icon: PersonAddIcon,
   },
   {
-    path: '/operator/support',
+    path: '/support',
     label: 'Support',
     icon: SupportIcon,
   },

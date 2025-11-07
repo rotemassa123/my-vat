@@ -15,6 +15,7 @@ import FloatingActionButton from '../FloatingActionButton/FloatingActionButton';
 import UploadModal from '../UploadModal/UploadModal';
 import UploadProgressManager from '../UploadProgressManager/UploadProgressManager';
 import { UploadProvider } from '../../contexts/UploadContext';
+import RouteGuard from '../RouteGuard';
 import styles from './AppLayout.module.scss';
 import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
 import { getNavigationItems, getUserTypeIndicator } from '../../consts/navigationItems';
@@ -37,6 +38,7 @@ export default function AppLayout() {
 
   return (
     <Box className={styles.appContainer}>
+      <RouteGuard />
       {/* Header */}
       <Box className={styles.header}>
         {/* Logo */}

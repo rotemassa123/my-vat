@@ -49,10 +49,10 @@ function Router() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/chat" element={<ChatPage />} />
           {/* Operator Routes */}
-          <Route path="/operator/magic-link" element={<MagicLinkPage />} />
-          <Route path="/operator/trigger-jobs" element={<TriggerJobsPage />} />
-          <Route path="/operator/create-accounts" element={<CreateAccountsPage />} />
-          <Route path="/operator/support" element={<SupportPage />} />
+          <Route path="/magic-link" element={<MagicLinkPage />} />
+          <Route path="/trigger-jobs" element={<TriggerJobsPage />} />
+          <Route path="/create-accounts" element={<CreateAccountsPage />} />
+          <Route path="/support" element={<SupportPage />} />
         </Route>
       </Route>
     )
