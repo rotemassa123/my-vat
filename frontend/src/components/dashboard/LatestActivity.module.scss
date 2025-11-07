@@ -1,0 +1,113 @@
+.container {
+  width: calc(25% - 1.5vw);
+  background-color: white;
+  border-radius: 1.25vw;
+  padding: 1.875vw;
+  box-shadow: 0 0.25vw 0.75vw rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 26.875vh;
+  min-height: 300px;
+  height: 100%;
+  
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: #1a1a1a;
+  margin-bottom: 1.875vw;
+}
+
+.activityList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vw;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.activityItem {
+  display: flex;
+  gap: 1vw;
+  align-items: center;
+  width: 100%;
+}
+
+.iconContainer {
+  background-color: #d7eeff;
+  border-radius: 2.3vw;
+  width: 3vw;
+  height: 3vw;
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.iconImage {
+  width: 1.5vw;
+  height: 1.5vw;
+  min-width: 24px;
+  min-height: 24px;
+}
+
+.activityContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5vw;
+  width: 100%;
+  max-width: 260px;
+}
+
+.activityText {
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: 'Poppins', sans-serif;
+  color: black;
+  line-height: 1.33;
+}
+
+.activityDate {
+  font-size: 0.75rem;
+  font-family: 'Poppins', sans-serif;
+  color: #7f7f7f;
+}
+
+.viewAllButton {
+  margin-top: 1.5vw;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.viewAllLink {
+  display: flex;
+  align-items: center;
+  gap: 0.625vw;
+  cursor: pointer;
+  padding: 0.625vw;
+}
+
+.viewAllText {
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: 'Poppins', sans-serif;
+  color: #004dff;
+  white-space: nowrap;
+}
+
+.viewAllIcon {
+  width: 1.5vw;
+  height: 1.5vw;
+  min-width: 24px;
+  min-height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(90deg);
+}
+

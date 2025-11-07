@@ -3,330 +3,81 @@ import ReportIcon from '../../assets/temp/d87cf0d62033d01c06a9fc8fae16e0744325da
 import AlertIconSVG from '../../assets/temp/da1a266fa1250fbc5a6f9f747e4dad6bd304d7d3.svg';
 import CycleIconSVG from '../../assets/temp/8c6c466f87263f735293c9722be522061380df40.svg';
 import TimeIconSVG from '../../assets/temp/7d9d577969e0fc64ec7a15a836ccf3e70010a4ff.svg';
+import styles from './LatestActivity.module.scss';
+
+interface ActivityItemProps {
+  icon: string;
+  iconAlt: string;
+  text: string;
+  date: string;
+}
+
+const ActivityItem: React.FC<ActivityItemProps> = ({ icon, iconAlt, text, date }) => (
+  <div className={styles.activityItem}>
+    <div className={styles.iconContainer}>
+      <img 
+        alt={iconAlt} 
+        src={icon}
+        className={styles.iconImage}
+      />
+    </div>
+    <div className={styles.activityContent}>
+      <div className={styles.activityText}>
+        {text}
+      </div>
+      <div className={styles.activityDate}>
+        {date}
+      </div>
+    </div>
+  </div>
+);
 
 const LatestActivity: React.FC = () => {
-  // Add responsive CSS for height/width control
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      .latest-activity-container {
-        height: 430px !important;
-      }
-      
-      @media (min-width: 1600px) {
-        .latest-activity-container {
-          height: auto !important;
-        }
-      }
-    `;
-    document.head.appendChild(style);
-    
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
   return (
-    <div className="latest-activity-container" style={{
-      width: 'calc(25% - 24px)',
-      backgroundColor: 'white',
-      borderRadius: '20px',
-      padding: '30px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between'
-    }}>
-      {/* Title */}
-      <div style={{
-        fontSize: '20px',
-        fontWeight: '600',
-        fontFamily: 'Poppins, sans-serif',
-        color: '#1a1a1a',
-        marginBottom: '30px'
-      }}>
+    <div className={styles.container}>
+      <div className={styles.title}>
         Latest Activity
       </div>
 
-      {/* Activity Items */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '24px',
-        flex: 1,
-        overflowY: 'auto'
-      }}>
-        {/* Activity Item 1 */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <div style={{
-            backgroundColor: '#d7eeff',
-            borderRadius: '36.923px',
-            width: '48px',
-            height: '48px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              alt="report" 
-              src={ReportIcon}
-              style={{ width: '24px', height: '24px' }}
-            />
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '254px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: 'Poppins, sans-serif',
-              color: 'black',
-              lineHeight: '1.33'
-            }}>
-              Submitted claim for Germany
-            </div>
-            <div style={{
-              fontSize: '12px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f'
-            }}>
-              May 10
-            </div>
-          </div>
-        </div>
-
-        {/* Activity Item 2 */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <div style={{
-            backgroundColor: '#d7eeff',
-            borderRadius: '36.923px',
-            width: '48px',
-            height: '48px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              alt="alert" 
-              src={AlertIconSVG}
-              style={{ width: '24px', height: '24px' }}
-            />
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '260px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: 'Poppins, sans-serif',
-              color: 'black',
-              lineHeight: '1.33'
-            }}>
-              Upload needed for France claim
-            </div>
-            <div style={{
-              fontSize: '12px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f'
-            }}>
-              May 10
-            </div>
-          </div>
-        </div>
-
-        {/* Activity Item 3 */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <div style={{
-            backgroundColor: '#d7eeff',
-            borderRadius: '36.923px',
-            width: '48px',
-            height: '48px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              alt="cycle" 
-              src={CycleIconSVG}
-              style={{ width: '24px', height: '24px' }}
-            />
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '254px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: 'Poppins, sans-serif',
-              color: 'black',
-              lineHeight: '1.33'
-            }}>
-              Received refund for Italy claim
-            </div>
-            <div style={{
-              fontSize: '12px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f'
-            }}>
-              May 10
-            </div>
-          </div>
-        </div>
-
-        {/* Activity Item 4 */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <div style={{
-            backgroundColor: '#d7eeff',
-            borderRadius: '36.923px',
-            width: '48px',
-            height: '48px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              alt="time" 
-              src={TimeIconSVG}
-              style={{ width: '24px', height: '24px' }}
-            />
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '254px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: 'Poppins, sans-serif',
-              color: 'black',
-              lineHeight: '1.33'
-            }}>
-              Spain claim is being processed
-            </div>
-            <div style={{
-              fontSize: '12px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f'
-            }}>
-              May 10
-            </div>
-          </div>
-        </div>
-
-        {/* Activity Item 5 */}
-        <div style={{
-          display: 'flex',
-          gap: '16px',
-          alignItems: 'center',
-          width: '100%'
-        }}>
-          <div style={{
-            backgroundColor: '#d7eeff',
-            borderRadius: '36.923px',
-            width: '48px',
-            height: '48px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0
-          }}>
-            <img 
-              alt="alert" 
-              src={AlertIconSVG}
-              style={{ width: '24px', height: '24px' }}
-            />
-          </div>
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '8px',
-            width: '260px'
-          }}>
-            <div style={{
-              fontSize: '14px',
-              fontWeight: '500',
-              fontFamily: 'Poppins, sans-serif',
-              color: 'black',
-              lineHeight: '1.33'
-            }}>
-              Upload needed for France claim
-            </div>
-            <div style={{
-              fontSize: '12px',
-              fontFamily: 'Poppins, sans-serif',
-              color: '#7f7f7f'
-            }}>
-              May 10
-            </div>
-          </div>
-        </div>
+      <div className={styles.activityList}>
+        <ActivityItem 
+          icon={ReportIcon}
+          iconAlt="report"
+          text="Submitted claim for Germany"
+          date="May 10"
+        />
+        <ActivityItem 
+          icon={AlertIconSVG}
+          iconAlt="alert"
+          text="Upload needed for France claim"
+          date="May 10"
+        />
+        <ActivityItem 
+          icon={CycleIconSVG}
+          iconAlt="cycle"
+          text="Received refund for Italy claim"
+          date="May 10"
+        />
+        <ActivityItem 
+          icon={TimeIconSVG}
+          iconAlt="time"
+          text="Spain claim is being processed"
+          date="May 10"
+        />
+        <ActivityItem 
+          icon={AlertIconSVG}
+          iconAlt="alert"
+          text="Upload needed for France claim"
+          date="May 10"
+        />
       </div>
 
-      {/* View All Activity Button */}
-      <div style={{
-        marginTop: '24px',
-        display: 'flex',
-        justifyContent: 'flex-end'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px',
-          cursor: 'pointer',
-          padding: '10px'
-        }}>
-          <span style={{
-            fontSize: '16px',
-            fontWeight: '600',
-            fontFamily: 'Poppins, sans-serif',
-            color: '#004dff',
-            whiteSpace: 'nowrap'
-          }}>
+      <div className={styles.viewAllButton}>
+        <div className={styles.viewAllLink}>
+          <span className={styles.viewAllText}>
             View All Activity
           </span>
-          <div style={{
-            width: '24px',
-            height: '24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transform: 'rotate(90deg)'
-          }}>
+          <div className={styles.viewAllIcon}>
             <svg 
               width="24" 
               height="24" 
