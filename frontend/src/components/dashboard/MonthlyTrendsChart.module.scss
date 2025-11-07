@@ -1,16 +1,12 @@
 .container {
-  width: calc(50% - 1vw);
+  width: calc(50% - 1.5vw);
   background-color: white;
   border-radius: 1.25vw;
   padding: 1.875vw;
   position: relative;
   box-shadow: 0 0.25vw 0.75vw rgba(0, 0, 0, 0.1);
-  height: 26.875vh;
-  min-height: 430px;
-
-  @media (min-width: 1600px) {
-    height: auto;
-  }
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
@@ -22,8 +18,7 @@
 }
 
 .chartArea {
-  height: 21.5625vh;
-  min-height: 345px;
+  flex: 1;
   width: 100%;
   margin-top: 3.75vh;
   position: relative;
@@ -34,8 +29,8 @@
 .yAxis {
   position: absolute;
   left: 0;
-  height: 19.0625vh;
-  min-height: 305px;
+  top: 1.25vw;
+  bottom: 2.5vh;
   width: 2.5vw;
   min-width: 40px;
   display: flex;
@@ -43,7 +38,6 @@
   justify-content: space-between;
   align-items: flex-end;
   padding-right: 0.625vw;
-  top: 20px;
 
   @media (max-width: 1599px) {
     top: -2.5vh;
@@ -111,6 +105,7 @@
   justify-content: center;
   margin-top: 1.25vw;
   position: relative;
+  flex-shrink: 0;
 
   @media (max-width: 1599px) {
     position: absolute;
