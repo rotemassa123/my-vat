@@ -1,0 +1,84 @@
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f8f9fa;
+  min-height: calc(100vh - 120px);
+
+  @media (max-width: 768px) {
+    padding: 16px;
+  }
+}
+
+.title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 2rem;
+  color: #001441;
+  margin-bottom: 8px;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
+}
+
+.subtitle {
+  font-family: 'Roboto', sans-serif;
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 32px;
+}
+
+.selectorCard {
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.selectorContent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionTitle {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 1.125rem;
+  color: #001441;
+}
+
+.placeholderText {
+  color: #7a869a;
+  font-size: 0.95rem;
+}
+
+.actionRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.statusChip {
+  text-transform: capitalize;
+}
+
+.badgeChip {
+  text-transform: capitalize;
+  font-weight: 600;
+}
+
+.selectedChips {
+  margin-right: 8px;
+
+  > .MuiChip-root {
+    font-size: 0.75rem;
+    height: 24px;
+  }
+}

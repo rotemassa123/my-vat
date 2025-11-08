@@ -1,4 +1,5 @@
 import apiClient from './apiClient';
+import type { User } from '../types/user';
 
 export interface DeleteUserResponse {
   success: boolean;
@@ -226,6 +227,18 @@ export const profileApi = {
         return [];
       }
       throw new Error('Failed to fetch all entities');
+    }
+  },
+
+  getAccountUsers: async (accountId: string): Promise<User[]> => {
+    try {
+      const response = await apiClient.get<User[]>(`/accounts/${accountId}/users`);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return [];
+      }
+      throw new Error('Failed to fetch users for this account');
     }
   },
 }; 

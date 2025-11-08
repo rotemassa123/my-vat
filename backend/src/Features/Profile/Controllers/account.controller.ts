@@ -12,7 +12,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags, ApiQuery, ApiParam } from "@nestjs/swagger";
 import { CreateAccountRequest, UpdateAccountRequest } from "../Requests/profile.requests";
-import { AccountResponse, CreateAccountResponse } from "../Responses/profile.responses";
+import { AccountResponse, CreateAccountResponse, UserResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
@@ -66,6 +66,27 @@ export class AccountController {
       return accounts as AccountResponse[];
     } catch (error) {
       logger.error("Error fetching all accounts", AccountController.name, { error: error.message });
+      throw error;
+    }
+  }
+
+  @Get(":id/users")
+  @ApiParam({ name: "id", type: String })
+  @UseGuards(AuthenticationGuard)
+  @RequireRoles(UserType.operator)
+  async getUsersForAccount(
+    @Param("id") id: string,
+  ): Promise<UserResponse[]> {
+    try {
+      const exists = await this.accountService.accountExists(id);
+      if (!exists) {
+        throw new NotFoundException(`Account with ID ${id} not found`);
+      }
+
+      const users = await this.accountService.getUsersForAccountId(id);
+      return users as UserResponse[];
+    } catch (error) {
+      logger.error("Error fetching account users", AccountController.name, { error: error.message, id });
       throw error;
     }
   }

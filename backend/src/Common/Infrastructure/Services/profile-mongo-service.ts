@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
+import { Model, Types } from "mongoose";
 
 // Repository interface
 import { 
@@ -290,6 +290,18 @@ export class ProfileMongoService implements IProfileRepository {
   async getUsersForAccount(): Promise<UserData[]> {
     // account_id scoping handled by AccountScopePlugin (if user has account context)
     const docs = await this.userModel.find().exec();
+    return docs.map(doc => this.mapDocumentToUserData(doc));
+  }
+
+  async getUsersForAccountId(accountId: string): Promise<UserData[]> {
+    if (!Types.ObjectId.isValid(accountId)) {
+      return [];
+    }
+
+    const docs = await this.userModel
+      .find({ account_id: new Types.ObjectId(accountId) })
+      .setOptions({ disableAccountScope: true })
+      .exec();
     return docs.map(doc => this.mapDocumentToUserData(doc));
   }
 } 
