@@ -44,7 +44,7 @@ export default function AppLayout() {
   const navigationItems = getNavigationItems(user?.userType);
   const userTypeIndicator = getUserTypeIndicator(user?.userType);
 
-  if (mandatoryStatus === 'loading') {
+  if (mandatoryStatus === 'loading' || mandatoryStatus === 'idle') {
     return (
       <Box className={styles.bootstrapContainer}>
         <CircularProgress size={48} />

@@ -7,7 +7,7 @@ import { getNavigationItems } from "../consts/navigationItems";
 export default function ProtectedRoute() {
   const { isAuthenticated, user } = useAuthStore();
   const { mandatoryStatus } = useAppBootstrapContext();
-  const isBootstrapLoading = mandatoryStatus === 'loading';
+  const isBootstrapLoading = mandatoryStatus === 'loading' || mandatoryStatus === 'idle';
   const navigate = useNavigate();
   const publicRoutes = ["/landing-page", "/signup", "/forgot-password", "/accept-invitation"];
 

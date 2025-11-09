@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import LinkIcon from '@mui/icons-material/Link';
+import axios from 'axios';
 import type { SyntheticEvent } from 'react';
 import type { ChipProps } from '@mui/material/Chip';
 import type { Account, Entity } from '../../types/profile';
@@ -21,6 +22,7 @@ import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
 import { useMagicLinkModalStore } from '../../store/modalStore';
 import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
 import { profileApi } from '../../lib/profileApi';
+import { authApi } from '../../lib/authApi';
 import MagicLinkModal from '../../components/modals/MagicLinkModal';
 import MagicLinkAccountSelect from './components/MagicLinkAccountSelect';
 import MagicLinkUserSelect from './components/MagicLinkUserSelect';
@@ -108,19 +110,6 @@ const sanitizeNameForEmail = (value: string | undefined): string => {
     .join('');
 };
 
-const buildPreviewMagicLink = (
-  origin: string,
-  accountId: string,
-  userId: string,
-): string => {
-  const trimmedOrigin = origin.replace(/\/$/, '');
-  const uniqueId =
-    typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? crypto.randomUUID()
-      : Math.random().toString(36).slice(2);
-  return `${trimmedOrigin}/magic/${accountId}/${userId}?token=${uniqueId}`;
-};
-
 const createPlaceholderUsers = (
   account: Account,
   accountEntities: Entity[],
@@ -169,6 +158,11 @@ const MagicLinkPage: React.FC = () => {
       return acc;
     }, {});
   }, [entities]);
+
+  const apiBaseUrl = useMemo(() => {
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+    return base.replace(/\/$/, '');
+  }, []);
 
   const selectedAccount = useMemo(
     () => accounts.find((account) => account._id === selectedAccountId),
@@ -265,6 +259,7 @@ const MagicLinkPage: React.FC = () => {
 
   const handleGenerateMagicLink = async () => {
     if (!selectedAccountId || !selectedUser) {
+      setErrorToast(TEXT.USER_PLACEHOLDER_TEXT);
       return;
     }
 
@@ -275,35 +270,36 @@ const MagicLinkPage: React.FC = () => {
     }
 
     setIsGenerating(true);
+    setErrorToast(null);
 
     try {
-      // TODO: Replace with backend magic link generation call.
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const result = await authApi.createImpersonationLink(selectedUser._id);
+      const impersonationUrl =
+        result.impersonationUrl ?? `${apiBaseUrl}/auth/impersonate/${result.token}`;
 
-      const origin =
-        typeof window !== 'undefined' ? window.location.origin : 'https://app.myvat.com';
-      const previewLink = buildPreviewMagicLink(
-        origin,
-        selectedAccountId,
-        selectedUser._id,
-      );
+      const entityName = selectedUser.entityId
+        ? entityMap[selectedUser.entityId]?.name || selectedUser.entityId
+        : undefined;
 
       openMagicLinkModal({
-        link: previewLink,
+        link: impersonationUrl,
+        expiresAt: result.expiresAt,
         accountName: account.company_name || account.email,
         userName: selectedUser.fullName,
         userEmail: selectedUser.email,
-        entityName: selectedUser.entityId
-          ? entityMap[selectedUser.entityId]?.name || selectedUser.entityId
-          : undefined,
+        entityName,
       });
       setSelectedAccountId('');
       setSelectedUserId('');
       setUsersError(null);
     } catch (error) {
       console.error('Failed to generate magic link', error);
-      const message =
-        error instanceof Error && error.message ? error.message : TEXT.ERROR_MESSAGE;
+      let message: string = TEXT.ERROR_MESSAGE;
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message || error.message || TEXT.ERROR_MESSAGE;
+      } else if (error instanceof Error) {
+        message = error.message || TEXT.ERROR_MESSAGE;
+      }
       setErrorToast(message);
     } finally {
       setIsGenerating(false);

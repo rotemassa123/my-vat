@@ -13,7 +13,7 @@ export default function RouteGuard() {
   const location = useLocation();
   const { user, isAuthenticated } = useAuthStore();
   const { mandatoryStatus } = useAppBootstrapContext();
-  const isBootstrapLoading = mandatoryStatus === 'loading';
+  const isBootstrapLoading = mandatoryStatus === 'loading' || mandatoryStatus === 'idle';
 
   useEffect(() => {
     // Don't check if still loading or not authenticated

@@ -7,6 +7,9 @@ import {
   Res,
   UseGuards,
   UnauthorizedException,
+  BadRequestException,
+  NotFoundException,
+  Param,
 } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { Request, Response } from "express";
@@ -21,6 +24,11 @@ import { UserType } from "src/Common/consts/userType";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 import * as httpContext from 'express-http-context';
 import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
+import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
+import {
+  AuthenticationService,
+  ImpersonationTokenPayload,
+} from "../Services/authentication.service";
 
 interface UserResponse {
   _id: string;
@@ -39,7 +47,8 @@ export class AuthenticationController {
     private jwtService: JwtService,
     private passwordService: PasswordService,
     private userService: IProfileRepository,
-    private googleOAuthService: IGoogleOAuthService
+    private googleOAuthService: IGoogleOAuthService,
+    private authenticationService: AuthenticationService,
   ) {}
 
   @PublicEndpointGuard()
@@ -122,13 +131,7 @@ export class AuthenticationController {
     const token = await this.jwtService.signAsync(payload);
 
     // Set cookie
-    response.cookie("auth_token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 24 * 60 * 60 * 1000,
-      path: "/",
-    });
+    this.authenticationService.setAuthCookie(response, token);
 
     logger.info("Successful login", AuthenticationController.name, { 
       email: normalizedEmail,
@@ -143,6 +146,43 @@ export class AuthenticationController {
       accountId: user.accountId,
       entityId: user.entityId,
       profile_image_url: user.profile_image_url,
+    };
+  }
+
+  @UseGuards(AuthenticationGuard)
+  @RequireRoles(UserType.operator)
+  @Post("/impersonation-links")
+  async createImpersonationLink(
+    @Body("userId") userId: string,
+  ): Promise<{ token: string; expiresAt: string; impersonationUrl: string }> {
+    if (!userId) {
+      throw new BadRequestException("userId is required");
+    }
+
+    const targetUser = await this.userService.findUserById(userId);
+    if (!targetUser?._id) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    const operatorContext = httpContext.get('user_context') as UserContext | undefined;
+    const operatorId = operatorContext?.userId ?? 'unknown';
+
+    const { token, expiresAt, impersonationUrl } =
+      await this.authenticationService.createImpersonationToken(
+        targetUser._id,
+        operatorId,
+      );
+
+    logger.info("Generated impersonation link", AuthenticationController.name, {
+      operatorId,
+      targetUserId: targetUser._id,
+      expiresAt: expiresAt.toISOString(),
+    });
+
+    return {
+      token,
+      expiresAt: expiresAt.toISOString(),
+      impersonationUrl,
     };
   }
 
@@ -189,6 +229,67 @@ export class AuthenticationController {
     });
 
     return { success: true };
+  }
+
+  @PublicEndpointGuard()
+  @Get("/impersonate/:token")
+  async redeemImpersonationToken(
+    @Param("token") token: string,
+    @Res() response: Response,
+  ): Promise<void> {
+    const frontendUrl = this.authenticationService.getFrontendBaseUrl();
+
+    try {
+      const payload = await this.authenticationService.verifyImpersonationToken(
+        token,
+      );
+
+      const targetUser = await this.userService.findUserById(payload.sub);
+      if (!targetUser?._id) {
+        throw new UnauthorizedException("User not found");
+      }
+
+      await this.userService.updateUser(targetUser._id, { last_login: new Date() });
+
+      const sessionPayload = {
+        userId: targetUser._id,
+        fullName: targetUser.fullName,
+        email: targetUser.email,
+        userType: targetUser.userType,
+        accountId: targetUser.accountId,
+        entityId: targetUser.entityId,
+        profile_image_url: targetUser.profile_image_url,
+        impersonatedBy: payload.operatorId,
+      };
+
+      const sessionToken = await this.jwtService.signAsync(sessionPayload);
+      this.authenticationService.setAuthCookie(response, sessionToken);
+
+      logger.info("Impersonation token redeemed", AuthenticationController.name, {
+        operatorId: payload.operatorId,
+        targetUserId: targetUser._id,
+      });
+
+      response.redirect(`${frontendUrl}/dashboard?impersonated=1`);
+      return;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      logger.warn("Failed to redeem impersonation token", AuthenticationController.name, {
+        error: errorMessage,
+        stack: errorStack,
+      });
+
+      response.clearCookie("auth_token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/",
+      });
+
+      response.redirect(`${frontendUrl}/login?error=impersonation_invalid`);
+      return;
+    }
   }
 
   @PublicEndpointGuard()
@@ -260,13 +361,7 @@ export class AuthenticationController {
       const token = await this.jwtService.signAsync(payload);
 
       // Set cookie
-      response.cookie("auth_token", token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 24 * 60 * 60 * 1000,
-        path: "/",
-      });
+      this.authenticationService.setAuthCookie(response, token);
 
       logger.info("Google OAuth login successful", AuthenticationController.name, { 
         email: googleUserInfo.email,

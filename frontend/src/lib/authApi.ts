@@ -46,4 +46,11 @@ export const authApi = {
     const response = await apiClient.post('/auth/refresh');
     return response.data;
   },
+
+  createImpersonationLink: async (
+    userId: string,
+  ): Promise<{ token: string; expiresAt: string; impersonationUrl?: string }> => {
+    const response = await apiClient.post('/auth/impersonation-links', { userId });
+    return response.data;
+  },
 }; 

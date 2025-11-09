@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -22,12 +22,13 @@ import { useMagicLinkModalStore } from '../../store/modalStore';
 const TEXT = {
   TITLE: 'Magic link ready',
   DESCRIPTION:
-    'This link signs you in exactly as the selected user. Copy it securely or open it in a new tab.',
+    'Open this link in an incognito window to avoid replacing your current session. It signs you in exactly as the selected user.',
   ACCOUNT_LABEL: 'Account',
   USER_LABEL: 'User',
   EMAIL_LABEL: 'Email',
   ENTITY_LABEL: 'Entity',
   LINK_LABEL: 'Magic link URL',
+  EXPIRY_LABEL: 'Expires',
   COPY_TOOLTIP: 'Copy link to clipboard',
   CLOSE_BUTTON: 'Close',
   OPEN_BUTTON: 'Open link in new tab',
@@ -49,6 +50,14 @@ const MagicLinkModal: React.FC = () => {
   const closeModal = useMagicLinkModalStore((state) => state.closeModal);
 
   const [snackbar, setSnackbar] = useState<SnackbarState>(null);
+
+  const formattedExpiry = useMemo(() => {
+    if (!payload?.expiresAt) {
+      return null;
+    }
+    const date = new Date(payload.expiresAt);
+    return Number.isNaN(date.getTime()) ? payload.expiresAt : date.toLocaleString();
+  }, [payload?.expiresAt]);
 
   const handleClose = () => {
     closeModal();
@@ -133,6 +142,14 @@ const MagicLinkModal: React.FC = () => {
                     <Typography variant="body2">{payload.entityName}</Typography>
                   </Stack>
                 ) : null}
+                {formattedExpiry ? (
+                  <Stack spacing={0.25}>
+                    <Typography variant="caption" color="text.secondary">
+                      {TEXT.EXPIRY_LABEL}
+                    </Typography>
+                    <Typography variant="body2">{formattedExpiry}</Typography>
+                  </Stack>
+                ) : null}
               </Stack>
 
               <Divider />
@@ -174,13 +191,13 @@ const MagicLinkModal: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      <Snackbar
-        open={!!snackbar}
-        autoHideDuration={4000}
-        onClose={handleSnackbarClose}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-      >
-        {snackbar ? (
+      {snackbar ? (
+        <Snackbar
+          open
+          autoHideDuration={4000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
           <Alert
             severity={snackbar.severity}
             onClose={handleSnackbarClose}
@@ -188,8 +205,8 @@ const MagicLinkModal: React.FC = () => {
           >
             {snackbar.message}
           </Alert>
-        ) : null}
-      </Snackbar>
+        </Snackbar>
+      ) : null}
     </>
   );
 };

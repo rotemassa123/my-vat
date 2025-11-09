@@ -49,6 +49,7 @@ export class AuthenticationGuard implements CanActivate {
                 userId: jwt.userId,
                 userType: jwt.userType,
                 entityId: jwt.entityId,
+                impersonatedBy: jwt.impersonatedBy,
             };
             httpContext.set('user_context', userContext);
 

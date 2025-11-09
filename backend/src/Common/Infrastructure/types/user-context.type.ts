@@ -5,5 +5,6 @@ export interface UserContext {
   userId?: string;
   userType?: UserType;
   entityId?: string;
+  impersonatedBy?: string;
 }
 

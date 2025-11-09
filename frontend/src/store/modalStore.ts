@@ -8,6 +8,7 @@ interface ModalTypes {
 
 interface MagicLinkModalPayload {
   link: string;
+  expiresAt?: string;
   accountName?: string;
   userName?: string;
   userEmail?: string;
