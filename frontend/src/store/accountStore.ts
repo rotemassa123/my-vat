@@ -10,7 +10,6 @@ interface AccountStore {
   account: Account | null;
   entities: Entity[];
   users: User[];
-  loading: boolean;
   error: string | null;
   
   // Actions
@@ -20,7 +19,6 @@ interface AccountStore {
   addEntity: (entity: Entity) => void;
   updateEntity: (entityId: string, updates: Partial<Entity>) => void;
   removeEntity: (entityId: string) => void;
-  setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearProfile: () => void;
 }
@@ -32,7 +30,6 @@ export const useAccountStore = create(
       account: null,
       entities: [],
       users: [],
-      loading: false,
       error: null,
 
       // Set complete profile data
@@ -62,9 +59,6 @@ export const useAccountStore = create(
         entities: state.entities.filter(entity => entity._id !== entityId),
       })),
       
-      // Loading and error states
-      setLoading: (loading) => set({ loading }),
-      
       setError: (error) => set({ error }),
       
       // Clear all profile data
@@ -72,7 +66,6 @@ export const useAccountStore = create(
         account: null,
         entities: [],
         users: [],
-        loading: false,
         error: null,
       }),
     }),

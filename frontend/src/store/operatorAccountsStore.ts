@@ -6,14 +6,12 @@ interface OperatorAccountsStore {
   // State
   accounts: Account[];
   entities: Entity[];
-  loading: boolean;
   error: string | null;
   
   // Actions
   setAccounts: (accounts: Account[]) => void;
   setEntities: (entities: Entity[]) => void;
   setAccountsAndEntities: (accounts: Account[], entities: Entity[]) => void;
-  setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   clearAccounts: () => void;
 }
@@ -24,7 +22,6 @@ export const useOperatorAccountsStore = create(
       // Initial state
       accounts: [],
       entities: [],
-      loading: false,
       error: null,
 
       // Set accounts
@@ -46,16 +43,12 @@ export const useOperatorAccountsStore = create(
         error: null,
       }),
       
-      // Loading and error states
-      setLoading: (loading) => set({ loading }),
-      
       setError: (error) => set({ error }),
       
       // Clear all accounts data
       clearAccounts: () => set({
         accounts: [],
         entities: [],
-        loading: false,
         error: null,
       }),
     }),

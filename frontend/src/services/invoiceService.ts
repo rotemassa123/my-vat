@@ -1,5 +1,4 @@
 import { reportingApi } from '../lib/reportingApi';
-import { useAuthStore } from '../store/authStore';
 import type { ReportingInvoice } from '../types/reporting';
 
 class InvoiceService {

@@ -6,7 +6,6 @@ import {
 } from "react-router-dom";
 import { lazy } from "react";
 import Root from "./Root";
-import { useAuth } from "../hooks/auth/useAuth";
 
 // Lazy load components for better performance
 const AppLayout = lazy(() => import("../components/layout/AppLayout"));
@@ -27,8 +26,6 @@ const CreateAccountsPage = lazy(() => import("../pages/operator/CreateAccountsPa
 const SupportPage = lazy(() => import("../pages/operator/SupportPage"));
 
 function Router() {
-  useAuth();
-
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path="/" element={<Root />}>

@@ -4,13 +4,11 @@ import { type User } from '../types/user';
 
 interface AuthStore {
   isAuthenticated: boolean;
-  loading: boolean;
   error: string | null;
   user: User | null;
   
   // Actions
   setAuthenticated: (isAuthenticated: boolean) => void;
-  setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setUser: (user: User | null) => void;
   clearAuth: () => void;
@@ -22,7 +20,6 @@ export const useAuthStore = create(
   persist<AuthStore>(
     (set) => ({
       isAuthenticated: false,
-      loading: false,
       error: null,
       user: null,
 
@@ -31,15 +28,12 @@ export const useAuthStore = create(
         error: null 
       }),
       
-      setLoading: (loading) => set({ loading }),
-      
       setError: (error) => set({ error }),
       
       setUser: (user) => set({ user }),
       
       clearAuth: () => set({ 
         isAuthenticated: false, 
-        loading: false, 
         error: null,
         user: null,
       }),
@@ -52,7 +46,6 @@ export const useAuthStore = create(
       
       logout: () => set({ 
         isAuthenticated: false, 
-        loading: false, 
         error: null,
         user: null,
       }),

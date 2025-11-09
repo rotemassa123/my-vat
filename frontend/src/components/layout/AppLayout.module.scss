@@ -6,6 +6,16 @@
   background-color: #f3faff;
 }
 
+.bootstrapContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+  background-color: #f3faff;
+}
+
 .header {
   height: 120px;
   background-color: white;

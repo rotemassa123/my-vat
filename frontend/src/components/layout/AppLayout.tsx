@@ -4,6 +4,8 @@ import {
   TextField,
   InputAdornment,
   Typography,
+  CircularProgress,
+  Button,
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -19,11 +21,17 @@ import RouteGuard from '../RouteGuard';
 import styles from './AppLayout.module.scss';
 import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
 import { getNavigationItems, getUserTypeIndicator } from '../../consts/navigationItems';
+import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
 
 export default function AppLayout() {
   const location = useLocation();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const { user } = useAuthStore();
+  const {
+    mandatoryStatus,
+    mandatoryError,
+    refresh: refreshBootstrap,
+  } = useAppBootstrapContext();
 
   const handleFabClick = () => {
     setIsUploadModalOpen(true);
@@ -35,6 +43,30 @@ export default function AppLayout() {
 
   const navigationItems = getNavigationItems(user?.userType);
   const userTypeIndicator = getUserTypeIndicator(user?.userType);
+
+  if (mandatoryStatus === 'loading') {
+    return (
+      <Box className={styles.bootstrapContainer}>
+        <CircularProgress size={48} />
+        <Typography variant="h6" mt={2}>
+          Preparing your workspace…
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (mandatoryStatus === 'error') {
+    return (
+      <Box className={styles.bootstrapContainer}>
+        <Typography variant="h6" color="error" mb={2}>
+          {mandatoryError ?? 'Failed to load required data.'}
+        </Typography>
+        <Button variant="contained" onClick={refreshBootstrap}>
+          Retry
+        </Button>
+      </Box>
+    );
+  }
 
   return (
     <Box className={styles.appContainer}>

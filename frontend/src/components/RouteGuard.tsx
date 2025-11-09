@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useAppBootstrapContext } from '../contexts/AppBootstrapContext';
 import { getNavigationItems } from '../consts/navigationItems';
 
 /**
@@ -10,11 +11,13 @@ import { getNavigationItems } from '../consts/navigationItems';
 export default function RouteGuard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, loading, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
+  const { mandatoryStatus } = useAppBootstrapContext();
+  const isBootstrapLoading = mandatoryStatus === 'loading';
 
   useEffect(() => {
     // Don't check if still loading or not authenticated
-    if (loading || !isAuthenticated || !user) {
+    if (isBootstrapLoading || !isAuthenticated || !user) {
       return;
     }
 
@@ -41,7 +44,7 @@ export default function RouteGuard() {
     if (!isAllowed && allowedPaths.length > 0) {
       navigate(allowedPaths[0], { replace: true });
     }
-  }, [user, loading, isAuthenticated, location.pathname, navigate]);
+  }, [user, isBootstrapLoading, isAuthenticated, location.pathname, navigate]);
 
   return null;
 }

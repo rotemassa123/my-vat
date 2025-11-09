@@ -1,10 +1,13 @@
 import { useEffect, Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useAppBootstrapContext } from "../contexts/AppBootstrapContext";
 import { getNavigationItems } from "../consts/navigationItems";
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, loading, user } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const { mandatoryStatus } = useAppBootstrapContext();
+  const isBootstrapLoading = mandatoryStatus === 'loading';
   const navigate = useNavigate();
   const publicRoutes = ["/landing-page", "/signup", "/forgot-password", "/accept-invitation"];
 
@@ -12,7 +15,7 @@ export default function ProtectedRoute() {
     const currentPath = window.location.pathname;
     const isPublicRoute = publicRoutes.some(route => currentPath.startsWith(route));
     
-    if (loading || isPublicRoute) return;
+    if (isBootstrapLoading || isPublicRoute) return;
     
     if (!isAuthenticated) {
       navigate("/login", { replace: true });
@@ -29,7 +32,7 @@ export default function ProtectedRoute() {
     }
     
     // Don't redirect if user is already on a valid authenticated page
-  }, [isAuthenticated, loading, user, navigate]);
+  }, [isAuthenticated, isBootstrapLoading, user, navigate]);
 
   return <Fragment />;
 }

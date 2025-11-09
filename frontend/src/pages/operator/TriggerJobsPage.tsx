@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import { triggerJob, getJobConfig, type JobType } from '../../services/jobTriggerService';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
+import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
 import type { LoadingJobsState } from './types';
 import { INITIAL_LOADING_JOBS_STATE, JOB_CONFIGS, SNACKBAR_DURATION, TEXT_CONSTANTS } from './consts';
 import AccountSelector from './components/AccountSelector/AccountSelector';
@@ -18,7 +19,9 @@ import styles from './TriggerJobsPage.module.scss';
 
 const TriggerJobsPage: React.FC = () => {
   // Get accounts and entities from store
-  const { accounts: storeAccounts, entities: storeEntities, loading: storeLoading } = useOperatorAccountsStore();
+  const { accounts: storeAccounts, entities: storeEntities } = useOperatorAccountsStore();
+  const { secondaryStatus } = useAppBootstrapContext();
+  const secondaryLoading = secondaryStatus === 'loading';
   
   // State
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -83,7 +86,7 @@ const TriggerJobsPage: React.FC = () => {
                 accounts={storeAccounts}
                 entities={storeEntities}
                 selectedAccountId={selectedAccountId}
-                loading={storeLoading}
+                loading={secondaryLoading}
                 disabled={isAnyJobLoading}
                 onAccountChange={handleAccountChange}
               />

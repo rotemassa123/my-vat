@@ -6,9 +6,9 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import { Send as SendIcon, Chat as ChatIcon } from '@mui/icons-material';
+import { Send as SendIcon } from '@mui/icons-material';
 import { useChatWebSocket } from '../../hooks/chat/useChatWebSocket';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuthStore } from '../../store/authStore';
 
 interface ChatMessage {
   id: string;
@@ -19,7 +19,7 @@ interface ChatMessage {
 }
 
 const ChatInterface: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const { messages, sendMessage, isConnected, isLoading } = useChatWebSocket(user?._id || 'demo-user');
   const [inputMessage, setInputMessage] = useState('');
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
@@ -30,13 +30,13 @@ const ChatInterface: React.FC = () => {
     if (messages.length === 0 && localMessages.length === 0 && isConnected) {
       const greetingMessage: ChatMessage = {
         id: 'greeting',
-        content: `Good morning ${user?.fullName || user?.name || 'there'}! I am your MyVAT personal assistant. I can help with your invoices and data, or general VAT rules. How can I help?`,
+        content: `Good morning ${user?.fullName || 'there'}! I am your MyVAT personal assistant. I can help with your invoices and data, or general VAT rules. How can I help?`,
         isUser: false,
         timestamp: new Date(),
       };
       setLocalMessages([greetingMessage]);
     }
-  }, [isConnected, user?.fullName, user?.name, messages.length]);
+  }, [isConnected, user?.fullName, messages.length]);
 
   // Combine local messages with WebSocket messages (localMessages is just for greeting)
   const allMessages = [...messages, ...localMessages];
@@ -61,10 +61,6 @@ const ChatInterface: React.FC = () => {
       event.preventDefault();
       handleSendMessage();
     }
-  };
-
-  const formatTime = (timestamp: Date) => {
-    return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (

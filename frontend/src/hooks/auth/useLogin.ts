@@ -1,39 +1,47 @@
 import { useMutation } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
+import {
+  authApi,
+  type AuthResponse,
+  type LoginCredentials,
+} from '../../lib/authApi';
 import { useAccountStore } from '../../store/accountStore';
-import { authApi, type LoginCredentials, type AuthResponse } from '../../lib/authApi';
-import { useLoadUser } from './useLoadUser';
+import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
+import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
 
 export const useLogin = () => {
-  const { setLoading: setAuthLoading, setError: setAuthError, loading: authLoading } = useAuthStore();
+  const { login: setAuthUser, setError: setAuthError, clearAuth } = useAuthStore();
   const { clearProfile } = useAccountStore();
-  const { loadUser, isLoading: loadUserLoading } = useLoadUser();
+  const { clearAccounts } = useOperatorAccountsStore();
+  const { refresh: refreshBootstrap } = useAppBootstrapContext();
 
   const loginMutation = useMutation<AuthResponse, Error, LoginCredentials>({
     mutationFn: authApi.login,
     onMutate: () => {
-      setAuthLoading(true);
       setAuthError(null);
     },
-    onSuccess: async () => {
-      // After successful login, trigger the unified load flow
-      loadUser();
+    onSuccess: async (user) => {
+      setAuthUser(user);
+      clearProfile();
+      clearAccounts();
+      try {
+        await refreshBootstrap();
+      } catch (error) {
+        console.error('Bootstrap refresh after login failed:', error);
+      }
     },
     onError: (error: Error) => {
       console.error('Login mutation failed:', error);
       setAuthError(error.message);
+      clearAuth();
       clearProfile();
-      setAuthLoading(false);
+      clearAccounts();
     },
   });
 
-  // isLoading should be true if either login is pending OR loadUser is loading
-  // This ensures the spinner stays until both requests complete
-  const isLoading = loginMutation.isPending || loadUserLoading || authLoading;
-
   return {
     login: loginMutation.mutate,
-    isLoading,
+    isLoading: loginMutation.isPending,
     error: loginMutation.error,
     isSuccess: loginMutation.isSuccess,
     reset: loginMutation.reset,

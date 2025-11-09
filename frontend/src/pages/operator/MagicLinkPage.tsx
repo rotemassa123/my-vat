@@ -19,6 +19,7 @@ import type { User } from '../../types/user';
 import { UserType } from '../../consts/userType';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
 import { useMagicLinkModalStore } from '../../store/modalStore';
+import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
 import { profileApi } from '../../lib/profileApi';
 import MagicLinkModal from '../../components/modals/MagicLinkModal';
 import MagicLinkAccountSelect from './components/MagicLinkAccountSelect';
@@ -146,11 +147,9 @@ const createPlaceholderUsers = (
 };
 
 const MagicLinkPage: React.FC = () => {
-  const {
-    accounts,
-    entities,
-    loading: accountsLoading,
-  } = useOperatorAccountsStore();
+  const { accounts, entities } = useOperatorAccountsStore();
+  const { secondaryStatus } = useAppBootstrapContext();
+  const accountsLoading = secondaryStatus === 'loading';
 
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [selectedUserId, setSelectedUserId] = useState<string>('');
