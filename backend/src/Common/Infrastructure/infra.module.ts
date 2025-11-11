@@ -20,6 +20,7 @@ import { APP_INTERCEPTOR } from "@nestjs/core";
 import { DatabaseInitializationService } from "./Services/database-initialization.service";
 import { Summary, SummarySchema } from "./DB/schemas/summary.schema";
 import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
+import { Statistics, StatisticsSchema } from "./DB/schemas/statistics.schema";
 import { IImageStorageProvider } from "../ApplicationCore/Providers/IImageStorageProvider";
 import { CloudinaryStorageProvider } from "./Services/CloudinaryStorageProvider";
 
@@ -36,6 +37,7 @@ import { CloudinaryStorageProvider } from "./Services/CloudinaryStorageProvider"
       { name: Entity.name, schema: EntitySchema },
       { name: Invoice.name, schema: InvoiceSchema },
       { name: Summary.name, schema: SummarySchema },
+      { name: Statistics.name, schema: StatisticsSchema },
     ]),
     JwtModule.registerAsync(jwtModuleOptionsFactory),
   ],
