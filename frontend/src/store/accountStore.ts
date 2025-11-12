@@ -5,6 +5,27 @@ import { type Account, type Entity, type ComprehensiveProfile, type Statistics }
 
 export type { ComprehensiveProfile };
 
+// Default statistics data with all zeros
+const getDefaultStatisticsData = (): Record<string, any> => ({
+  total_claimed: 0,
+  total_refunded: 0,
+  pending_amount: 0,
+  rejected_amount: 0,
+  refunded_percentage: 0,
+  pending_percentage: 0,
+  rejected_percentage: 0,
+  total_claims_count: 0,
+  refunded_count: 0,
+  pending_count: 0,
+  rejected_count: 0,
+});
+
+// Create default statistics for an entity
+const createDefaultStatistics = (entityId: string): Statistics => ({
+  entity_id: entityId,
+  data: getDefaultStatisticsData(),
+});
+
 interface AccountStore {
   // State
   account: Account | null;
@@ -36,13 +57,22 @@ export const useAccountStore = create(
       error: null,
 
       // Set complete profile data
-      setProfile: (profile) => set({
-        account: profile.account ?? null,
-        entities: profile.entities ?? [],
-        users: profile.users ?? [],
-        statistics: profile.statistics ?? [],
-        error: null,
-      }),
+      setProfile: (profile) => {
+        const entities = profile.entities ?? [];
+        const statistics = profile.statistics ?? [];
+        
+        const defaultStatistics: Statistics[] = entities.length > 0 && statistics.length === 0
+          ? entities.map(entity => createDefaultStatistics(entity._id))
+          : statistics;
+        
+        set({
+          account: profile.account ?? null,
+          entities,
+          users: profile.users ?? [],
+          statistics: defaultStatistics,
+          error: null,
+        });
+      },
       
       setStatistics: (statistics) => set({ statistics }),
       

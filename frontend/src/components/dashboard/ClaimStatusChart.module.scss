@@ -29,6 +29,21 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 1.875vw;
+
+  :global {
+    .MuiChartsLegend-root {
+      display: none;
+    }
+
+    svg {
+      shape-rendering: geometricPrecision;
+      image-rendering: crisp-edges;
+    }
+
+    path {
+      vector-effect: non-scaling-stroke;
+    }
+  }
 }
 
 .chartSvg {
@@ -45,10 +60,18 @@
   margin-left: 0;
 }
 
+.legendRow {
+  display: flex;
+  flex-direction: row;
+  gap: 1.5vw;
+  justify-content: space-between;
+}
+
 .legendItem {
   display: flex;
   align-items: center;
-  gap: 1.5vw;
+  gap: 0.75vw;
+  flex: 1;
 }
 
 .legendDot {
@@ -70,27 +93,4 @@
   }
 }
 
-.refundedDot {
-  background-color: #3270FF;
-}
-
-.refundedText {
-  color: #3270FF;
-}
-
-.pendingDot {
-  background-color: #F59E0B;
-}
-
-.pendingText {
-  color: #F59E0B;
-}
-
-.rejectedDot {
-  background-color: #EF4444;
-}
-
-.rejectedText {
-  color: #EF4444;
-}
 
