@@ -58,8 +58,17 @@ export interface Entity {
   updated_at?: Date;
 }
 
+// Statistics - entity_id is required since every Statistics document has one
+export interface Statistics {
+  entity_id: string;
+  data: Record<string, any>;
+  created_at?: Date | string;
+  updated_at?: Date | string;
+}
+
 export interface ComprehensiveProfile {
   account?: Account;
   entities?: Entity[];
   users?: User[];
+  statistics?: Statistics[];
 } 

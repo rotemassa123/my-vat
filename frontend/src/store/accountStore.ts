@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { type User } from '../types/user';
-import { type Account, type Entity, type ComprehensiveProfile } from '../types/profile';
+import { type Account, type Entity, type ComprehensiveProfile, type Statistics } from '../types/profile';
 
 export type { ComprehensiveProfile };
 
@@ -10,12 +10,14 @@ interface AccountStore {
   account: Account | null;
   entities: Entity[];
   users: User[];
+  statistics: Statistics[];
   error: string | null;
   
   // Actions
   setProfile: (profile: ComprehensiveProfile) => void;
   setAccount: (account: Account | null) => void;
   setEntities: (entities: Entity[]) => void;
+  setStatistics: (statistics: Statistics[]) => void;
   addEntity: (entity: Entity) => void;
   updateEntity: (entityId: string, updates: Partial<Entity>) => void;
   removeEntity: (entityId: string) => void;
@@ -30,6 +32,7 @@ export const useAccountStore = create(
       account: null,
       entities: [],
       users: [],
+      statistics: [],
       error: null,
 
       // Set complete profile data
@@ -37,8 +40,11 @@ export const useAccountStore = create(
         account: profile.account ?? null,
         entities: profile.entities ?? [],
         users: profile.users ?? [],
+        statistics: profile.statistics ?? [],
         error: null,
       }),
+      
+      setStatistics: (statistics) => set({ statistics }),
       
       setAccount: (account) => set({ account }),
       
@@ -66,6 +72,7 @@ export const useAccountStore = create(
         account: null,
         entities: [],
         users: [],
+        statistics: [],
         error: null,
       }),
     }),

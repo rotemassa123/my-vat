@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import type { User } from '../types/user';
+import type { ComprehensiveProfile } from '../types/profile';
 
 export interface DeleteUserResponse {
   success: boolean;
@@ -33,8 +34,8 @@ export interface CreateEntityResponse {
 }
 
 export const profileApi = {
-  getProfile: async (): Promise<any> => {
-    const response = await apiClient.get('/profile');
+  getProfile: async (): Promise<ComprehensiveProfile> => {
+    const response = await apiClient.get<ComprehensiveProfile>('/profile');
     return response.data;
   },
 

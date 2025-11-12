@@ -88,6 +88,13 @@ export interface CreateUserResponse {
   _id: string;
 }
 
+export interface StatisticsResponse {
+  entity_id: string;
+  data: Record<string, any>;
+  created_at?: Date;
+  updated_at?: Date;
+}
+
 // Combined Profile Response
 export interface CombinedProfileResponse {
   user: UserResponse;
@@ -99,4 +106,5 @@ export interface ComprehensiveProfileResponse {
   account?: AccountResponse;
   entities?: EntityResponse[];
   users?: UserResponse[];
+  statistics?: StatisticsResponse[];
 }

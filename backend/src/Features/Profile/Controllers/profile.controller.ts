@@ -15,7 +15,7 @@ import {
 import { FileInterceptor } from "@nestjs/platform-express";
 import { ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiResponse } from "@nestjs/swagger";
 import { Request } from "express";
-import { ComprehensiveProfileResponse } from "../Responses/profile.responses";
+import { ComprehensiveProfileResponse, StatisticsResponse } from "../Responses/profile.responses";
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
@@ -57,28 +57,37 @@ export class ProfileController {
         throw new NotFoundException('Account not found');
       }
 
-      // Admin: Account + all entities + all users in account
+      // Admin: Account + all entities + all users in account + statistics for all entities
       if (userType === UserType.admin) {
         const entities = await this.profileService.getEntitiesForAccount();
         const users = await this.profileService.getUsersForAccount();
+        const statistics = await this.profileService.getStatistics(userContext.accountId);
 
         return {
           account: account,
           entities: entities,
           users: users,
+          statistics: Array.isArray(statistics) ? statistics : [],
         };
       }
 
-      // Member/Guest: Account data + their specific entity
+      // Member/Guest: Account data + their specific entity + statistics for their entity
       if (userType === UserType.member || userType === UserType.viewer) {
         const entity = await this.profileService.findEntityById(userContext.entityId);
          if (!entity) {
           throw new NotFoundException('Entity not found');
         }
 
+        const statistics = await this.profileService.getStatistics(userContext.accountId, userContext.entityId);
+
+        const statisticsArray: StatisticsResponse[] = statistics 
+          ? (Array.isArray(statistics) ? statistics : [statistics])
+          : [{ entity_id: userContext.entityId, data: {} }];
+
         return {
           account: account,
           entities: [entity],
+          statistics: statisticsArray,
         };
       }
 

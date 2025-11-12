@@ -20,6 +20,7 @@ import {
 import { Account, AccountDocument } from "src/Common/Infrastructure/DB/schemas/account.schema";
 import { User, UserDocument } from "src/Common/Infrastructure/DB/schemas/user.schema";
 import { Entity, EntityDocument } from "src/Common/Infrastructure/DB/schemas/entity.schema";
+import { Statistics, StatisticsDocument } from "src/Common/Infrastructure/DB/schemas/statistics.schema";
 
 @Injectable()
 export class ProfileMongoService implements IProfileRepository {
@@ -29,7 +30,9 @@ export class ProfileMongoService implements IProfileRepository {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     @InjectModel(Entity.name)
-    private readonly entityModel: Model<EntityDocument>
+    private readonly entityModel: Model<EntityDocument>,
+    @InjectModel(Statistics.name)
+    private readonly statisticsModel: Model<StatisticsDocument>
   ) {}
 
   // ==================== ACCOUNT METHODS ====================
@@ -303,5 +306,63 @@ export class ProfileMongoService implements IProfileRepository {
       .setOptions({ disableAccountScope: true })
       .exec();
     return docs.map(doc => this.mapDocumentToUserData(doc));
+  }
+
+  // ==================== STATISTICS METHODS ====================
+
+  /**
+   * Get statistics for an account
+   * @param accountId - Account ID (mandatory)
+   * @param entityId - Entity ID (optional). If provided, returns statistics for that entity only. If not provided, returns statistics for all entities in the account.
+   * @returns Single StatisticsResponse if entityId is provided, array of StatisticsResponse if not provided, or null if entityId provided but not found
+   */
+  async getStatistics(accountId: string, entityId?: string): Promise<{ entity_id: string; data: Record<string, any>; created_at?: Date; updated_at?: Date } | Array<{ entity_id: string; data: Record<string, any>; created_at?: Date; updated_at?: Date }> | null> {
+    if (!Types.ObjectId.isValid(accountId)) {
+      return null;
+    }
+
+    const accountObjectId = new Types.ObjectId(accountId);
+
+    // If entityId is provided, return statistics for that specific entity
+    if (entityId) {
+      if (!Types.ObjectId.isValid(entityId)) {
+        return null;
+      }
+
+      // Disable both scopes and manually filter by account_id and entity_id
+      // This ensures we use the explicit accountId parameter
+      const doc = await this.statisticsModel
+        .findOne({ 
+          account_id: accountObjectId,
+          entity_id: new Types.ObjectId(entityId) 
+        })
+        .setOptions({ disableAccountScope: true, disableEntityScope: true })
+        .exec();
+      
+      if (!doc) {
+        return null;
+      }
+
+      return {
+        entity_id: doc.entity_id.toString(),
+        data: doc.data || {},
+        created_at: doc.created_at,
+        updated_at: doc.updated_at,
+      };
+    }
+
+    // If entityId is not provided, return statistics for all entities in the account
+    // Disable account scope to use explicit accountId parameter, disable entity scope to get all entities
+    const docs = await this.statisticsModel
+      .find({ account_id: accountObjectId })
+      .setOptions({ disableAccountScope: true, disableEntityScope: true })
+      .exec();
+    
+    return docs.map(doc => ({
+      entity_id: doc.entity_id.toString(),
+      data: doc.data || {},
+      created_at: doc.created_at,
+      updated_at: doc.updated_at,
+    }));
   }
 } 

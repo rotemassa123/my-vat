@@ -232,4 +232,5 @@ export abstract class IProfileRepository {
   abstract updateEntity(entityId: string, updateData: UpdateEntityData): Promise<boolean>;
   abstract deleteEntity(entityId: string): Promise<boolean>;
   abstract entityExists(entityId: string): Promise<boolean>;
+  abstract getStatistics(accountId: string, entityId?: string): Promise<{ entity_id: string; data: Record<string, any>; created_at?: Date; updated_at?: Date } | Array<{ entity_id: string; data: Record<string, any>; created_at?: Date; updated_at?: Date }> | null>;
 } 
