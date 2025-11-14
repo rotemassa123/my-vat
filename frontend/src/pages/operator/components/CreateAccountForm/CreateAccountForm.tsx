@@ -4,7 +4,19 @@ import {
   Button,
   Typography,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  CircularProgress,
 } from '@mui/material';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { useInviteUsers } from '../../../../hooks/invitation/useInviteUsers';
+import type { InvitationResult } from '../../../../lib/invitationApi';
 import styles from './CreateAccountForm.module.scss';
 
 interface EmailTag {
@@ -24,6 +36,11 @@ const CreateAccountForm: React.FC = () => {
   const [emailTags, setEmailTags] = useState<EmailTag[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailError, setEmailError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [invitedEmails, setInvitedEmails] = useState<string[]>([]);
+  const [submittedAccountName, setSubmittedAccountName] = useState('');
+  const { sendInvitations, isLoading: isInviting, error: inviteError } = useInviteUsers();
 
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({
@@ -89,9 +106,14 @@ const CreateAccountForm: React.FC = () => {
     }
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (emailTags.length === 0) {
       setEmailError('Please add at least one email address');
+      return;
+    }
+
+    if (!formData.companyName.trim()) {
+      setSubmitError('Please add a company name before creating the account');
       return;
     }
 
@@ -102,12 +124,44 @@ const CreateAccountForm: React.FC = () => {
     }
 
     setEmailError('');
+    setSubmitError('');
 
-    // TODO: Implement form submission
-    console.log('Form data:', {
-      emails: emailTags.map((tag) => tag.email),
-      ...formData,
-    });
+    try {
+      const response = await sendInvitations({
+        emails: emailTags.map((tag) => tag.email),
+        role: 'admin',
+      });
+
+      const successfulEmails = (response?.results ?? [])
+        .filter((result: InvitationResult) => result.success)
+        .map((result) => result.email);
+
+      if (successfulEmails.length === 0) {
+        setSubmitError('Invitations could not be sent. Please try again.');
+        return;
+      }
+
+      setInvitedEmails(successfulEmails);
+      setSubmittedAccountName(formData.companyName.trim());
+      setSuccessModalOpen(true);
+      setFormData({
+        accountType: 'member',
+        companyName: '',
+        registrationNumber: '',
+        websiteLink: '',
+        description: '',
+      });
+      setEmailTags([]);
+      setNewEmail('');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to process account creation';
+      setSubmitError(message);
+    }
+  };
+
+  const handleCloseSuccessModal = () => {
+    setSuccessModalOpen(false);
   };
 
   return (
@@ -192,11 +246,49 @@ const CreateAccountForm: React.FC = () => {
             variant="contained"
             onClick={handleContinue}
             className={styles.continueButton}
+            disabled={isInviting}
+            disableElevation
           >
-            Create
+            {isInviting ? <CircularProgress size={20} color="inherit" /> : 'Create'}
           </Button>
         </Box>
+
+        {(submitError || inviteError) && (
+          <Typography className={styles.submitError}>
+            {submitError || inviteError?.message}
+          </Typography>
+        )}
       </Box>
+
+      <Dialog
+        open={successModalOpen}
+        onClose={handleCloseSuccessModal}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle className={styles.modalTitle}>Invitations Sent</DialogTitle>
+        <DialogContent dividers>
+          <Typography className={styles.modalIntro} gutterBottom>
+            The following users were invited to{' '}
+            <strong>{submittedAccountName}</strong> as admin users.
+          </Typography>
+          <List>
+            {invitedEmails.map((email) => (
+              <ListItem key={email} className={styles.invitedEmailItem}>
+                <ListItemIcon>
+                  <CheckCircleOutlineIcon color="success" />
+                </ListItemIcon>
+                <ListItemText primary={email} />
+              </ListItem>
+            ))}
+          </List>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseSuccessModal} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
