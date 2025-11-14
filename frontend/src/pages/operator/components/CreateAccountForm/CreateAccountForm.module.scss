@@ -1,0 +1,123 @@
+.formWrapper {
+  background-color: #fbfbfb;
+  border: 1px dashed #979797;
+  border-radius: 20px;
+  width: 100%;
+  max-width: 1033px;
+  min-height: auto;
+  padding: 26px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+}
+
+.formContent {
+  width: 100%;
+  max-width: 1033px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+  position: relative;
+  padding-bottom: 2rem;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 1033px;
+}
+
+.label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #000;
+  line-height: normal;
+}
+
+.emailInputWrapper {
+  width: 100%;
+  min-height: 50px;
+  border: 0.6px solid #cbd2f0;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.emailTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.emailChip {
+  background-color: rgba(1, 49, 255, 0.1) !important;
+  color: #0131ff !important;
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 12px !important;
+  border-radius: 999px !important;
+}
+
+.invalidEmailChip {
+  background-color: rgba(211, 47, 47, 0.1) !important;
+  color: #d32f2f !important;
+  font-family: 'Poppins', sans-serif !important;
+  font-size: 12px !important;
+  border-radius: 999px !important;
+}
+
+.emailInputField {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #838383;
+  min-width: 200px;
+
+  &::placeholder {
+    color: #838383;
+    opacity: 1;
+  }
+}
+
+.emailError {
+  color: #d32f2f;
+  font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.inputField,
+.selectField {
+  width: 100%;
+}
+
+.textAreaField {
+  width: 100%;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 24px;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: 1.5rem;
+  width: auto;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.cancelButton,
+.continueButton {
+  min-width: auto;
+}
+

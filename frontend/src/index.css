@@ -10,6 +10,12 @@ html, body {
   font-family: 'Roboto', 'Helvetica', 'Arial', sans-serif;
 }
 
+[data-scrollable],
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c1c1c1 transparent;
+}
+
 #root {
   height: 100%;
 }
@@ -33,4 +39,4 @@ div.MuiBox-root[class*="_header_"] {
 *[class*="_header_"] {
   margin-bottom: 1.5rem !important;
   padding: 0 !important;
-} 
+}

@@ -143,6 +143,29 @@ const InviteModal: React.FC<InviteModalProps> = ({
   const removeEmailTag = (emailToRemove: string) => {
     const updatedTags = emailTags.filter(tag => tag.email !== emailToRemove);
     setEmailTags(updatedTags);
+  const handleEmailBlur = () => {
+    if (newEmail.trim()) {
+      const email = newEmail.trim();
+      const isValid = isValidEmail(email);
+
+      const newTag: EmailTag = {
+        id: Date.now().toString(),
+        email,
+        isValid
+      };
+
+      setEmailTags([...emailTags, newTag]);
+      setNewEmail('');
+
+      const hasInvalidEmails = [...emailTags, newTag].some(tag => !tag.isValid);
+      if (hasInvalidEmails) {
+        setEmailError('One or more of your emails are incorrect');
+      } else {
+        setEmailError('');
+      }
+    }
+  };
+
     
     // Check if there are any invalid emails left
     const hasInvalidEmails = updatedTags.some(tag => !tag.isValid);
@@ -317,6 +340,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
                 onChange={(e) => setNewEmail(e.target.value)}
                 onKeyPress={handleEmailKeyPress}
                 onKeyDown={handleEmailKeyDown}
+                onBlur={handleEmailBlur}
                 placeholder="Enter email addresses..."
                 className={styles.emailInputField}
               />
