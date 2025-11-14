@@ -2,7 +2,6 @@
   background-color: #f3faff;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
   padding: 2rem;
   padding-right: 2rem;
   height: calc(100vh - 120px);
@@ -28,8 +27,6 @@
 .formContainer {
   flex: 1;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
   padding-top: 1rem;
   min-height: 0;
 }
