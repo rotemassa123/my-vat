@@ -60,19 +60,19 @@
 }
 
 .emailChip {
-  background-color: rgba(1, 49, 255, 0.1) !important;
-  color: #0131ff !important;
-  font-family: 'Poppins', sans-serif !important;
-  font-size: 12px !important;
-  border-radius: 999px !important;
+  background-color: rgba(1, 49, 255, 0.1);
+  color: #0131ff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  border-radius: 999px;
 }
 
 .invalidEmailChip {
-  background-color: rgba(211, 47, 47, 0.1) !important;
-  color: #d32f2f !important;
-  font-family: 'Poppins', sans-serif !important;
-  font-size: 12px !important;
-  border-radius: 999px !important;
+  background-color: rgba(211, 47, 47, 0.1);
+  color: #d32f2f;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  border-radius: 999px;
 }
 
 .emailInputField {
@@ -96,13 +96,32 @@
   font-family: 'Poppins', sans-serif;
 }
 
-.inputField,
-.selectField {
+.fieldInputWrapper {
   width: 100%;
+  border: 0.6px solid #cbd2f0;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 0 16px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
 }
 
-.textAreaField {
-  width: 100%;
+.fieldInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #838383;
+  font-weight: 400;
+  padding: 12px 0;
+  background: transparent;
+
+  &::placeholder {
+    color: #838383;
+    opacity: 1;
+  }
 }
 
 .buttonContainer {
@@ -116,8 +135,33 @@
   flex-shrink: 0;
 }
 
-.cancelButton,
 .continueButton {
   min-width: auto;
+
+  background-color: #0131ff;
+  border-radius: 100px;
+  padding: 18px 70px;
+  text-transform: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #0025cc;
+  }
+}
+
+.textAreaWrapper {
+  align-items: flex-start;
+  padding: 16px;
+}
+
+.textAreaField {
+  min-height: 110px;
+  resize: vertical;
+  padding: 0;
 }
 

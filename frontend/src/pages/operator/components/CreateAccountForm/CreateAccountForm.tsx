@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Box,
-  TextField,
   Button,
   Typography,
   Chip,
@@ -90,23 +89,6 @@ const CreateAccountForm: React.FC = () => {
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      accountType: 'member',
-      companyName: '',
-      registrationNumber: '',
-      websiteLink: '',
-      description: '',
-    });
-    setEmailTags([]);
-    setNewEmail('');
-    setEmailError('');
-  };
-
-  const handleCancel = () => {
-    resetForm();
-  };
-
   const handleContinue = () => {
     if (emailTags.length === 0) {
       setEmailError('Please add at least one email address');
@@ -165,127 +147,43 @@ const CreateAccountForm: React.FC = () => {
         {/* Company Name */}
         <Box className={styles.formField}>
           <Typography className={styles.label}>Company Name</Typography>
-          <TextField
-            fullWidth
-            placeholder="Type Company Name"
-            value={formData.companyName}
-            onChange={(e) => handleChange('companyName', e.target.value)}
-            className={styles.inputField}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                backgroundColor: 'white',
-                height: '50px',
-                '& fieldset': {
-                  borderColor: '#cbd2f0',
-                  borderWidth: '0.6px',
-                },
-                '&:hover fieldset': {
-                  borderColor: '#cbd2f0',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#0131ff',
-                  borderWidth: '0.6px',
-                },
-              },
-              '& .MuiInputBase-input': {
-                padding: '0 19px',
-                fontFamily: "'Poppins', sans-serif",
-                fontSize: '14px',
-                color: '#838383',
-                fontWeight: 400,
-                '&::placeholder': {
-                  color: '#838383',
-                  opacity: 1,
-                },
-              },
-            }}
-          />
+          <Box className={styles.fieldInputWrapper}>
+            <input
+              type="text"
+              placeholder="Type Company Name"
+              value={formData.companyName}
+              onChange={(e) => handleChange('companyName', e.target.value)}
+              className={styles.fieldInput}
+            />
+          </Box>
         </Box>
 
         {/* Website Link */}
         <Box className={styles.formField}>
           <Typography className={styles.label}>Website Link</Typography>
-          <TextField
-            fullWidth
-            placeholder="Enter Website Link"
-            value={formData.websiteLink}
-            onChange={(e) => handleChange('websiteLink', e.target.value)}
-            className={styles.inputField}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                backgroundColor: 'white',
-                height: '50px',
-                '& fieldset': {
-                  borderColor: '#cbd2f0',
-                  borderWidth: '0.6px',
-                },
-                '&:hover fieldset': {
-                  borderColor: '#cbd2f0',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#0131ff',
-                  borderWidth: '0.6px',
-                },
-              },
-              '& .MuiInputBase-input': {
-                padding: '0 19px',
-                fontFamily: "'Poppins', sans-serif",
-                fontSize: '14px',
-                color: '#838383',
-                fontWeight: 400,
-                '&::placeholder': {
-                  color: '#838383',
-                  opacity: 1,
-                },
-              },
-            }}
-          />
+          <Box className={styles.fieldInputWrapper}>
+            <input
+              type="text"
+              placeholder="Enter Website Link"
+              value={formData.websiteLink}
+              onChange={(e) => handleChange('websiteLink', e.target.value)}
+              className={styles.fieldInput}
+            />
+          </Box>
         </Box>
 
         {/* Description */}
         <Box className={styles.formField}>
           <Typography className={styles.label}>Description</Typography>
-          <TextField
-            fullWidth
-            multiline
-            rows={3}
-            placeholder="Add description..."
-            value={formData.description}
-            onChange={(e) => handleChange('description', e.target.value)}
-            className={styles.textAreaField}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                borderRadius: '8px',
-                backgroundColor: 'white',
-                minHeight: '110px',
-                alignItems: 'flex-start',
-                '& fieldset': {
-                  borderColor: '#cbd2f0',
-                  borderWidth: '0.6px',
-                },
-                '&:hover fieldset': {
-                  borderColor: '#cbd2f0',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: '#0131ff',
-                  borderWidth: '0.6px',
-                },
-              },
-              '& .MuiInputBase-input': {
-                fontFamily: "'Poppins', sans-serif",
-                fontSize: '14px',
-                fontWeight: 400,
-                color: '#838383',
-                textAlign: 'left',
-                '&::placeholder': {
-                  color: '#838383',
-                  opacity: 1,
-                },
-              },
-            }}
-          />
+          <Box className={`${styles.fieldInputWrapper} ${styles.textAreaWrapper}`}>
+            <textarea
+              placeholder="Add description..."
+              value={formData.description}
+              onChange={(e) => handleChange('description', e.target.value)}
+              className={`${styles.fieldInput} ${styles.textAreaField}`}
+              rows={3}
+            />
+          </Box>
         </Box>
 
         {/* Action Buttons */}
@@ -294,19 +192,6 @@ const CreateAccountForm: React.FC = () => {
             variant="contained"
             onClick={handleContinue}
             className={styles.continueButton}
-            sx={{
-              backgroundColor: '#0131ff',
-              borderRadius: '100px',
-              padding: '18px 70px',
-              textTransform: 'none',
-              fontFamily: "'Poppins', sans-serif",
-              fontSize: '16px',
-              fontWeight: 600,
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#0025cc',
-              },
-            }}
           >
             Create
           </Button>
