@@ -81,27 +81,6 @@
   border-radius: 999px;
 }
 
-.emailInputField {
-  flex: 1;
-  border: none;
-  outline: none;
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  color: #838383;
-  min-width: 200px;
-
-  &::placeholder {
-    color: #838383;
-    opacity: 1;
-  }
-}
-
-.emailError {
-  color: #d32f2f;
-  font-size: 12px;
-  font-family: 'Poppins', sans-serif;
-}
-
 .fieldInputWrapper {
   width: 100%;
   border: 0.6px solid #cbd2f0;
@@ -125,15 +104,9 @@
   outline: none;
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
-  color: #838383;
   font-weight: 400;
   padding: 12px 0;
   background: transparent;
-
-  &::placeholder {
-    color: #838383;
-    opacity: 1;
-  }
 }
 
 .buttonContainer {
@@ -183,15 +156,9 @@
   font-family: 'Poppins', sans-serif;
   font-size: 14px;
   font-weight: 400;
-  color: #838383;
   border: none;
   outline: none;
   background: transparent;
-
-  &::placeholder {
-    color: #838383;
-    opacity: 1;
-  }
 }
 
 .submitError {

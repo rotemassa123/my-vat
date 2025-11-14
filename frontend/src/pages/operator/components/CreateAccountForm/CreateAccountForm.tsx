@@ -1,29 +1,12 @@
 import React, { useState } from 'react';
-import {
-  Box,
-  Button,
-  Typography,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  CircularProgress,
-} from '@mui/material';
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import { Box, Button, Typography, CircularProgress } from '@mui/material';
 import { useInviteUsers } from '../../../../hooks/invitation/useInviteUsers';
 import type { InvitationResult } from '../../../../lib/invitationApi';
+import EmailInviteInput, {
+  type EmailInviteTag,
+} from '../../../../components/modals/components/EmailInviteInput/EmailInviteInput';
+import InviteSuccessModal from './InviteSuccessModal';
 import styles from './CreateAccountForm.module.scss';
-
-interface EmailTag {
-  id: string;
-  email: string;
-  isValid: boolean;
-}
 
 const CreateAccountForm: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -33,7 +16,7 @@ const CreateAccountForm: React.FC = () => {
     websiteLink: '',
     description: '',
   });
-  const [emailTags, setEmailTags] = useState<EmailTag[]>([]);
+  const [emailTags, setEmailTags] = useState<EmailInviteTag[]>([]);
   const [newEmail, setNewEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -59,7 +42,7 @@ const CreateAccountForm: React.FC = () => {
     if (!trimmedEmail) return;
 
     const isValid = isValidEmail(trimmedEmail);
-    const newTag: EmailTag = {
+    const newTag: EmailInviteTag = {
       id: `${trimmedEmail}-${Date.now()}`,
       email: trimmedEmail,
       isValid,
@@ -170,32 +153,16 @@ const CreateAccountForm: React.FC = () => {
         {/* Email Addresses */}
         <Box className={styles.formField}>
           <Typography className={styles.label}>Email Addresses</Typography>
-          <Box className={styles.emailInputWrapper}>
-            <Box className={styles.emailTags}>
-              {emailTags.map((tag) => (
-                <Chip
-                  key={tag.id}
-                  label={tag.email}
-                  onDelete={() => removeEmailTag(tag.email)}
-                  className={tag.isValid ? styles.emailChip : styles.invalidEmailChip}
-                  size="small"
-                />
-              ))}
-            </Box>
-            <input
-              type="text"
-              value={newEmail}
-              onChange={(e) => setNewEmail(e.target.value)}
-              onKeyPress={handleEmailKeyPress}
-              onKeyDown={handleEmailKeyDown}
-              onBlur={handleEmailBlur}
-              placeholder={emailTags.length === 0 ? 'Enter email addresses...' : ''}
-              className={styles.emailInputField}
-            />
-          </Box>
-          {emailError && (
-            <Typography className={styles.emailError}>{emailError}</Typography>
-          )}
+          <EmailInviteInput
+            emailTags={emailTags}
+            newEmail={newEmail}
+            emailError={emailError}
+            onChange={setNewEmail}
+            onKeyPress={handleEmailKeyPress}
+            onKeyDown={handleEmailKeyDown}
+            onBlur={handleEmailBlur}
+            onRemove={removeEmailTag}
+          />
         </Box>
 
         {/* Company Name */}
@@ -260,35 +227,12 @@ const CreateAccountForm: React.FC = () => {
         )}
       </Box>
 
-      <Dialog
+      <InviteSuccessModal
         open={successModalOpen}
+        accountName={submittedAccountName}
+        invitedEmails={invitedEmails}
         onClose={handleCloseSuccessModal}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle className={styles.modalTitle}>Invitations Sent</DialogTitle>
-        <DialogContent dividers>
-          <Typography className={styles.modalIntro} gutterBottom>
-            The following users were invited to{' '}
-            <strong>{submittedAccountName}</strong> as admin users.
-          </Typography>
-          <List>
-            {invitedEmails.map((email) => (
-              <ListItem key={email} className={styles.invitedEmailItem}>
-                <ListItemIcon>
-                  <CheckCircleOutlineIcon color="success" />
-                </ListItemIcon>
-                <ListItemText primary={email} />
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseSuccessModal} color="primary">
-            Close
-          </Button>
-        </DialogActions>
-      </Dialog>
+      />
     </Box>
   );
 };
