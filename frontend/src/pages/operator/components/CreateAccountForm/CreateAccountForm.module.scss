@@ -1,16 +1,16 @@
 .formWrapper {
-  background-color: #fbfbfb;
-  border-radius: 20px;
+  width: 100%;
+  background-color: transparent;
+  border-radius: 16px;
   width: 100%;
   max-width: 1033px;
   min-height: auto;
-  padding: 26px;
+  padding: 0;
   box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: flex-start;
   position: relative;
-  box-shadow: 0 8px 24px rgba(0, 20, 65, 0.08);
 }
 
 .formContent {
