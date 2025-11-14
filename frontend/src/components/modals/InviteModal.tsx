@@ -1,34 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Modal, 
-  Typography, 
-  IconButton, 
-  MenuItem, 
-  Select, 
-  FormControl, 
-  Radio, 
-  RadioGroup, 
-  FormControlLabel, 
-  Chip, 
-  Collapse, 
+import {
+  Box,
+  Modal,
+  Typography,
+  IconButton,
+  MenuItem,
+  Select,
+  FormControl,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  Collapse,
   TextareaAutosize,
   Button,
   Alert,
   CircularProgress,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
-import { 
-  Close, 
-  ExpandMore, 
-  ExpandLess,
-  CheckCircle,
-  Email,
-} from '@mui/icons-material';
+import { Close, ExpandMore, ExpandLess, CheckCircle, Email } from '@mui/icons-material';
 import { useInviteModalStore } from '../../store/modalStore';
 import { useAccountStore } from '../../store/accountStore';
 import { useInviteUsers } from '../../hooks/invitation/useInviteUsers';
 import styles from './InviteModal.module.scss';
+import EmailInviteInput, { type EmailInviteTag } from './components/EmailInviteInput/EmailInviteInput';
 
 interface InviteModalProps {
   // Optional props for customization
@@ -45,13 +39,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
   // State management
   const [selectedEntity, setSelectedEntity] = useState<string>('');
   const [selectedRole, setSelectedRole] = useState<string>('member');
-  interface EmailTag {
-    id: string;
-    email: string;
-    isValid: boolean;
-  }
-
-  const [emailTags, setEmailTags] = useState<EmailTag[]>([]);
+  const [emailTags, setEmailTags] = useState<EmailInviteTag[]>([]);
   const [newEmail, setNewEmail] = useState<string>('');
   const [emailError, setEmailError] = useState<string>('');
   const [isPersonalExpanded, setIsPersonalExpanded] = useState<boolean>(false);
@@ -106,7 +94,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
       const email = newEmail.trim();
       const isValid = isValidEmail(email);
       
-      const newTag: EmailTag = {
+      const newTag: EmailInviteTag = {
         id: Date.now().toString(),
         email,
         isValid
@@ -143,12 +131,20 @@ const InviteModal: React.FC<InviteModalProps> = ({
   const removeEmailTag = (emailToRemove: string) => {
     const updatedTags = emailTags.filter(tag => tag.email !== emailToRemove);
     setEmailTags(updatedTags);
+    
+    // Check if there are any invalid emails left
+    const hasInvalidEmails = updatedTags.some(tag => !tag.isValid);
+    if (!hasInvalidEmails) {
+      setEmailError('');
+    }
+  };
+
   const handleEmailBlur = () => {
     if (newEmail.trim()) {
       const email = newEmail.trim();
       const isValid = isValidEmail(email);
 
-      const newTag: EmailTag = {
+      const newTag: EmailInviteTag = {
         id: Date.now().toString(),
         email,
         isValid
@@ -163,14 +159,6 @@ const InviteModal: React.FC<InviteModalProps> = ({
       } else {
         setEmailError('');
       }
-    }
-  };
-
-    
-    // Check if there are any invalid emails left
-    const hasInvalidEmails = updatedTags.some(tag => !tag.isValid);
-    if (!hasInvalidEmails) {
-      setEmailError('');
     }
   };
 
@@ -322,34 +310,16 @@ const InviteModal: React.FC<InviteModalProps> = ({
               </Typography>
             </Box>
 
-            <Box className={styles.emailInputContainer}>
-              <Box className={styles.emailTags}>
-                {emailTags.map((tag) => (
-                  <Chip
-                    key={tag.id}
-                    label={tag.email}
-                    onDelete={() => removeEmailTag(tag.email)}
-                    className={tag.isValid ? styles.emailChip : styles.invalidEmailChip}
-                    size="small"
-                  />
-                ))}
-              </Box>
-              <input
-                type="text"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-                onKeyPress={handleEmailKeyPress}
-                onKeyDown={handleEmailKeyDown}
-                onBlur={handleEmailBlur}
-                placeholder="Enter email addresses..."
-                className={styles.emailInputField}
-              />
-            </Box>
-            {emailError && (
-              <Typography className={styles.emailError}>
-                {emailError}
-              </Typography>
-            )}
+            <EmailInviteInput
+              emailTags={emailTags}
+              newEmail={newEmail}
+              emailError={emailError}
+              onChange={setNewEmail}
+              onKeyPress={handleEmailKeyPress}
+              onKeyDown={handleEmailKeyDown}
+              onBlur={handleEmailBlur}
+              onRemove={removeEmailTag}
+            />
           </Box>
 
           {/* Role Selection */}

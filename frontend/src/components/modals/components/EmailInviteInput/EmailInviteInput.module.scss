@@ -1,0 +1,70 @@
+.container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emailInputContainer {
+  width: 100%;
+  min-height: 50px;
+  border: 0.6px solid #cbd2f0;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:focus-within {
+    border-color: #0131ff;
+    box-shadow: 0 0 0 1px rgba(1, 49, 255, 0.1);
+  }
+}
+
+.emailTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.emailChip {
+  background-color: rgba(1, 49, 255, 0.1);
+  color: #0131ff;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
+.invalidEmailChip {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: #d32f2f;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
+.emailInputField {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  min-width: 200px;
+  background: transparent;
+
+  &::placeholder {
+    color: #7886b7;
+    opacity: 1;
+  }
+}
+
+.emailError {
+  color: #d32f2f;
+  font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+}
+
