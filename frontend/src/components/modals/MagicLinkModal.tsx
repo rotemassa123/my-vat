@@ -172,6 +172,12 @@ const MagicLinkModal: React.FC = () => {
                   ),
                 }}
               />
+
+              {payload.isImpersonating ? (
+                <Typography variant="body1" sx={{ color: 'error.main', fontWeight: 500 }}>
+                  You are about to impersonate the user. All your actions would be indescernible from the user you are impersonating. proceed with caution.
+                </Typography>
+              ) : null}
             </Stack>
           ) : (
             <Typography variant="body2" color="text.secondary">
