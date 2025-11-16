@@ -4,6 +4,11 @@ import { profileApi } from '../../lib/profileApi';
 import { useAccountStore } from '../../store/accountStore';
 import { type User } from '../../types/user';
 
+type SendInvitationVariables = {
+  request: SendInvitationRequest;
+  accountIdOverride?: string;
+};
+
 export const useInviteUsers = () => {
   const queryClient = useQueryClient();
   const { setProfile, users: currentUsers } = useAccountStore();
@@ -11,10 +16,10 @@ export const useInviteUsers = () => {
   const { mutateAsync, isPending, isError, error, data } = useMutation<
     SendInvitationResponse,
     Error,
-    SendInvitationRequest
+    SendInvitationVariables
   >({
-    mutationFn: async (data: SendInvitationRequest) => {
-      return invitationApi.sendInvitations(data);
+    mutationFn: async ({ request, accountIdOverride }) => {
+      return invitationApi.sendInvitations(request, { accountIdOverride });
     },
     onSuccess: async (response, variables) => {
       // Optionally invalidate user-related queries
@@ -22,16 +27,17 @@ export const useInviteUsers = () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
       
       // Add invited users to the client-side list immediately
+      const requestPayload = variables?.request;
       const invitedUsers: User[] = response.results
         .filter(result => result.success)
         .map(result => ({
           _id: `pending-${Date.now()}-${Math.random()}`, // Temporary ID
           fullName: 'Pending User',
           email: result.email,
-          userType: variables.role === 'admin' ? 1 : variables.role === 'member' ? 2 : 3,
+          userType: requestPayload?.role === 'admin' ? 1 : requestPayload?.role === 'member' ? 2 : 3,
           status: 'pending',
           accountId: '', // Will be filled when user completes signup
-          entityId: variables.entityId || '',
+          entityId: requestPayload?.entityId || '',
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         }));
@@ -62,8 +68,14 @@ export const useInviteUsers = () => {
     },
   });
 
-  const sendInvitations = async (data: SendInvitationRequest) => {
-    return await mutateAsync(data);
+  const sendInvitations = async (
+    data: SendInvitationRequest,
+    options?: { accountIdOverride?: string }
+  ) => {
+    return await mutateAsync({
+      request: data,
+      accountIdOverride: options?.accountIdOverride,
+    });
   };
 
   return {

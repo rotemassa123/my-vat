@@ -2,6 +2,34 @@ import apiClient from './apiClient';
 import type { User } from '../types/user';
 import type { ComprehensiveProfile } from '../types/profile';
 
+export interface CreateAccountPayload {
+  email: string;
+  account_type?: 'individual' | 'business';
+  company_name?: string;
+  tax_id?: string;
+  vat_number?: string;
+  registration_number?: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postal_code?: string;
+    country?: string;
+  };
+  phone?: string;
+  website?: string;
+  vat_settings: {
+    default_currency: string;
+    vat_rate: number;
+    reclaim_threshold: number;
+    auto_process: boolean;
+  };
+}
+
+export interface CreateAccountResponse {
+  _id: string;
+}
+
 export interface DeleteUserResponse {
   success: boolean;
 }
@@ -36,6 +64,11 @@ export interface CreateEntityResponse {
 export const profileApi = {
   getProfile: async (): Promise<ComprehensiveProfile> => {
     const response = await apiClient.get<ComprehensiveProfile>('/profile');
+    return response.data;
+  },
+  
+  createAccount: async (payload: CreateAccountPayload): Promise<CreateAccountResponse> => {
+    const response = await apiClient.post<CreateAccountResponse>('/accounts', payload);
     return response.data;
   },
 

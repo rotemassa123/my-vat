@@ -7,6 +7,10 @@ export interface SendInvitationRequest {
   personalMessage?: string;
 }
 
+export interface SendInvitationOptions {
+  accountIdOverride?: string;
+}
+
 export interface InvitationResult {
   email: string;
   success: boolean;
@@ -82,8 +86,15 @@ export interface CompleteSignupResponse {
 // Invitation API functions
 export const invitationApi = {
   // Send invitations
-  sendInvitations: async (data: SendInvitationRequest): Promise<SendInvitationResponse> => {
-    const response = await apiClient.post('/invitations/send', data);
+  sendInvitations: async (
+    data: SendInvitationRequest,
+    options?: SendInvitationOptions
+  ): Promise<SendInvitationResponse> => {
+    const response = await apiClient.post('/invitations/send', data, {
+      headers: options?.accountIdOverride
+        ? { 'x-account-id': options.accountIdOverride }
+        : undefined,
+    });
     return response.data;
   },
 
