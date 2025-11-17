@@ -65,7 +65,7 @@ export class AuthenticationService {
       },
     );
 
-    const impersonationUrl = `${this.getBackendBaseUrl()}/auth/impersonate/${token}`;
+    const impersonationUrl = `${this.getBackendBaseUrl()}/auth/magic-link/${token}`;
 
     return { token, expiresAt, impersonationUrl };
   }

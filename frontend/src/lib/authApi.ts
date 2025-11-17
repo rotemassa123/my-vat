@@ -50,7 +50,7 @@ export const authApi = {
   createImpersonationLink: async (
     userId: string,
   ): Promise<{ token: string; expiresAt: string; impersonationUrl?: string }> => {
-    const response = await apiClient.post('/auth/impersonation-links', { userId });
+    const response = await apiClient.post('/auth/magic-links', { userId });
     return response.data;
   },
 }; 

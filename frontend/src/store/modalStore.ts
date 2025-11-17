@@ -13,7 +13,6 @@ interface MagicLinkModalPayload {
   userName?: string;
   userEmail?: string;
   entityName?: string;
-  isImpersonating?: boolean;
 }
 
 interface MagicLinkModalState {

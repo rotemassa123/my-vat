@@ -151,7 +151,7 @@ export class AuthenticationController {
 
   @UseGuards(AuthenticationGuard)
   @RequireRoles(UserType.operator)
-  @Post("/impersonation-links")
+  @Post("/magic-links")
   async createImpersonationLink(
     @Body("userId") userId: string,
   ): Promise<{ token: string; expiresAt: string; impersonationUrl: string }> {
@@ -232,7 +232,7 @@ export class AuthenticationController {
   }
 
   @PublicEndpointGuard()
-  @Get("/impersonate/:token")
+  @Get("/magic-link/:token")
   async redeemImpersonationToken(
     @Param("token") token: string,
     @Res() response: Response,

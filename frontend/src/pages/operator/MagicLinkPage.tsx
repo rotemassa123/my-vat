@@ -9,8 +9,6 @@ import {
   Alert,
   Snackbar,
   CircularProgress,
-  Checkbox,
-  FormControlLabel,
 } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import LinkIcon from '@mui/icons-material/Link';
@@ -151,7 +149,6 @@ const MagicLinkPage: React.FC = () => {
   );
   const [usersLoading, setUsersLoading] = useState(false);
   const [usersError, setUsersError] = useState<string | null>(null);
-  const [impersonateUser, setImpersonateUser] = useState(false);
   const openMagicLinkModal = useMagicLinkModalStore((state) => state.openModal);
   const closeMagicLinkModal = useMagicLinkModalStore((state) => state.closeModal);
 
@@ -278,7 +275,7 @@ const MagicLinkPage: React.FC = () => {
     try {
       const result = await authApi.createImpersonationLink(selectedUser._id);
       const impersonationUrl =
-        result.impersonationUrl ?? `${apiBaseUrl}/auth/impersonate/${result.token}`;
+        result.impersonationUrl ?? `${apiBaseUrl}/auth/magic-link/${result.token}`;
 
       const entityName = selectedUser.entityId
         ? entityMap[selectedUser.entityId]?.name || selectedUser.entityId
@@ -291,7 +288,6 @@ const MagicLinkPage: React.FC = () => {
         userName: selectedUser.fullName,
         userEmail: selectedUser.email,
         entityName,
-        isImpersonating: impersonateUser,
       });
       setSelectedAccountId('');
       setSelectedUserId('');
@@ -374,15 +370,6 @@ const MagicLinkPage: React.FC = () => {
                 <Alert severity="error">{usersError}</Alert>
               ) : null}
             </div>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={impersonateUser}
-                  onChange={(e) => setImpersonateUser(e.target.checked)}
-                />
-              }
-              label="Impersonate user"
-            />
           </Stack>
         </CardContent>
       </Card>
