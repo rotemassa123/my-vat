@@ -98,11 +98,6 @@ export class CreateWidgetRequest {
   @ValidateNested()
   @Type(() => WidgetLayoutDto)
   layout?: WidgetLayoutDto;
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  entityId?: string;
 }
 
 export class UpdateWidgetRequest {

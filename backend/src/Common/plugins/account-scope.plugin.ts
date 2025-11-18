@@ -75,12 +75,21 @@ export function AccountScopePlugin(schema: Schema, options?: { is_required?: boo
 
   schema.pre('aggregate', applyAccountFilterToAggregate);
 
-  schema.pre('save', function (next) {
-    const accountId = getAccountId();
-    if (accountId && !this.get('account_id')) {
-      this.set('account_id', new Types.ObjectId(accountId));
+  // Use pre('validate') to set fields BEFORE validation runs
+  schema.pre('validate', function (next) {
+    try {
+      const accountId = getAccountId();
+      
+      if (!accountId) {
+        return next(new Error('account_id is required but account context is not available'));
+      }
+      if (!this.get('account_id')) {
+        this.set('account_id', new Types.ObjectId(accountId));
+      }
+      next();
+    } catch (error) {
+      next(error as Error);
     }
-    next();
   });
 
   // Static helper: Model.forAccount(id)

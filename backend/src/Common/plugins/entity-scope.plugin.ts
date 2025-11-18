@@ -76,12 +76,21 @@ export function EntityScopePlugin(schema: Schema, options?: { is_required?: bool
 
   schema.pre('aggregate', applyEntityFilterToAggregate);
 
-  schema.pre('save', function (next) {
-    const entityId = getEntityId();
-    if (entityId && !this.get('entity_id')) {
-      this.set('entity_id', new Types.ObjectId(entityId));
+  // Use pre('validate') to set fields BEFORE validation runs
+  // Note: entity_id is optional (is_required: false for widgets), so we don't throw if missing
+  schema.pre('validate', function (next) {
+    try {
+      const entityId = getEntityId();
+      
+      // Only set entity_id if it exists in context and isn't already set
+      // This is optional, so we don't throw an error if missing
+      if (entityId && !this.get('entity_id')) {
+        this.set('entity_id', new Types.ObjectId(entityId));
+      }
+      next();
+    } catch (error) {
+      next(error as Error);
     }
-    next();
   });
 
   // Static helper: Model.forEntity(id)

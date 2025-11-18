@@ -75,12 +75,21 @@ export function UserScopePlugin(schema: Schema, options?: { is_required?: boolea
 
   schema.pre('aggregate', applyUserFilterToAggregate);
 
-  schema.pre('save', function (next) {
-    const userId = getUserId();
-    if (userId && !this.get('user_id')) {
-      this.set('user_id', new Types.ObjectId(userId));
+  // Use pre('validate') to set fields BEFORE validation runs
+  schema.pre('validate', function (next) {
+    try {
+      const userId = getUserId();
+      
+      if (!userId) {
+        return next(new Error('user_id is required but user context is not available'));
+      }
+      if (!this.get('user_id')) {
+        this.set('user_id', new Types.ObjectId(userId));
+      }
+      next();
+    } catch (error) {
+      next(error as Error);
     }
-    next();
   });
 
   // Static helper: Model.forUser(id)
