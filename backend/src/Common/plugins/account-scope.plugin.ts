@@ -79,13 +79,7 @@ export function AccountScopePlugin(schema: Schema, options?: { is_required?: boo
   schema.pre('validate', function (next) {
     try {
       const accountId = getAccountId();
-      
-      if (!accountId) {
-        return next(new Error('account_id is required but account context is not available'));
-      }
-      if (!this.get('account_id')) {
-        this.set('account_id', new Types.ObjectId(accountId));
-      }
+      this.set('account_id', new Types.ObjectId(accountId));
       next();
     } catch (error) {
       next(error as Error);

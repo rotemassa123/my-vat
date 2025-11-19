@@ -88,11 +88,8 @@ export class WidgetRepository implements IWidgetRepository {
 
   async delete(id: string): Promise<boolean> {
     try {
-      const result = await this.widgetModel.findOneAndUpdate(
-        { _id: id },
-        { $set: { is_active: false, updated_at: new Date() } }
-      ).exec();
-      return !!result;
+      const result = await this.widgetModel.deleteOne({ _id: id }).exec();
+      return result.deletedCount > 0;
     } catch (error) {
       logger.error('Error deleting widget', 'WidgetRepository', { error, id });
       throw error;

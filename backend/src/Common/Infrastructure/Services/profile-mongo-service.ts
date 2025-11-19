@@ -164,8 +164,6 @@ export class ProfileMongoService implements IProfileRepository {
 
   async updateUser(userId: string, updateData: UpdateUserData): Promise<boolean> {
     const mongoUpdateData: any = { ...updateData };
-    delete mongoUpdateData.accountId;
-    delete mongoUpdateData.entityId;
     
     const result = await this.userModel
       .updateOne({ _id: userId }, mongoUpdateData)
