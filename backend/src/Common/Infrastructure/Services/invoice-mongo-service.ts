@@ -32,8 +32,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private mapDocumentToInvoiceData(doc: InvoiceDocument): InvoiceData {
     return {
       _id: doc._id.toString(),
-      account_id: doc.account_id, // Keep as ObjectId
-      entity_id: doc.entity_id, // Add missing entity_id
+      account_id: doc.account_id,
+      entity_id: doc.entity_id,
       name: doc.name,
       source_id: doc.source_id,
       size: doc.size,
@@ -129,7 +129,7 @@ export class InvoiceMongoService implements IInvoiceRepository {
   private mapDocumentToSummaryData(doc: SummaryDocument): SummaryData {
     return {
       _id: doc._id.toString(),
-      account_id: doc.account_id.toString(), // SummaryData still uses string
+      account_id: doc.account_id.toString(),
       file_id: doc.file_id,
       file_name: doc.file_name,
       is_invoice: doc.is_invoice,
@@ -249,18 +249,12 @@ export class InvoiceMongoService implements IInvoiceRepository {
     limit = 50, 
     skip = 0
   ): Promise<PaginatedCombinedResult> {
-    // account_id scoping is automatic – suppress unused param warning
-      
-    
-    // Build aggregation pipeline
     const pipeline: any[] = [
-      // Convert ObjectId to string for joining
       { 
         $addFields: { 
           _id_str: { $toString: "$_id" } 
         } 
       },
-      // Join with summaries using correct fields
       {
         $lookup: {
           from: 'summaries',
@@ -269,9 +263,7 @@ export class InvoiceMongoService implements IInvoiceRepository {
           as: 'summaries'
         }
       },
-      // Unwind summaries
       { $unwind: '$summaries' },
-      // Replace root with merged content
       {
         $replaceRoot: {
           newRoot: {
@@ -301,7 +293,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
       }
     ];
     
-    // Get total count
     const countPipeline = [
       ...pipeline,
       { $count: "total" }
@@ -312,7 +303,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
     }).exec();
     const total = countResult.length > 0 ? countResult[0].total : 0;
     
-    // Get paginated data
     const dataPipeline = [
       ...pipeline,
       { $sort: { created_at: -1 } },
@@ -325,7 +315,6 @@ export class InvoiceMongoService implements IInvoiceRepository {
       allowDiskUse: true 
     }).exec();
     
-    // Map to CombinedInvoiceData format
     const data = docs.map(doc => this.mapAggregationResult(doc));
     
     return {
@@ -339,11 +328,9 @@ export class InvoiceMongoService implements IInvoiceRepository {
   
   private mapAggregationResult(doc: any): CombinedInvoiceData {
     return {
-      // The aggregation result should already be flattened
-      // Just ensure we have the required structure
       _id: doc._id?.toString() || '',
-      account_id: doc.account_id, // Keep as ObjectId
-      entity_id: doc.entity_id, // Add missing entity_id
+      account_id: doc.account_id,
+      entity_id: doc.entity_id,
       name: doc.name || '',
       source_id: doc.source_id || '',
       size: doc.size || 0,
@@ -356,15 +343,11 @@ export class InvoiceMongoService implements IInvoiceRepository {
       claim_result_received_at: doc.claim_result_received_at,
       status_updated_at: doc.status_updated_at,
       created_at: doc.created_at,
-      
-      // Summary fields from the merged content
       is_invoice: doc.is_invoice,
       processing_time_seconds: doc.processing_time_seconds,
       success: doc.success,
       error_message: doc.error_message,
       confidence_score: doc.confidence_score,
-      
-      // Content fields (should be flattened by the aggregation)
       country: doc.country,
       supplier: doc.supplier,
       invoice_date: doc.invoice_date,

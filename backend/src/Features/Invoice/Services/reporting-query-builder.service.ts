@@ -14,29 +14,13 @@ export interface UserContext {
 export class ReportingQueryBuilderService {
   
   buildTenantQuery(user: UserContext, params: ReportingQueryRequest): FilterQuery<InvoiceDocument> {
-    const query: FilterQuery<InvoiceDocument> = {
-      account_id: new Types.ObjectId(user.accountId), // Convert string to ObjectId
-    };
-
-    // Add entity restriction for non-admin users
-    if (user.userType === UserType.member || user.userType === UserType.viewer) {
-      query.entity_id = new Types.ObjectId(user.entityId);
-    }
-    // Admin users see all entities in their account (no entity_id filter)
+    const query: FilterQuery<InvoiceDocument> = {};
 
     return this.addFilters(query, params);
   }
 
   buildTenantQueryWithoutEntityScope(user: UserContext, params: ReportingQueryRequest): FilterQuery<InvoiceDocument> {
-    const query: FilterQuery<InvoiceDocument> = {
-      account_id: new Types.ObjectId(user.accountId), // Convert string to ObjectId
-    };
-
-    // For reporting, we want to see all entities for admin users
-    // For non-admin users, still restrict to their entity
-    if (user.userType === UserType.member || user.userType === UserType.viewer) {
-      query.entity_id = new Types.ObjectId(user.entityId);
-    }
+    const query: FilterQuery<InvoiceDocument> = {};
 
     return this.addFilters(query, params);
   }

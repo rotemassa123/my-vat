@@ -186,16 +186,13 @@ export class MCPQueryProcessor {
     console.log(`   Requested Fields: ${fields.length > 0 ? fields.join(', ') : 'ALL FIELDS'}`);
     
     try {
-      // Convert MCP filters to InvoiceFilters
       const invoiceFilters: InvoiceFilters = {
-        account_id: userId, // Assuming userId maps to account_id
         ...filters
       };
       
       console.log(`   Invoice Filters Applied: ${JSON.stringify(invoiceFilters, null, 2)}`);
       console.log(`   Query Limit: 100, Skip: 0`);
       
-      // Fetch real invoices from database
       const invoices = await this.invoiceService.findInvoices(invoiceFilters, 100, 0);
       
       console.log(`\n🔍 MCP getInvoices() RESULT:`);
@@ -289,13 +286,10 @@ export class MCPQueryProcessor {
     console.log('🔍 MCP: Fetching real summaries for user:', userId);
     
     try {
-      // Convert MCP filters to SummaryFilters
       const summaryFilters: SummaryFilters = {
-        account_id: userId, // Assuming userId maps to account_id
         ...filters
       };
       
-      // Fetch real summaries from database
       const summaries = await this.invoiceService.findSummaries(summaryFilters, 100, 0);
       
       console.log('🔍 MCP: Found', summaries.length, 'real summaries');

@@ -128,22 +128,12 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async createUser(userData: CreateUserData): Promise<UserData> {
-    // Convert the field names to match MongoDB schema
     const mongoUserData: any = {
       ...userData,
-      status: 'pending', // Default status for new users
+      status: 'pending',
     };
     
-    // Convert accountId to account_id for MongoDB (only if provided)
-    if (userData.accountId) {
-      mongoUserData.account_id = userData.accountId;
-    }
     delete mongoUserData.accountId;
-    
-    // Convert entityId to entity_id for MongoDB (only if provided)
-    if (userData.entityId) {
-      mongoUserData.entity_id = userData.entityId;
-    }
     delete mongoUserData.entityId;
     
     const user = new this.userModel(mongoUserData);
@@ -162,14 +152,7 @@ export class ProfileMongoService implements IProfileRepository {
         status: (userData as any).status || 'pending',
       };
       
-      if (userData.accountId) {
-        mongoUserData.account_id = userData.accountId;
-      }
       delete mongoUserData.accountId;
-      
-      if (userData.entityId) {
-        mongoUserData.entity_id = userData.entityId;
-      }
       delete mongoUserData.entityId;
       
       return mongoUserData;
@@ -180,32 +163,13 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async updateUser(userId: string, updateData: UpdateUserData): Promise<boolean> {
-    // Handle the plugin-managed fields separately
     const mongoUpdateData: any = { ...updateData };
+    delete mongoUpdateData.accountId;
+    delete mongoUpdateData.entityId;
     
-    // Convert accountId to account_id for MongoDB
-    if (updateData.accountId !== undefined) {
-      if (updateData.accountId) {
-        mongoUpdateData.account_id = updateData.accountId;
-      } else {
-        mongoUpdateData.$unset = { account_id: 1 };
-      }
-      delete mongoUpdateData.accountId;
-    }
-    
-    // Convert entityId to entity_id for MongoDB
-    if (updateData.entityId !== undefined) {
-      if (updateData.entityId) {
-        mongoUpdateData.entity_id = updateData.entityId;
-      } else {
-        // Remove entity_id field if setting to undefined
-        if (!mongoUpdateData.$unset) mongoUpdateData.$unset = {};
-        mongoUpdateData.$unset.entity_id = 1;
-      }
-      delete mongoUpdateData.entityId;
-    }
-    
-    const result = await this.userModel.updateOne({ _id: userId }, mongoUpdateData).exec();
+    const result = await this.userModel
+      .updateOne({ _id: userId }, mongoUpdateData)
+      .exec();
     return result.modifiedCount > 0;
   }
 
@@ -251,17 +215,12 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async getEntitiesForAccount(): Promise<EntityData[]> {
-    // account_id scoping handled by TenantScopePlugin
     const docs = await this.entityModel.find().exec();
     return docs.map(doc => this.mapDocumentToEntityData(doc));
   }
 
   async getAllEntities(): Promise<EntityData[]> {
-    // Bypass account scope for operators to get all entities
-    const docs = await this.entityModel
-      .find()
-      .setOptions({ disableAccountScope: true })
-      .exec();
+    const docs = await this.entityModel.find().exec();
     return docs.map(doc => this.mapDocumentToEntityData(doc));
   }
 
@@ -291,53 +250,20 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async getUsersForAccount(): Promise<UserData[]> {
-    // account_id scoping handled by AccountScopePlugin (if user has account context)
     const docs = await this.userModel.find().exec();
     return docs.map(doc => this.mapDocumentToUserData(doc));
   }
 
   async getUsersForAccountId(accountId: string): Promise<UserData[]> {
-    if (!Types.ObjectId.isValid(accountId)) {
-      return [];
-    }
-
-    const docs = await this.userModel
-      .find({ account_id: new Types.ObjectId(accountId) })
-      .setOptions({ disableAccountScope: true })
-      .exec();
+    const docs = await this.userModel.find().exec();
     return docs.map(doc => this.mapDocumentToUserData(doc));
   }
 
   // ==================== STATISTICS METHODS ====================
 
-  /**
-   * Get statistics for an account
-   * @param accountId - Account ID (mandatory)
-   * @param entityId - Entity ID (optional). If provided, returns statistics for that entity only. If not provided, returns statistics for all entities in the account.
-   * @returns Single StatisticsResponse if entityId is provided, array of StatisticsResponse if not provided, or null if entityId provided but not found
-   */
   async getStatistics(accountId: string, entityId?: string): Promise<{ entity_id: string; data: Record<string, any>; created_at?: Date; updated_at?: Date } | Array<{ entity_id: string; data: Record<string, any>; created_at?: Date; updated_at?: Date }> | null> {
-    if (!Types.ObjectId.isValid(accountId)) {
-      return null;
-    }
-
-    const accountObjectId = new Types.ObjectId(accountId);
-
-    // If entityId is provided, return statistics for that specific entity
     if (entityId) {
-      if (!Types.ObjectId.isValid(entityId)) {
-        return null;
-      }
-
-      // Disable both scopes and manually filter by account_id and entity_id
-      // This ensures we use the explicit accountId parameter
-      const doc = await this.statisticsModel
-        .findOne({ 
-          account_id: accountObjectId,
-          entity_id: new Types.ObjectId(entityId) 
-        })
-        .setOptions({ disableAccountScope: true, disableEntityScope: true })
-        .exec();
+      const doc = await this.statisticsModel.findOne().exec();
       
       if (!doc) {
         return null;
@@ -351,12 +277,7 @@ export class ProfileMongoService implements IProfileRepository {
       };
     }
 
-    // If entityId is not provided, return statistics for all entities in the account
-    // Disable account scope to use explicit accountId parameter, disable entity scope to get all entities
-    const docs = await this.statisticsModel
-      .find({ account_id: accountObjectId })
-      .setOptions({ disableAccountScope: true, disableEntityScope: true })
-      .exec();
+    const docs = await this.statisticsModel.find().exec();
     
     return docs.map(doc => ({
       entity_id: doc.entity_id.toString(),

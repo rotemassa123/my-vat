@@ -84,15 +84,13 @@ export class ReportingService {
     const [invoices, total] = await Promise.all([
       this.invoiceModel
         .find(query, projection)
-        .setOptions({ disableEntityScope: true }) // Disable entity scope for reporting
         .sort(sort)
         .limit(params.limit || 100)
         .skip(params.skip || 0)
-        .lean() // Critical for performance
+        .lean()
         .exec(),
       this.invoiceModel
         .countDocuments(query)
-        .setOptions({ disableEntityScope: true }) // Disable entity scope for reporting
         .exec()
     ]);
 

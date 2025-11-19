@@ -38,16 +38,12 @@ export class WidgetDataService {
 
     const pipeline: any[] = [];
 
-    // Match stage (filters) - AccountScopePlugin automatically adds account_id filter
     const matchStage: any = {};
     if (config.filters?.dateRange) {
       matchStage.created_at = {
         $gte: new Date(config.filters.dateRange.start),
         $lte: new Date(config.filters.dateRange.end),
       };
-    }
-    if (config.filters?.entityIds?.length) {
-      matchStage.entity_id = { $in: config.filters.entityIds.map((id: string) => new Types.ObjectId(id)) };
     }
     if (Object.keys(matchStage).length > 0) {
       pipeline.push({ $match: matchStage });
