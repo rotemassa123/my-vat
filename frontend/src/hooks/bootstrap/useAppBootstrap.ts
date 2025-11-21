@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { authApi } from '../../lib/authApi';
 import { profileApi } from '../../lib/profileApi';
-import { loadAllData, isDataLoadingNeeded } from '../../services/invoiceService';
+import { loadAllData as loadInvoices } from '../../services/invoiceService';
+import { loadAllWidgets as loadWidgets } from '../../services/widgetService';
 import { useAuthStore } from '../../store/authStore';
 import { useAccountStore } from '../../store/accountStore';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
@@ -84,9 +85,15 @@ export const useAppBootstrap = (): AppBootstrapState => {
           clearAccounts();
         }
 
-        if (await isDataLoadingNeeded()) {
-          await loadAllData();
-        }
+        // Load invoices and widgets in parallel (non-blocking)
+        // Fire both off without blocking - they'll load in the background
+        void Promise.all([
+          loadInvoices(),
+          loadWidgets(),
+        ]).catch((error) => {
+          // Log errors but don't block bootstrap
+          console.error('Background data loading failed:', error);
+        });
 
         if (!controller.signal.aborted) {
           setSecondaryStatus('success');
