@@ -1,0 +1,44 @@
+.page {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  flex-shrink: 0;
+  padding: 24px;
+  padding-bottom: 16px;
+  background-color: transparent;
+}
+
+.title {
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #001441;
+}
+
+.subtitle {
+  color: #666;
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); // 4 grid units per row
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+// Widget grid spans are set dynamically via inline styles based on widget type
+

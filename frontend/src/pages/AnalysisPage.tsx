@@ -1,10 +1,11 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import { WidgetPaper } from '../components/analysis/WidgetPaper';
 import type { Widget, WidgetType, ChartDataPoint } from '../types/widget';
+import { WIDGET_GRID_SIZES } from '../constants/gridConstants';
+import styles from './AnalysisPage.module.scss';
 
 const AnalysisPage: React.FC = () => {
-  // Create mock widgets with fake data
   const mockWidgets: Array<Widget & { demoData: ChartDataPoint[] }> = [
     {
       id: 'demo-pie-1',
@@ -88,63 +89,35 @@ const AnalysisPage: React.FC = () => {
   ];
 
   return (
-    <Box
-      sx={{
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Fixed Header */}
-      <Box
-        sx={{
-          flexShrink: 0,
-          p: 3,
-          pb: 2,
-          backgroundColor: 'transparent',
-        }}
-      >
-        <Typography variant="h4" sx={{ mb: 1, fontWeight: 600, color: '#001441' }}>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <Typography variant="h4" className={styles.title}>
           Analysis
         </Typography>
-        <Typography variant="body1" sx={{ color: '#666' }}>
-          Widget previews with sample data
+        <Typography variant="body1" className={styles.subtitle}>
+          Widget dashboard
         </Typography>
-      </Box>
-
-      {/* Scrollable Content */}
-      <Box
-        sx={{
-          flex: 1,
-          overflowY: 'auto',
-          overflowX: 'hidden',
-          px: 3,
-          py: 3,
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, minmax(0, 1fr))',
-              md: 'repeat(2, minmax(0, 1fr))',
-            },
-            gap: '1.5rem',
-            width: '100%',
-            maxWidth: '100%',
-            boxSizing: 'border-box',
-          }}
-        >
-          {mockWidgets.map((widget) => (
-            <WidgetPaper key={widget.id} widget={widget} />
-          ))}
-        </Box>
-      </Box>
-    </Box>
+      </div>
+      <div className={styles.content}>
+        <div className={styles.grid}>
+          {mockWidgets.map((widget) => {
+            const gridSize = WIDGET_GRID_SIZES[widget.type];
+            return (
+              <div
+                key={widget.id}
+                className={styles.widget}
+                style={{
+                  gridColumn: `span ${gridSize.columns}`,
+                  gridRow: `span ${gridSize.rows}`,
+                }}
+              >
+                <WidgetPaper widget={widget} />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 };
 
