@@ -3,7 +3,6 @@
 export enum WidgetType {
   PIE = 'pie',
   BAR = 'bar',
-  HISTOGRAM = 'histogram',
   LINE = 'line',
 }
 

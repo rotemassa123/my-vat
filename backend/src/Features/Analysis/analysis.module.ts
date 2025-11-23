@@ -12,3 +12,4 @@ import { WidgetDataService } from './Services/widget-data.service';
 })
 export class AnalysisModule {}
 
+

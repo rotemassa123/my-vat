@@ -1,0 +1,28 @@
+{
+  "pie": [
+    { "label": "Office Supplies", "value": 4500 },
+    { "label": "Travel", "value": 3200 },
+    { "label": "Software", "value": 2800 },
+    { "label": "Marketing", "value": 2100 },
+    { "label": "Other", "value": 1400 }
+  ],
+  "bar": [
+    { "label": "Jan", "value": 12000 },
+    { "label": "Feb", "value": 15000 },
+    { "label": "Mar", "value": 18000 },
+    { "label": "Apr", "value": 14000 },
+    { "label": "May", "value": 22000 },
+    { "label": "Jun", "value": 19000 }
+  ],
+  "line": [
+    { "label": "Week 1", "value": 4500 },
+    { "label": "Week 2", "value": 5200 },
+    { "label": "Week 3", "value": 4800 },
+    { "label": "Week 4", "value": 6100 },
+    { "label": "Week 5", "value": 5500 },
+    { "label": "Week 6", "value": 6800 },
+    { "label": "Week 7", "value": 7200 },
+    { "label": "Week 8", "value": 6900 }
+  ]
+}
+
