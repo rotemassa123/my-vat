@@ -63,6 +63,21 @@ const AnalysisPage: React.FC = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+    {
+      id: 'demo-metric-1',
+      userId: 'demo-user',
+      type: 'metric' as WidgetType,
+      dataConfig: {
+        source: 'invoices',
+        yAxisField: 'Total',
+      },
+      displayConfig: {
+        title: 'Total Revenue',
+      },
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   ];
 
   return (

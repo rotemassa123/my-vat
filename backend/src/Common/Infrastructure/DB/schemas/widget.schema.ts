@@ -11,6 +11,7 @@ export enum WidgetType {
   BAR = 'bar',
   HISTOGRAM = 'histogram',
   LINE = 'line',
+  METRIC = 'metric',
 }
 
 export interface WidgetDataConfig {

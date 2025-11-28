@@ -4,6 +4,7 @@ export enum WidgetType {
   PIE = 'pie',
   BAR = 'bar',
   LINE = 'line',
+  METRIC = 'metric',
 }
 
 export interface WidgetDataConfig {

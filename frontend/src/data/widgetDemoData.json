@@ -23,6 +23,10 @@
     { "label": "Week 6", "value": 6800 },
     { "label": "Week 7", "value": 7200 },
     { "label": "Week 8", "value": 6900 }
-  ]
+  ],
+  "metric": {
+    "value": 125000,
+    "label": "euros"
+  }
 }
 

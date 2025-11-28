@@ -4,6 +4,7 @@ import type { Widget } from '../../types/widget';
 import { PieChartWidget } from './widgets/PieChartWidget';
 import { BarChartWidget } from './widgets/BarChartWidget';
 import { LineChartWidget } from './widgets/LineChartWidget';
+import { MetricWidget } from './widgets/MetricWidget';
 import { WidgetErrorBoundary } from './WidgetErrorBoundary';
 import styles from './WidgetPaper.module.scss';
 
@@ -44,7 +45,8 @@ export const WidgetPaper: React.FC<WidgetPaperProps> = ({ widget }) => {
           {widget.type === 'pie' && <PieChartWidget {...chartProps} />}
           {widget.type === 'bar' && <BarChartWidget {...chartProps} />}
           {widget.type === 'line' && <LineChartWidget {...chartProps} />}
-          {!['pie', 'bar', 'line'].includes(widget.type) && (
+          {widget.type === 'metric' && <MetricWidget widget={widget} />}
+          {!['pie', 'bar', 'line', 'metric'].includes(widget.type) && (
             <div>Unsupported widget type: {widget.type}</div>
           )}
         </WidgetErrorBoundary>
