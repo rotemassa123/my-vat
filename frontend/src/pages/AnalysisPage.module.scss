@@ -26,19 +26,21 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px;
+  padding: 24px 0 24px 24px;
   width: 100%;
   box-sizing: border-box;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); // 4 grid units per row
+  // Grid template columns and auto-rows are set dynamically via inline styles
   gap: 1.5rem;
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
 }
 
-// Widget grid spans are set dynamically via inline styles based on widget type
+.widget {
+  width: 100%;
+  height: 100%;
+}
 
