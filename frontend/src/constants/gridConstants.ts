@@ -16,5 +16,6 @@ export const WIDGET_GRID_SIZES: Record<WidgetType, { columns: number; rows: numb
   bar: { columns: 2, rows: 2 },
   line: { columns: 2, rows: 2 },
   metric: { columns: 1, rows: 1 },
+  battery: { columns: 2, rows: 1 },
 };
 

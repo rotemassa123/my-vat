@@ -6,7 +6,8 @@
   max-width: 100%;
   box-sizing: border-box;
   min-width: 0;
-  aspect-ratio: 1;
+  // Aspect ratio is set dynamically via inline style in WidgetPaper.tsx
+  // based on widget grid dimensions (columns/rows)
 }
 
 .title {

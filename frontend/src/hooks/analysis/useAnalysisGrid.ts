@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 
 const GRID_GAP = 24; // 1.5rem = 24px
 const CONTENT_PADDING_LEFT = 24; // px
+const CONTENT_PADDING_RIGHT = 24; // px
 
 // Screen size breakpoints for column count
 const getColumnCount = (width: number): number => {
@@ -19,8 +20,8 @@ export const useAnalysisGrid = () => {
     const calculateGrid = () => {
       if (gridRef.current) {
         const containerWidth = gridRef.current.parentElement?.getBoundingClientRect().width || window.innerWidth;
-        // Available width = container width - left padding
-        const availableWidth = containerWidth - CONTENT_PADDING_LEFT;
+        // Available width = container width - left padding - right padding
+        const availableWidth = containerWidth - CONTENT_PADDING_LEFT - CONTENT_PADDING_RIGHT;
         
         // Determine number of columns based on screen size
         const numColumns = getColumnCount(containerWidth);

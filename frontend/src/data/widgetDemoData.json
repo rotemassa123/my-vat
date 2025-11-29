@@ -27,6 +27,13 @@
   "metric": {
     "value": 125000,
     "label": "euros"
-  }
+  },
+  "battery": [
+    { "label": "Status 1", "value": 80 },
+    { "label": "Status 2", "value": 8 },
+    { "label": "Status 3", "value": 8 },
+    { "label": "Status 4", "value": 3 },
+    { "label": "Status 5", "value": 1 }
+  ]
 }
 

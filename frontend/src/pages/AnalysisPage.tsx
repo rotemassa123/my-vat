@@ -78,6 +78,24 @@ const AnalysisPage: React.FC = () => {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+    {
+      id: 'demo-battery-1',
+      userId: 'demo-user',
+      type: 'battery' as WidgetType,
+      dataConfig: {
+        source: 'invoices',
+        xAxisField: 'Status',
+        yAxisField: 'Tasks',
+      },
+      displayConfig: {
+        title: 'Workload by Status',
+        showGridLines: true,
+        axisLabels: { x: 'Tasks', y: 'Status' },
+      },
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
   ];
 
   return (

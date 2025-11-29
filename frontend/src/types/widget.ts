@@ -5,6 +5,7 @@ export enum WidgetType {
   BAR = 'bar',
   LINE = 'line',
   METRIC = 'metric',
+  BATTERY = 'battery',
 }
 
 export interface WidgetDataConfig {
