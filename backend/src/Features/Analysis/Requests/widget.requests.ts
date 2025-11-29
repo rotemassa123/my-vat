@@ -1,13 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsObject, IsString, IsOptional, IsBoolean, ValidateNested, IsArray, IsNumber } from 'class-validator';
 import { Type } from 'class-transformer';
-import { WidgetType, WidgetDataConfig, WidgetDisplayConfig, WidgetLayout } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
+import { WidgetType, WidgetDataConfig, WidgetDisplayConfig, WidgetLayout, LayoutPosition, AxisConfig, AggregationType, TimeGrouping, WidgetFilters } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
 
 export class WidgetDataConfigDto implements WidgetDataConfig {
-  @ApiProperty({ enum: ['invoices', 'summaries', 'entities', 'custom'] })
-  @IsString()
-  source: 'invoices' | 'summaries' | 'entities' | 'custom';
-
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -18,20 +14,43 @@ export class WidgetDataConfigDto implements WidgetDataConfig {
   @IsString()
   yAxisField?: string;
 
+  @ApiPropertyOptional({ enum: AggregationType })
+  @IsOptional()
+  @IsEnum(AggregationType)
+  aggregation?: AggregationType;
+
+  @ApiPropertyOptional({ enum: TimeGrouping })
+  @IsOptional()
+  @IsEnum(TimeGrouping)
+  timeGrouping?: TimeGrouping;
+
   @ApiPropertyOptional()
   @IsOptional()
   @IsObject()
-  filters?: {
-    dateRange?: { start: Date; end: Date };
-    entityIds?: string[];
-    [key: string]: any;
-  };
+  filters?: WidgetFilters;
+}
+
+export class AxisConfigDto implements AxisConfig {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  label?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  format?: string;
 }
 
 export class WidgetDisplayConfigDto implements WidgetDisplayConfig {
   @ApiProperty()
   @IsString()
   title: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  subtitle?: string;
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -56,11 +75,15 @@ export class WidgetDisplayConfigDto implements WidgetDisplayConfig {
 
   @ApiPropertyOptional()
   @IsOptional()
-  @IsObject()
-  axisLabels?: { x?: string; y?: string };
+  @ValidateNested()
+  @Type(() => Object)
+  axisLabels?: {
+    x?: AxisConfigDto;
+    y?: AxisConfigDto;
+  };
 }
 
-export class WidgetLayoutDto implements WidgetLayout {
+export class LayoutPositionDto implements LayoutPosition {
   @ApiProperty()
   @IsNumber()
   x: number;
@@ -76,6 +99,26 @@ export class WidgetLayoutDto implements WidgetLayout {
   @ApiProperty()
   @IsNumber()
   h: number;
+}
+
+export class WidgetLayoutDto implements WidgetLayout {
+  @ApiPropertyOptional({ type: LayoutPositionDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LayoutPositionDto)
+  '4'?: LayoutPositionDto;
+
+  @ApiPropertyOptional({ type: LayoutPositionDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LayoutPositionDto)
+  '6'?: LayoutPositionDto;
+
+  @ApiPropertyOptional({ type: LayoutPositionDto })
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => LayoutPositionDto)
+  '8'?: LayoutPositionDto;
 }
 
 export class CreateWidgetRequest {

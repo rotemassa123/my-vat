@@ -4,24 +4,12 @@ import { Widget, WidgetSchema } from 'src/Common/Infrastructure/DB/schemas/widge
 import { Invoice, InvoiceSchema } from 'src/Common/Infrastructure/DB/schemas/invoice.schema';
 import { WidgetRepository } from 'src/Common/Infrastructure/Repositories/widget.repository';
 import { IWidgetRepository } from 'src/Common/ApplicationCore/Services/IWidgetRepository';
-import { AccountScopePlugin } from 'src/Common/plugins/account-scope.plugin';
-import { EntityScopePlugin } from 'src/Common/plugins/entity-scope.plugin';
-import { UserScopePlugin } from 'src/Common/plugins/user-scope.plugin';
 
 @Module({
   imports: [
-    MongooseModule.forFeatureAsync([
-      {
-        name: Widget.name,
-        useFactory: () => {
-          const schema = WidgetSchema;
-          schema.plugin(AccountScopePlugin);
-          schema.plugin(EntityScopePlugin, { is_required: false });
-          schema.plugin(UserScopePlugin);
-          return schema;
-        },
-      },
-      { name: Invoice.name, useFactory: () => InvoiceSchema },
+    MongooseModule.forFeature([
+      { name: Widget.name, schema: WidgetSchema },
+      { name: Invoice.name, schema: InvoiceSchema },
     ]),
   ],
   providers: [

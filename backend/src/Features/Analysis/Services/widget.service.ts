@@ -136,7 +136,6 @@ export class WidgetService {
       isActive: widget.is_active,
       createdAt: widget.created_at,
       updatedAt: widget.updated_at,
-      entityId: widget.entity_id?.toString(),
     };
   }
 }

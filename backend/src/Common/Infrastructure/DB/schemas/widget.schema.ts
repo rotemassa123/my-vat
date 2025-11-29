@@ -44,7 +44,6 @@ export interface WidgetDataConfig {
   yAxisField?: string;
   aggregation?: AggregationType;
   timeGrouping?: TimeGrouping;
-  timeField?: string;
   filters?: WidgetFilters;
 }
 

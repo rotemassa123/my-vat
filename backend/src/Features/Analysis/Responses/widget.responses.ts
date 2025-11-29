@@ -28,9 +28,6 @@ export class WidgetResponse {
 
   @ApiProperty()
   updatedAt: Date;
-
-  @ApiPropertyOptional()
-  entityId?: string;
 }
 
 export class WidgetListResponse {
