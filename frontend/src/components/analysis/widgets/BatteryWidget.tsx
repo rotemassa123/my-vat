@@ -18,6 +18,7 @@ interface BatteryWidgetProps {
 }
 
 export const BatteryWidget: React.FC<BatteryWidgetProps> = ({ widget, width, height }) => {
+  const chartWidth = width || CHART_DIMENSIONS.DEFAULT_WIDTH;
   const data = widgetDemoData.battery as ChartDataPoint[];
 
   const tickLabelStyle = {
@@ -34,7 +35,8 @@ export const BatteryWidget: React.FC<BatteryWidgetProps> = ({ widget, width, hei
   const series = data.map((point) => ({
     data: [point.value],
     label: point.label,
-    stack: 'total', // Stack all series together
+    stack: 'total',
+
     valueFormatter: (value: number | null) => {
       if (value === null) return '';
       const percentage = ((value / total) * 100).toFixed(1);
@@ -51,24 +53,33 @@ export const BatteryWidget: React.FC<BatteryWidgetProps> = ({ widget, width, hei
             id: 'batteryXAxis',
             max: 100,
             tickLabelStyle: tickLabelStyle,
+            disableLine: true,
+            tickSize: 0,
           },
         ]}
         yAxis={[
           {
             id: 'batteryYAxis',
-            data: ['Tasks'],
+            data: [''], // Empty label to remove the "Tasks" subtitle
             scaleType: 'band',
             tickLabelStyle: tickLabelStyle,
+            disableLine: true,
+            tickSize: 0,
           },
         ]}
         series={series}
         grid={{
           vertical: widget.displayConfig.showGridLines !== false,
-          horizontal: widget.displayConfig.showGridLines !== false,
+          horizontal: false,
         }}
-        width={width || CHART_DIMENSIONS.DEFAULT_WIDTH}
-        height={height || CHART_DIMENSIONS.DEFAULT_HEIGHT}
-        margin={CHART_MARGINS.DEFAULT}
+        width={chartWidth}
+        height={height ? Math.min(height, 80) : 80} // Reduced height to make bar appear thinner
+        margin={{
+          ...CHART_MARGINS.DEFAULT,
+          left: 4,
+          right: 12,
+          bottom: 10,
+        }}
         slotProps={{
           legend: {
             hidden: true,
