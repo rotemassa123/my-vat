@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import React from 'react';
 import type {
   Widget,
   WidgetType,
@@ -174,3 +175,9 @@ export const useWidgetStore = create<WidgetStore>((set) => ({
   closeHelpSupportModal: () => set({ isHelpSupportModalOpen: false }),
 }));
 
+export const useActiveWidgets = (): Widget[] => {
+  const allWidgets = useWidgetStore((state) => state.widgets);
+  return React.useMemo(() => {
+    return allWidgets.filter((w) => w.isActive);
+  }, [allWidgets]);
+};

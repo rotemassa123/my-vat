@@ -6,7 +6,7 @@ export interface CreateWidgetData {
   dataConfig: WidgetDataConfig;
   displayConfig: WidgetDisplayConfig;
   layout?: WidgetLayout;
-  // userId, accountId, and entityId are automatically set by plugins from user context
+  // userId and accountId are automatically set by plugins from user context
 }
 
 export interface UpdateWidgetData {

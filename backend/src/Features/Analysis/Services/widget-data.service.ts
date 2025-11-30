@@ -21,16 +21,27 @@ export class WidgetDataService {
   async fetchWidgetData(widget: WidgetDocument): Promise<ChartDataPoint[]> {
     const config = widget.data_config as WidgetDataConfig;
     
-    switch (config.source) {
-      case 'invoices':
-        return this.fetchInvoiceData(config);
-      case 'summaries':
-        return this.fetchSummaryData(config);
-      case 'entities':
-        return this.fetchEntityData(config);
-      default:
-        throw new Error(`Unsupported data source: ${config.source}`);
+    // Determine data source based on fields used
+    // If xAxisField or yAxisField requires summary data (e.g., country, supplier), use summaries
+    // Otherwise, use invoices as default
+    const needsSummaryData = this.requiresSummaryData(config);
+    
+    if (needsSummaryData) {
+      return this.fetchSummaryData(config);
     }
+    
+    // Default to invoices
+    return this.fetchInvoiceData(config);
+  }
+
+  private requiresSummaryData(config: WidgetDataConfig): boolean {
+    const summaryFields = ['country', 'supplier', 'vendor_name', 'currency', 'vat_rate', 'classification', 'category'];
+    const xField = config.xAxisField?.toLowerCase();
+    const yField = config.yAxisField?.toLowerCase();
+    
+    return summaryFields.some(field => 
+      xField?.includes(field) || yField?.includes(field)
+    );
   }
 
   private async fetchInvoiceData(config: WidgetDataConfig): Promise<ChartDataPoint[]> {

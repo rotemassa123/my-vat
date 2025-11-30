@@ -37,6 +37,39 @@ export class WidgetService {
     }
   }
 
+  async getWidgetsWithData(): Promise<WidgetResponse[]> {
+    try {
+      const widgets = await this.widgetRepository.findAll();
+      
+      // Fetch data for all widgets in parallel
+      const widgetsWithData = await Promise.all(
+        widgets.map(async (widget) => {
+          try {
+            const data = await this.widgetDataService.fetchWidgetData(widget);
+            const response = this.mapToResponse(widget);
+            response.data = data;
+            response.dataUpdatedAt = new Date();
+            return response;
+          } catch (error) {
+            logger.error('Error fetching data for widget', 'WidgetService', { 
+              error, 
+              widgetId: widget._id.toString() 
+            });
+            // Return widget without data if data fetch fails
+            const response = this.mapToResponse(widget);
+            response.data = [];
+            return response;
+          }
+        })
+      );
+      
+      return widgetsWithData;
+    } catch (error) {
+      logger.error('Error getting widgets with data', 'WidgetService', { error });
+      throw error;
+    }
+  }
+
   async getWidget(id: string): Promise<WidgetResponse> {
     try {
       const widget = await this.widgetRepository.findById(id);
@@ -136,6 +169,8 @@ export class WidgetService {
       isActive: widget.is_active,
       createdAt: widget.created_at,
       updatedAt: widget.updated_at,
+      data: widget.data,
+      dataUpdatedAt: widget.data_updated_at,
     };
   }
 }

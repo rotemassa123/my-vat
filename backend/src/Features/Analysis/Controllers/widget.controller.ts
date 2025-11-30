@@ -30,11 +30,10 @@ export class WidgetController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all widgets for the current user' })
-  @ApiResponse({ status: 200, description: 'Widgets retrieved successfully', type: WidgetListResponse })
-  async getWidgets(): Promise<WidgetListResponse> {
-    const widgets = await this.widgetService.getWidgets();
-    return { widgets };
+  @ApiOperation({ summary: 'Get all widgets for the current user with pre-loaded data' })
+  @ApiResponse({ status: 200, description: 'Widgets with data retrieved successfully', type: [WidgetResponse] })
+  async getWidgets(): Promise<WidgetResponse[]> {
+    return await this.widgetService.getWidgetsWithData();
   }
 
   @Get(':id')

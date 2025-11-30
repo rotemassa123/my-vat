@@ -62,7 +62,8 @@ export interface Widget {
   isActive: boolean;
   createdAt: Date | string;
   updatedAt: Date | string;
-  entityId?: string;
+  data?: ChartDataPoint[];
+  dataUpdatedAt?: Date | string;
 }
 
 export interface WidgetListResponse {

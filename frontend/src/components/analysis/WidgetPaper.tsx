@@ -33,14 +33,14 @@ export const WidgetPaper: React.FC<WidgetPaperProps> = ({ widget }) => {
       resizeObserver.observe(chartContainerRef.current);
     }
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [widget.id]);
 
   const chartProps = { widget, width: chartDimensions.width, height: chartDimensions.height };
 
   // Calculate aspect ratio based on widget grid dimensions
   // Each grid unit is square, so aspect ratio = columns / rows
   const gridSize = WIDGET_GRID_SIZES[widget.type];
-  const aspectRatio = gridSize.columns / gridSize.rows;
+  const aspectRatio = gridSize ? gridSize.columns / gridSize.rows : 1;
 
   return (
     <Paper 

@@ -1,18 +1,17 @@
 import apiClient from './apiClient';
 import type {
   Widget,
-  WidgetListResponse,
   CreateWidgetRequest,
   UpdateWidgetRequest,
   WidgetDataResponse,
 } from '../types/widget';
 
 export const widgetApi = {
-  // Get all widgets for the current user
+  // Get all widgets for the current user (with pre-loaded data)
   getAll: async (): Promise<Widget[]> => {
     try {
-      const response = await apiClient.get<WidgetListResponse>('/widgets');
-      return response.data.widgets;
+      const response = await apiClient.get<Widget[]>('/widgets');
+      return response.data;
     } catch (error: any) {
       if (error.response?.status === 404) {
         return [];

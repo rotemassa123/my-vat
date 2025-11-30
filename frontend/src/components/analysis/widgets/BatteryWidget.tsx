@@ -35,8 +35,8 @@ export const BatteryWidget: React.FC<BatteryWidgetProps> = ({ widget, width, hei
   const series = data.map((point) => ({
     data: [point.value],
     label: point.label,
-    stack: 'total',
-
+    stack: 'total', // Stack all series together
+    barWidth: 12, // Make the bars thinner (height for horizontal layout)
     valueFormatter: (value: number | null) => {
       if (value === null) return '';
       const percentage = ((value / total) * 100).toFixed(1);

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { WidgetType, WidgetDataConfig, WidgetDisplayConfig, WidgetLayout } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
+import { WidgetType, WidgetDataConfig, WidgetDisplayConfig, WidgetLayout, ChartDataPoint } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
 
 export class WidgetResponse {
   @ApiProperty()
@@ -28,6 +28,12 @@ export class WidgetResponse {
 
   @ApiProperty()
   updatedAt: Date;
+
+  @ApiPropertyOptional({ type: [Object] })
+  data?: ChartDataPoint[];
+
+  @ApiPropertyOptional()
+  dataUpdatedAt?: Date;
 }
 
 export class WidgetListResponse {
