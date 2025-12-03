@@ -2,7 +2,6 @@ import React from 'react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { Box } from '@mui/material';
 import type { Widget, ChartDataPoint } from '../../../types/widget';
-import widgetDemoData from '../../../data/widgetDemoData.json';
 import { CHART_COLORS, CHART_TYPOGRAPHY, CHART_MARGINS, CHART_DIMENSIONS, Y_AXIS_SCALE } from '../../../constants/chartConstants';
 import styles from './BarChartWidget.module.scss';
 
@@ -19,7 +18,7 @@ const tickLabelStyle = {
 };
 
 export const BarChartWidget: React.FC<BarChartWidgetProps> = ({ widget, width, height }) => {
-  const data = widgetDemoData.bar as ChartDataPoint[];
+  const data = (widget.data || []) as ChartDataPoint[];
   const yAxisMax = Math.max(...data.map((d) => d.value)) / Y_AXIS_SCALE.BAR_MAX_RATIO;
 
   return (

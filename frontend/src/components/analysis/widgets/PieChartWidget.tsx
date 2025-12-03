@@ -1,7 +1,6 @@
 import React from 'react';
 import { PieChart } from '@mui/x-charts/PieChart';
 import type { Widget, ChartDataPoint } from '../../../types/widget';
-import widgetDemoData from '../../../data/widgetDemoData.json';
 import { CHART_DIMENSIONS, CHART_MARGINS } from '../../../constants/chartConstants';
 
 interface PieChartWidgetProps {
@@ -11,7 +10,7 @@ interface PieChartWidgetProps {
 }
 
 export const PieChartWidget: React.FC<PieChartWidgetProps> = ({ widget, width, height }) => {
-  const data = widgetDemoData.pie as ChartDataPoint[];
+  const data = (widget.data || []) as ChartDataPoint[];
   const pieChartData = data.map((point, index) => ({ id: index, value: point.value, label: point.label }));
 
   return (

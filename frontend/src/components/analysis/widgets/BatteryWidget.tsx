@@ -2,7 +2,6 @@ import React from 'react';
 import { BarChart } from '@mui/x-charts/BarChart';
 import { Box } from '@mui/material';
 import type { Widget, ChartDataPoint } from '../../../types/widget';
-import widgetDemoData from '../../../data/widgetDemoData.json';
 import {
   CHART_COLORS,
   CHART_TYPOGRAPHY,
@@ -19,7 +18,7 @@ interface BatteryWidgetProps {
 
 export const BatteryWidget: React.FC<BatteryWidgetProps> = ({ widget, width, height }) => {
   const chartWidth = width || CHART_DIMENSIONS.DEFAULT_WIDTH;
-  const data = widgetDemoData.battery as ChartDataPoint[];
+  const data = (widget.data || []) as ChartDataPoint[];
 
   const tickLabelStyle = {
     fontSize: CHART_TYPOGRAPHY.TICK_FONT_SIZE,

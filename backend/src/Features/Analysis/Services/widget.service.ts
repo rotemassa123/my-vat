@@ -158,6 +158,52 @@ export class WidgetService {
     }
   }
 
+  async refreshWidgetData(id: string): Promise<WidgetResponse> {
+    try {
+      const widget = await this.widgetRepository.findById(id);
+      if (!widget) {
+        throw new NotFoundException(`Widget with ID ${id} not found`);
+      }
+
+      // Check if there are new invoices since the last data update
+      // (Summaries always exist with invoices, so checking invoices is sufficient)
+      const lastUpdateDate = widget.data_updated_at;
+      const hasNewData = lastUpdateDate ? await this.widgetDataService.hasNewDataSince(lastUpdateDate) : true;
+
+      if (!hasNewData) {
+        // No new data, return widget as-is
+        logger.info('No new data found for widget refresh', 'WidgetService', { widgetId: id });
+        return this.mapToResponse(widget);
+      }
+
+      // Fetch fresh data
+      const newData = await this.widgetDataService.fetchWidgetData(widget);
+      
+      // Update widget with new data
+      const updatedWidget = await this.widgetRepository.update(id, {
+        data: newData,
+        dataUpdatedAt: new Date(),
+      });
+
+      if (!updatedWidget) {
+        throw new NotFoundException(`Widget with ID ${id} not found`);
+      }
+
+      logger.info('Widget data refreshed successfully', 'WidgetService', { 
+        widgetId: id, 
+        dataPoints: newData.length 
+      });
+
+      return this.mapToResponse(updatedWidget);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      logger.error('Error refreshing widget data', 'WidgetService', { error, id });
+      throw error;
+    }
+  }
+
   private mapToResponse(widget: any): WidgetResponse {
     return {
       id: widget._id.toString(),

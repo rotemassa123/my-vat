@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Widget, WidgetDocument } from '../DB/schemas/widget.schema';
-import { IWidgetRepository, CreateWidgetData, UpdateWidgetData } from 'src/Common/ApplicationCore/Services/IWidgetRepository';
+import { IWidgetRepository, CreateWidget, UpdateWidget } from 'src/Common/ApplicationCore/Services/IWidgetRepository';
 import { logger } from '../Config/Logger';
 
 @Injectable()
@@ -11,7 +11,7 @@ export class WidgetRepository implements IWidgetRepository {
     @InjectModel(Widget.name) private widgetModel: Model<WidgetDocument>,
   ) {}
 
-  async create(data: CreateWidgetData): Promise<WidgetDocument> {
+  async create(data: CreateWidget): Promise<WidgetDocument> {
     try {
       const widgetData: any = {
         type: data.type,
@@ -53,7 +53,7 @@ export class WidgetRepository implements IWidgetRepository {
     }
   }
 
-  async update(id: string, data: UpdateWidgetData): Promise<WidgetDocument | null> {
+  async update(id: string, data: UpdateWidget): Promise<WidgetDocument | null> {
     try {
       const updateData: any = {};
       
@@ -71,6 +71,12 @@ export class WidgetRepository implements IWidgetRepository {
       }
       if (data.isActive !== undefined) {
         updateData.is_active = data.isActive;
+      }
+      if (data.data !== undefined) {
+        updateData.data = data.data;
+      }
+      if (data.dataUpdatedAt !== undefined) {
+        updateData.data_updated_at = data.dataUpdatedAt;
       }
       
       updateData.updated_at = new Date();

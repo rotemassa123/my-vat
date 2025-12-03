@@ -67,6 +67,16 @@ export class WidgetController {
     return this.widgetService.updateWidget(id, request);
   }
 
+  @Post(':id/refresh')
+  @ApiOperation({ summary: 'Refresh widget data by checking for new invoices and updating data' })
+  @ApiParam({ name: 'id', description: 'Widget ID' })
+  @ApiResponse({ status: 200, description: 'Widget data refreshed successfully', type: WidgetResponse })
+  async refreshWidgetData(
+    @Param('id') id: string,
+  ): Promise<WidgetResponse> {
+    return this.widgetService.refreshWidgetData(id);
+  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a widget' })
   @ApiParam({ name: 'id', description: 'Widget ID' })
