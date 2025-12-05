@@ -43,6 +43,7 @@ export class WidgetRepository implements IWidgetRepository {
 
   async findAll(): Promise<WidgetDocument[]> {
     try {
+      // Stupid query - return everything as stored, no filtering, no transformation
       return await this.widgetModel
         .find({ is_active: true })
         .sort({ created_at: -1 })

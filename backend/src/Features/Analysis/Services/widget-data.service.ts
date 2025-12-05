@@ -139,20 +139,30 @@ export class WidgetDataService {
     try {
       const results = await this.invoiceModel.aggregate(pipeline).exec();
       
-      // Filter out null/undefined dates and map to chart data points
+      // Filter out null/undefined/empty values for all grouping fields
+      // BUT: Allow _id: null for metric widgets (no xAxisField - aggregated into single value)
       let chartData = results
         .filter((result: any) => {
-          // For date fields, filter out null/undefined/empty values
-          if (config.xAxisField?.toLowerCase() === 'date' && (!result._id || result._id === null || result._id === undefined || result._id === '')) {
+          // For metric widgets (no xAxisField), _id is intentionally null - allow it
+          if (!config.xAxisField && result._id === null) {
+            return true;
+          }
+          // Filter out null/undefined/empty _id values for widgets with xAxisField
+          if (!result._id || result._id === null || result._id === undefined || result._id === '') {
+            return false;
+          }
+          // Also filter out if originalValue is null/empty (for case-insensitive text grouping)
+          if (result.originalValue !== undefined && (!result.originalValue || result.originalValue === null || result.originalValue === '')) {
             return false;
           }
           return true;
         })
         .map((result: any) => {
           // Use originalValue if available (for case-insensitive text grouping), otherwise use _id
-          const labelValue = result.originalValue !== undefined ? result.originalValue : result._id;
+          // For metric widgets, _id is null, so use 'Total' as label
+          const labelValue = result.originalValue !== undefined ? result.originalValue : (result._id !== null ? result._id : 'Total');
           return {
-            label: labelValue !== null && labelValue !== undefined ? String(labelValue) : 'Total',
+            label: String(labelValue),
             value: result.value || 0,
             _originalId: labelValue,
           };
@@ -366,20 +376,30 @@ export class WidgetDataService {
     try {
       const results = await this.invoiceModel.aggregate(pipeline).exec();
       
-      // Filter out null/undefined dates and map to chart data points
+      // Filter out null/undefined/empty values for all grouping fields
+      // BUT: Allow _id: null for metric widgets (no xAxisField - aggregated into single value)
       let chartData = results
         .filter((result: any) => {
-          // For date fields, filter out null/undefined/empty values
-          if (config.xAxisField?.toLowerCase() === 'date' && (!result._id || result._id === null || result._id === undefined || result._id === '')) {
+          // For metric widgets (no xAxisField), _id is intentionally null - allow it
+          if (!config.xAxisField && result._id === null) {
+            return true;
+          }
+          // Filter out null/undefined/empty _id values for widgets with xAxisField
+          if (!result._id || result._id === null || result._id === undefined || result._id === '') {
+            return false;
+          }
+          // Also filter out if originalValue is null/empty (for case-insensitive text grouping)
+          if (result.originalValue !== undefined && (!result.originalValue || result.originalValue === null || result.originalValue === '')) {
             return false;
           }
           return true;
         })
         .map((result: any) => {
           // Use originalValue if available (for case-insensitive text grouping), otherwise use _id
-          const labelValue = result.originalValue !== undefined ? result.originalValue : result._id;
+          // For metric widgets, _id is null, so use 'Total' as label
+          const labelValue = result.originalValue !== undefined ? result.originalValue : (result._id !== null ? result._id : 'Total');
           return {
-            label: labelValue !== null && labelValue !== undefined ? String(labelValue) : 'Total',
+            label: String(labelValue),
             value: result.value || 0,
             _originalId: labelValue,
           };
@@ -547,20 +567,30 @@ export class WidgetDataService {
     try {
       const results = await this.summaryModel.aggregate(pipeline).exec();
       
-      // Filter out null/undefined dates and map to chart data points
+      // Filter out null/undefined/empty values for all grouping fields
+      // BUT: Allow _id: null for metric widgets (no xAxisField - aggregated into single value)
       let chartData = results
         .filter((result: any) => {
-          // For date fields, filter out null/undefined/empty values
-          if (config.xAxisField?.toLowerCase() === 'date' && (!result._id || result._id === null || result._id === undefined || result._id === '')) {
+          // For metric widgets (no xAxisField), _id is intentionally null - allow it
+          if (!config.xAxisField && result._id === null) {
+            return true;
+          }
+          // Filter out null/undefined/empty _id values for widgets with xAxisField
+          if (!result._id || result._id === null || result._id === undefined || result._id === '') {
+            return false;
+          }
+          // Also filter out if originalValue is null/empty (for case-insensitive text grouping)
+          if (result.originalValue !== undefined && (!result.originalValue || result.originalValue === null || result.originalValue === '')) {
             return false;
           }
           return true;
         })
         .map((result: any) => {
           // Use originalValue if available (for case-insensitive text grouping), otherwise use _id
-          const labelValue = result.originalValue !== undefined ? result.originalValue : result._id;
+          // For metric widgets, _id is null, so use 'Total' as label
+          const labelValue = result.originalValue !== undefined ? result.originalValue : (result._id !== null ? result._id : 'Total');
           return {
-            label: labelValue !== null && labelValue !== undefined ? String(labelValue) : 'Total',
+            label: String(labelValue),
             value: result.value || 0,
             // Store original _id for date parsing
             _originalId: labelValue,

@@ -211,6 +211,7 @@ export class WidgetService {
   }
 
   private mapToResponse(widget: any): WidgetResponse {
+    // Stupid mapping - return exactly what's in the DB, no logic, no transformation
     return {
       id: widget._id.toString(),
       userId: widget.user_id.toString(),
@@ -221,7 +222,7 @@ export class WidgetService {
       isActive: widget.is_active,
       createdAt: widget.created_at,
       updatedAt: widget.updated_at,
-      data: widget.data,
+      data: widget.data, // Return exactly as stored - could be array, undefined, null, whatever
       dataUpdatedAt: widget.data_updated_at,
     };
   }
