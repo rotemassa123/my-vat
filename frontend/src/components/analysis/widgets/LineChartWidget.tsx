@@ -19,9 +19,16 @@ const tickLabelStyle = {
 
 export const LineChartWidget: React.FC<LineChartWidgetProps> = ({ widget, width, height }) => {
   const data = (widget.data || []) as ChartDataPoint[];
-  const maxValue = Math.max(...data.map((d) => d.value));
-  const yAxisMin = Y_AXIS_SCALE.LINE_MIN;
-  const yAxisMax = (maxValue - yAxisMin) / Y_AXIS_SCALE.LINE_MAX_RATIO + yAxisMin;
+  const values = data.map((d) => d.value);
+  const minValue = Math.min(...values);
+  const maxValue = Math.max(...values);
+  
+  // Calculate dynamic Y-axis range with padding
+  // Add 10% padding at the bottom and 10% at the top for better visibility
+  const range = maxValue - minValue;
+  const padding = Math.max(range * 0.1, maxValue * 0.05); // At least 5% of max value as padding
+  const yAxisMin = Math.max(0, minValue - padding); // Don't go below 0
+  const yAxisMax = maxValue + padding;
 
   return (
     <Box className={styles.container}>
@@ -33,7 +40,7 @@ export const LineChartWidget: React.FC<LineChartWidgetProps> = ({ widget, width,
           tickLabelStyle,
         }]}
         series={[{
-          data: data.map((d) => d.value),
+          data: values,
           curve: 'linear',
           color: CHART_COLORS.PRIMARY
         }]}

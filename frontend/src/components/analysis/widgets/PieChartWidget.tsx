@@ -18,7 +18,7 @@ export const PieChartWidget: React.FC<PieChartWidgetProps> = ({ widget, width, h
       series={[{
         data: pieChartData,
         outerRadius: '80%',
-        arcLabel: widget.displayConfig.showLabels !== false ? (item) => `${item.value}` : undefined,
+        arcLabel: undefined,
         highlightScope: { fade: 'global', highlight: 'item' },
       }]}
       width={width || CHART_DIMENSIONS.PIE_WIDTH}

@@ -30,18 +30,21 @@ export const BatteryWidget: React.FC<BatteryWidgetProps> = ({ widget, width, hei
   const total = data.reduce((sum, point) => sum + point.value, 0);
 
   // Create stacked series data - each segment is a separate series
+  // Convert raw values to percentages so the visual matches the tooltip
   // Let Material-UI pick the colors automatically
-  const series = data.map((point) => ({
-    data: [point.value],
-    label: point.label,
-    stack: 'total', // Stack all series together
-    barWidth: 12, // Make the bars thinner (height for horizontal layout)
-    valueFormatter: (value: number | null) => {
-      if (value === null) return '';
-      const percentage = ((value / total) * 100).toFixed(1);
-      return `${percentage}%`;
-    },
-  }));
+  const series = data.map((point) => {
+    const percentage = total > 0 ? (point.value / total) * 100 : 0;
+    return {
+      data: [percentage],
+      label: point.label,
+      stack: 'total', // Stack all series together
+      barWidth: 12, // Make the bars thinner (height for horizontal layout)
+      valueFormatter: (value: number | null) => {
+        if (value === null) return '';
+        return `${value.toFixed(1)}%`;
+      },
+    };
+  });
 
   return (
     <Box className={styles.chartBox}>

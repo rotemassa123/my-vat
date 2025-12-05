@@ -20,7 +20,15 @@ export class WidgetService {
         displayConfig: request.displayConfig,
         layout: request.layout,
       });
-      return this.mapToResponse(widget);
+      
+      // Immediately refresh data for the new widget
+      const data = await this.widgetDataService.fetchWidgetData(widget);
+      const updatedWidget = await this.widgetRepository.update(widget._id.toString(), {
+        data: data,
+        dataUpdatedAt: new Date(),
+      });
+      
+      return this.mapToResponse(updatedWidget || widget);
     } catch (error) {
       logger.error('Error creating widget', 'WidgetService', { error });
       throw error;
@@ -39,31 +47,9 @@ export class WidgetService {
 
   async getWidgetsWithData(): Promise<WidgetResponse[]> {
     try {
+      // Simply return widgets with their stored data - no computation
       const widgets = await this.widgetRepository.findAll();
-      
-      // Fetch data for all widgets in parallel
-      const widgetsWithData = await Promise.all(
-        widgets.map(async (widget) => {
-          try {
-            const data = await this.widgetDataService.fetchWidgetData(widget);
-            const response = this.mapToResponse(widget);
-            response.data = data;
-            response.dataUpdatedAt = new Date();
-            return response;
-          } catch (error) {
-            logger.error('Error fetching data for widget', 'WidgetService', { 
-              error, 
-              widgetId: widget._id.toString() 
-            });
-            // Return widget without data if data fetch fails
-            const response = this.mapToResponse(widget);
-            response.data = [];
-            return response;
-          }
-        })
-      );
-      
-      return widgetsWithData;
+      return widgets.map(this.mapToResponse);
     } catch (error) {
       logger.error('Error getting widgets with data', 'WidgetService', { error });
       throw error;
@@ -165,18 +151,7 @@ export class WidgetService {
         throw new NotFoundException(`Widget with ID ${id} not found`);
       }
 
-      // Check if there are new invoices since the last data update
-      // (Summaries always exist with invoices, so checking invoices is sufficient)
-      const lastUpdateDate = widget.data_updated_at;
-      const hasNewData = lastUpdateDate ? await this.widgetDataService.hasNewDataSince(lastUpdateDate) : true;
-
-      if (!hasNewData) {
-        // No new data, return widget as-is
-        logger.info('No new data found for widget refresh', 'WidgetService', { widgetId: id });
-        return this.mapToResponse(widget);
-      }
-
-      // Fetch fresh data
+      // Fetch fresh data with all aggregation/date/cumulative logic
       const newData = await this.widgetDataService.fetchWidgetData(widget);
       
       // Update widget with new data
@@ -200,6 +175,37 @@ export class WidgetService {
         throw error;
       }
       logger.error('Error refreshing widget data', 'WidgetService', { error, id });
+      throw error;
+    }
+  }
+
+  async refreshAllWidgetsData(): Promise<WidgetResponse[]> {
+    try {
+      const widgets = await this.widgetRepository.findAll();
+      
+      // Refresh all widgets in parallel
+      const refreshedWidgets = await Promise.all(
+        widgets.map(async (widget) => {
+          try {
+            const data = await this.widgetDataService.fetchWidgetData(widget);
+            const updatedWidget = await this.widgetRepository.update(widget._id.toString(), {
+              data: data,
+              dataUpdatedAt: new Date(),
+            });
+            return updatedWidget || widget;
+          } catch (error) {
+            logger.error('Error refreshing widget data', 'WidgetService', { 
+              error, 
+              widgetId: widget._id.toString() 
+            });
+            return widget; // Return original widget if refresh fails
+          }
+        })
+      );
+      
+      return refreshedWidgets.map(this.mapToResponse);
+    } catch (error) {
+      logger.error('Error refreshing all widgets data', 'WidgetService', { error });
       throw error;
     }
   }

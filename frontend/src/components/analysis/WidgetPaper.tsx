@@ -49,7 +49,7 @@ export const WidgetPaper: React.FC<WidgetPaperProps> = ({ widget }) => {
       style={{ aspectRatio }}
     >
       <Typography variant="h6" className={styles.title}>
-        {widget.displayConfig.title} (€)
+        {widget.displayConfig.title}
       </Typography>
       <Box ref={chartContainerRef} className={styles.chartContainer}>
         <WidgetErrorBoundary>

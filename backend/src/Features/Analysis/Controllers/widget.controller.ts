@@ -68,13 +68,20 @@ export class WidgetController {
   }
 
   @Post(':id/refresh')
-  @ApiOperation({ summary: 'Refresh widget data by checking for new invoices and updating data' })
+  @ApiOperation({ summary: 'Refresh widget data by recalculating and updating stored data' })
   @ApiParam({ name: 'id', description: 'Widget ID' })
   @ApiResponse({ status: 200, description: 'Widget data refreshed successfully', type: WidgetResponse })
   async refreshWidgetData(
     @Param('id') id: string,
   ): Promise<WidgetResponse> {
     return this.widgetService.refreshWidgetData(id);
+  }
+
+  @Post('refresh/all')
+  @ApiOperation({ summary: 'Refresh data for all widgets' })
+  @ApiResponse({ status: 200, description: 'All widgets data refreshed successfully', type: [WidgetResponse] })
+  async refreshAllWidgetsData(): Promise<WidgetResponse[]> {
+    return this.widgetService.refreshAllWidgetsData();
   }
 
   @Delete(':id')
