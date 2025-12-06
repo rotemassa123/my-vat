@@ -21,6 +21,8 @@ import { DatabaseInitializationService } from "./Services/database-initializatio
 import { Summary, SummarySchema } from "./DB/schemas/summary.schema";
 import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
 import { Statistics, StatisticsSchema } from "./DB/schemas/statistics.schema";
+import { Conversation, ConversationSchema } from "./DB/schemas/conversation.schema";
+import { Message, MessageSchema } from "./DB/schemas/message.schema";
 import { IImageStorageProvider } from "../ApplicationCore/Providers/IImageStorageProvider";
 import { CloudinaryStorageProvider } from "./Services/CloudinaryStorageProvider";
 
@@ -38,6 +40,8 @@ import { CloudinaryStorageProvider } from "./Services/CloudinaryStorageProvider"
       { name: Invoice.name, schema: InvoiceSchema },
       { name: Summary.name, schema: SummarySchema },
       { name: Statistics.name, schema: StatisticsSchema },
+      { name: Conversation.name, schema: ConversationSchema },
+      { name: Message.name, schema: MessageSchema },
     ]),
     JwtModule.registerAsync(jwtModuleOptionsFactory),
   ],
