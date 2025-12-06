@@ -16,9 +16,6 @@ const AnalysisPage: React.FC = () => {
         <Typography variant="h4" className={styles.title}>
           Analysis
         </Typography>
-        <Typography variant="body1" className={styles.subtitle}>
-          Widget dashboard
-        </Typography>
       </div>
       <div className={styles.content}>
         <div
