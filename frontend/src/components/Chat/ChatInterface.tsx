@@ -70,7 +70,7 @@ const ChatInterface: React.FC = () => {
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        px: 4,
+        px: 2,
       }}
     >
       {/* Messages Area */}

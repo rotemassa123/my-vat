@@ -16,6 +16,7 @@ import UserAvatarMenu from '../UserAvatarMenu';
 import FloatingActionButton from '../FloatingActionButton/FloatingActionButton';
 import UploadModal from '../UploadModal/UploadModal';
 import UploadProgressManager from '../UploadProgressManager/UploadProgressManager';
+import ChatPanel from '../Chat/ChatPanel';
 import { UploadProvider } from '../../contexts/UploadContext';
 import RouteGuard from '../RouteGuard';
 import styles from './AppLayout.module.scss';
@@ -26,6 +27,14 @@ import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
 export default function AppLayout() {
   const location = useLocation();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+  const [chatPanelWidth, setChatPanelWidth] = useState(() => {
+    // Initialize to 15% of screen width
+    if (typeof window !== 'undefined') {
+      return window.innerWidth * 0.15;
+    }
+    return 300;
+  });
   const { user } = useAuthStore();
   const {
     mandatoryStatus,
@@ -34,11 +43,15 @@ export default function AppLayout() {
   } = useAppBootstrapContext();
 
   const handleFabClick = () => {
-    setIsUploadModalOpen(true);
+    setIsChatPanelOpen(true);
   };
 
   const handleCloseUploadModal = () => {
     setIsUploadModalOpen(false);
+  };
+
+  const handleCloseChatPanel = () => {
+    setIsChatPanelOpen(false);
   };
 
   const navigationItems = getNavigationItems(user?.userType);
@@ -145,16 +158,29 @@ export default function AppLayout() {
         </Box>
 
         {/* Main Content */}
-        <Box className={styles.mainContent}>
+        <Box 
+          className={`${styles.mainContent} ${isChatPanelOpen ? styles.chatOpen : ''}`}
+          style={{ marginRight: isChatPanelOpen ? `${chatPanelWidth}px` : 0 }}
+        >
           {/* Content Area */}
-          <Box className={styles.content}>
+          <Box className={`${styles.content} ${isChatPanelOpen ? styles.chatOpen : ''}`}>
             <Outlet />
           </Box>
         </Box>
       </Box>
 
-      {/* Floating Action Button */}
-      <FloatingActionButton onClick={handleFabClick} />
+      {/* Floating Action Button - Hide when chat panel is open */}
+      {!isChatPanelOpen && (
+        <FloatingActionButton onClick={handleFabClick} />
+      )}
+
+      {/* AI Chat Panel */}
+      <ChatPanel
+        isOpen={isChatPanelOpen}
+        onClose={handleCloseChatPanel}
+        width={chatPanelWidth}
+        onWidthChange={setChatPanelWidth}
+      />
 
       {/* Upload Components with Provider */}
       <UploadProvider>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Fab, Tooltip } from '@mui/material';
-import { CloudUpload } from '@mui/icons-material';
+import { AutoAwesome } from '@mui/icons-material';
 import styles from './FloatingActionButton.module.scss';
 
 interface FloatingActionButtonProps {
@@ -14,16 +14,16 @@ const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
 }) => {
   return (
     <div className={styles.fabContainer}>
-      <Tooltip title="Upload invoices" placement="left" arrow>
+      <Tooltip title="AI Assistant" placement="left" arrow>
         <Fab
           color="primary"
-          aria-label="upload invoices"
+          aria-label="open AI assistant"
           onClick={onClick}
           disabled={disabled}
           className={styles.fab}
           size="large"
         >
-          <CloudUpload className={styles.uploadIcon} />
+          <AutoAwesome className={styles.uploadIcon} />
         </Fab>
       </Tooltip>
     </div>

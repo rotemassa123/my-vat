@@ -1,0 +1,73 @@
+.chatPanel {
+  position: fixed;
+  right: 0;
+  top: 120px; // Start below header (header height is 120px)
+  height: calc(100vh - 120px); // Full height minus header
+  background-color: #ffffff;
+  border-left: 1px solid #e5e7eb;
+  border-top: 1px solid #e5e7eb;
+  z-index: 100; // Below header (z-index: 10) but above content
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease;
+
+  &.resizing {
+    transition: none;
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon {
+  color: #3b82f6;
+  font-size: 20px;
+}
+
+.title {
+  font-weight: 600;
+  color: #1f2937;
+  padding-left: 12px;
+}
+
+.closeButton {
+  color: #6b7280;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+.resizeHandle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 4px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: transparent;
+  z-index: 1;
+
+  &:hover {
+    background-color: #3b82f6;
+  }
+}
+
+.content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+

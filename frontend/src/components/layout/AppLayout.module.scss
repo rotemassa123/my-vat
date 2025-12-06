@@ -165,6 +165,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transition: margin-right 0.2s ease;
+
+  &.chatOpen {
+    // margin-right is set inline for dynamic width
+  }
 }
 
 .content {
@@ -172,6 +177,11 @@
   padding-left: 2rem;
   padding-right: 2rem;
   overflow: hidden;
+  transition: padding-right 0.2s ease;
+
+  &.chatOpen {
+    padding-right: 8px;
+  }
 }
 
 @media (max-width: 768px) {

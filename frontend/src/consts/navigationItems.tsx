@@ -61,11 +61,6 @@ export const BASE_NAVIGATION: NavigationItem[] = [
     label: 'Invoices',
     icon: InvoiceIcon,
   },
-  {
-    path: '/chat',
-    label: 'AI Chat',
-    icon: ChatIcon,
-  },
 ];
 
 export const ADMIN_NAVIGATION: NavigationItem[] = [
