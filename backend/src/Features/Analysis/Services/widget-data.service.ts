@@ -47,7 +47,7 @@ export class WidgetDataService {
   }
 
   private requiresInvoiceFields(config: WidgetDataConfig): boolean {
-    const invoiceFields = ['status', 'claim_amount', 'source', 'created_at', 'status_updated_at'];
+    const invoiceFields = ['status', 'claim_amount', 'source', 'created_at', 'status_updated_at', 'entity_id'];
     const xField = config.xAxisField?.toLowerCase();
     const yField = config.yAxisField?.toLowerCase();
     const filterKeys = Object.keys(config.filters || {});
@@ -440,6 +440,7 @@ export class WidgetDataService {
       'created_at': '$created_at', // Invoice creation/upload date
       'status': '$status',
       'source': '$source',
+      'entity_id': '$entity_id',
     };
 
     const lowerField = field.toLowerCase();
@@ -633,6 +634,7 @@ export class WidgetDataService {
       'created_at': '$created_at',
       'is_invoice': '$is_invoice',
       'file_name': '$file_name',
+      'entity_id': '$entity_id',
     };
 
     const lowerField = field.toLowerCase();
