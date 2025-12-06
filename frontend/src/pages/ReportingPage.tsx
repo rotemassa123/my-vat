@@ -17,6 +17,9 @@ import { InvoiceApiService } from '../lib/invoiceApi';
 import { useDownloadInvoice } from '../hooks/invoice/useDownloadInvoice';
 import type { ReportingFilters, ReportingInvoice } from '../types/reporting';
 import { ReportingHeader, ReportingTable } from '../components/reporting';
+import UploadModal from '../components/UploadModal/UploadModal';
+import UploadProgressManager from '../components/UploadProgressManager/UploadProgressManager';
+import { UploadProvider } from '../contexts/UploadContext';
 import styles from './ReportingPage.module.scss';
 
 // Status configuration moved to ReportingTableRow component
@@ -189,6 +192,7 @@ const sortInvoices = (
 };
 
 const ReportingPage: React.FC = () => {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
   const [exportSuccess, setExportSuccess] = useState(false);
@@ -399,7 +403,17 @@ const ReportingPage: React.FC = () => {
         isExporting={isExporting}
         activeFiltersText={getActiveFiltersText()}
         onExportClick={handleExport}
+        onUploadClick={() => setIsUploadModalOpen(true)}
       />
+
+      {/* Upload Modal (local to this page) */}
+      <UploadProvider>
+        <UploadModal 
+          open={isUploadModalOpen} 
+          onClose={() => setIsUploadModalOpen(false)} 
+        />
+        <UploadProgressManager />
+      </UploadProvider>
 
       {/* Export Error Alert */}
       {exportError && (
