@@ -10,6 +10,8 @@ import { Send as SendIcon } from '@mui/icons-material';
 import { useChatWebSocket } from '../../hooks/chat/useChatWebSocket';
 import { useAuthStore } from '../../store/authStore';
 
+export type ChatMode = 'ai' | 'support';
+
 interface ChatMessage {
   id: string;
   content: string;
@@ -18,16 +20,23 @@ interface ChatMessage {
   isError?: boolean; // Optional error flag for styling
 }
 
-const ChatInterface: React.FC = () => {
+interface ChatInterfaceProps {
+  mode?: ChatMode;
+}
+
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode = 'ai' }) => {
   const { user } = useAuthStore();
-  const { messages, sendMessage, isConnected, isLoading } = useChatWebSocket(user?._id || 'demo-user');
+  const isSupportMode = mode === 'support';
+  // Use different conversation IDs for AI vs Support
+  const conversationId = isSupportMode ? `support-${user?._id || 'demo-user'}` : `ai-${user?._id || 'demo-user'}`;
+  const { messages, sendMessage, isConnected, isLoading } = useChatWebSocket(conversationId);
   const [inputMessage, setInputMessage] = useState('');
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Add initial AI greeting only if no messages exist (first time user)
+  // Add initial AI greeting only for AI mode and only if no messages exist (first time user)
   useEffect(() => {
-    if (messages.length === 0 && localMessages.length === 0 && isConnected) {
+    if (!isSupportMode && messages.length === 0 && localMessages.length === 0 && isConnected) {
       const greetingMessage: ChatMessage = {
         id: 'greeting',
         content: `Good morning ${user?.fullName || 'there'}! I am your MyVAT personal assistant. I can help with your invoices and data, or general VAT rules. How can I help?`,
@@ -36,7 +45,7 @@ const ChatInterface: React.FC = () => {
       };
       setLocalMessages([greetingMessage]);
     }
-  }, [isConnected, user?.fullName, messages.length]);
+  }, [isConnected, user?.fullName, messages.length, isSupportMode]);
 
   // Combine local messages with WebSocket messages (localMessages is just for greeting)
   const allMessages = [...messages, ...localMessages];
@@ -103,7 +112,13 @@ const ChatInterface: React.FC = () => {
               }}
             >
               <Typography variant="body1">
-                {isConnected ? 'Start a conversation with your VAT assistant!' : 'Connecting to AI assistant...'}
+                {isConnected 
+                  ? (isSupportMode 
+                      ? 'How can we help you today?' 
+                      : 'Start a conversation with your VAT assistant!')
+                  : (isSupportMode 
+                      ? 'Connecting to support...' 
+                      : 'Connecting to AI assistant...')}
               </Typography>
             </Box>
           ) : (
@@ -191,7 +206,9 @@ const ChatInterface: React.FC = () => {
             fullWidth
             multiline
             maxRows={4}
-            placeholder="Ask me about your invoices, VAT rules, or anything else..."
+            placeholder={isSupportMode 
+              ? "Describe your issue or question..." 
+              : "Ask me about your invoices, VAT rules, or anything else..."}
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             onKeyPress={handleKeyPress}

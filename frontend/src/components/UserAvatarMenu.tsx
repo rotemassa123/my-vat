@@ -14,13 +14,18 @@ import {
   Settings,
   Logout,
   KeyboardArrowDown,
+  Help as SupportIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useLogout } from '../hooks/auth/useLogout';
 import styles from './UserAvatarMenu.module.scss';
 
-export default function UserAvatarMenu() {
+interface UserAvatarMenuProps {
+  onSupportClick?: () => void;
+}
+
+export default function UserAvatarMenu({ onSupportClick }: UserAvatarMenuProps) {
   const navigate = useNavigate();
   const { user } = useAuthStore();
   const { logout } = useLogout();
@@ -43,6 +48,13 @@ export default function UserAvatarMenu() {
   const handleSettings = () => {
     // Navigate to settings
     navigate('/settings');
+    handleClose();
+  };
+
+  const handleSupport = () => {
+    if (onSupportClick) {
+      onSupportClick();
+    }
     handleClose();
   };
 
@@ -127,6 +139,18 @@ export default function UserAvatarMenu() {
             primaryTypographyProps={{ className: styles.menuText }}
           />
         </MenuItem>
+
+        <MenuItem onClick={handleSupport} className={styles.menuItem}>
+          <ListItemIcon className={styles.menuIcon}>
+            <SupportIcon sx={{ color: '#40578c' }} />
+          </ListItemIcon>
+          <ListItemText 
+            primary="Contact Support" 
+            primaryTypographyProps={{ className: styles.menuText }}
+          />
+        </MenuItem>
+
+        <Divider className={styles.divider} />
 
         <MenuItem onClick={handleLogout} className={styles.menuItem}>
           <ListItemIcon className={styles.menuIcon}>

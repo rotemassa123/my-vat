@@ -28,6 +28,7 @@ export default function AppLayout() {
   const location = useLocation();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+  const [chatMode, setChatMode] = useState<'ai' | 'support'>('ai');
   const [chatPanelWidth, setChatPanelWidth] = useState(() => {
     // Initialize to 15% of screen width
     if (typeof window !== 'undefined') {
@@ -43,6 +44,12 @@ export default function AppLayout() {
   } = useAppBootstrapContext();
 
   const handleFabClick = () => {
+    setChatMode('ai');
+    setIsChatPanelOpen(true);
+  };
+
+  const handleSupportClick = () => {
+    setChatMode('support');
     setIsChatPanelOpen(true);
   };
 
@@ -131,7 +138,7 @@ export default function AppLayout() {
         </Box>
 
         {/* User Avatar Menu */}
-        <UserAvatarMenu />
+        <UserAvatarMenu onSupportClick={handleSupportClick} />
       </Box>
 
       {/* Body Container */}
@@ -174,12 +181,13 @@ export default function AppLayout() {
         <FloatingActionButton onClick={handleFabClick} />
       )}
 
-      {/* AI Chat Panel */}
+      {/* Chat Panel */}
       <ChatPanel
         isOpen={isChatPanelOpen}
         onClose={handleCloseChatPanel}
         width={chatPanelWidth}
         onWidthChange={setChatPanelWidth}
+        mode={chatMode}
       />
 
       {/* Upload Components with Provider */}
