@@ -5,6 +5,7 @@ import type {
   UpdateWidgetRequest,
   WidgetDataResponse,
 } from '../types/widget';
+import type { GlobalFilters } from '../store/analysisFiltersStore';
 
 export const widgetApi = {
   // Get all widgets for the current user (with pre-loaded data)
@@ -104,6 +105,35 @@ export const widgetApi = {
         throw new Error('You do not have permission to view this widget data');
       }
       throw new Error('Failed to fetch widget data');
+    }
+  },
+
+  // Refresh all widgets with optional global filters
+  refreshAll: async (filters?: GlobalFilters): Promise<Widget[]> => {
+    try {
+      const params: Record<string, string> = {};
+      
+      if (filters?.entityIds && filters.entityIds.length > 0) {
+        params.entityIds = filters.entityIds.join(',');
+      }
+      if (filters?.country) {
+        params.country = filters.country;
+      }
+      if (filters?.dateRange) {
+        params.startDate = filters.dateRange.start.toISOString().split('T')[0];
+        params.endDate = filters.dateRange.end.toISOString().split('T')[0];
+      }
+
+      // Send POST with no body (empty object) - only query params
+      const response = await apiClient.post<Widget[]>('/widgets/refresh/all', {}, {
+        params,
+      });
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 403) {
+        throw new Error('You do not have permission to refresh widgets');
+      }
+      throw new Error('Failed to refresh widgets');
     }
   },
 };

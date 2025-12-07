@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsObject, IsString, IsOptional, IsBoolean, ValidateNested, IsArray, IsNumber } from 'class-validator';
+import { IsEnum, IsObject, IsString, IsOptional, IsBoolean, ValidateNested, IsArray, IsNumber, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 import { WidgetType, WidgetDataConfig, WidgetDisplayConfig, WidgetLayout, LayoutPosition, AxisConfig, AggregationType, TimeGrouping, WidgetFilters } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
 
@@ -171,5 +171,27 @@ export class UpdateWidgetRequest {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+}
+
+export class GlobalFiltersDto {
+  @ApiPropertyOptional({ type: String, description: 'Comma-separated list of entity IDs' })
+  @IsOptional()
+  @IsString()
+  entityIds?: string;
+
+  @ApiPropertyOptional({ type: String, description: 'Country code' })
+  @IsOptional()
+  @IsString()
+  country?: string;
+
+  @ApiPropertyOptional({ type: String, format: 'date', description: 'Start date for time range filter (YYYY-MM-DD format)' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ type: String, format: 'date', description: 'End date for time range filter (YYYY-MM-DD format)' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
 }
 

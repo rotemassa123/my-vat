@@ -3,7 +3,7 @@ import { IWidgetRepository } from 'src/Common/ApplicationCore/Services/IWidgetRe
 import { CreateWidgetRequest, UpdateWidgetRequest } from '../Requests/widget.requests';
 import { WidgetResponse, WidgetDataResponse } from '../Responses/widget.responses';
 import { logger } from 'src/Common/Infrastructure/Config/Logger';
-import { WidgetDataService } from './widget-data.service';
+import { WidgetDataService, GlobalFilters } from './widget-data.service';
 
 @Injectable()
 export class WidgetService {
@@ -179,7 +179,7 @@ export class WidgetService {
     }
   }
 
-  async refreshAllWidgetsData(): Promise<WidgetResponse[]> {
+  async refreshAllWidgetsData(globalFilters?: GlobalFilters): Promise<WidgetResponse[]> {
     try {
       const widgets = await this.widgetRepository.findAll();
       
@@ -187,7 +187,7 @@ export class WidgetService {
       const refreshedWidgets = await Promise.all(
         widgets.map(async (widget) => {
           try {
-            const data = await this.widgetDataService.fetchWidgetData(widget);
+            const data = await this.widgetDataService.fetchWidgetData(widget, globalFilters);
             const updatedWidget = await this.widgetRepository.update(widget._id.toString(), {
               data: data,
               dataUpdatedAt: new Date(),

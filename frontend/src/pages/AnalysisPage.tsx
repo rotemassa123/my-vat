@@ -1,14 +1,19 @@
 import React from 'react';
-import { Typography } from '@mui/material';
+import { Typography, CircularProgress, Box } from '@mui/material';
 import { WidgetPaper } from '../components/analysis/WidgetPaper';
+import { GlobalFiltersBar } from '../components/analysis/GlobalFiltersBar';
 import { useActiveWidgets } from '../store/widgetStore';
 import { WIDGET_GRID_SIZES } from '../constants/gridConstants';
 import { useAnalysisGrid } from '../hooks/analysis/useAnalysisGrid';
+import { useGlobalFilters } from '../hooks/analysis/useGlobalFilters';
+import { useRefreshWidgets } from '../hooks/analysis/useRefreshWidgets';
 import styles from './AnalysisPage.module.scss';
 
 const AnalysisPage: React.FC = () => {
   const { gridRef, columns, unitSize } = useAnalysisGrid();
   const widgets = useActiveWidgets();
+  useGlobalFilters(); // Initialize URL sync
+  const { isRefreshing } = useRefreshWidgets(); // Auto-refresh when filters change
 
   return (
     <div className={styles.page}>
@@ -16,7 +21,16 @@ const AnalysisPage: React.FC = () => {
         <Typography variant="h4" className={styles.title}>
           Analysis
         </Typography>
+        {isRefreshing && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+            <CircularProgress size={20} />
+            <Typography variant="body2" color="text.secondary">
+              Refreshing widgets...
+            </Typography>
+          </Box>
+        )}
       </div>
+      <GlobalFiltersBar />
       <div className={styles.content}>
         <div
           ref={gridRef}

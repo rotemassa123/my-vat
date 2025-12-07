@@ -13,6 +13,15 @@ export interface ChartDataPoint {
   value: number;
 }
 
+export interface GlobalFilters {
+  entityIds?: string[];
+  country?: string;
+  dateRange?: {
+    start: Date;
+    end: Date;
+  };
+}
+
 @Injectable()
 export class WidgetDataService {
   constructor(
@@ -21,29 +30,71 @@ export class WidgetDataService {
     @InjectModel(Entity.name) private entityModel: Model<EntityDocument>,
   ) {}
 
-  async fetchWidgetData(widget: WidgetDocument): Promise<ChartDataPoint[]> {
+  async fetchWidgetData(widget: WidgetDocument, globalFilters?: GlobalFilters): Promise<ChartDataPoint[]> {
     const config = widget.data_config as WidgetDataConfig;
     
+    // Merge global filters with widget's filters (global filters take precedence)
+    const mergedConfig = this.mergeFilters(config, globalFilters);
+    
+    // Debug logging
+    if (globalFilters) {
+      logger.info('Applying global filters to widget', 'WidgetDataService', {
+        widgetId: widget._id.toString(),
+        globalFilters,
+        mergedFilters: mergedConfig.filters,
+      });
+    }
+    
     // yAxisField is required for all widgets
-    if (!config.yAxisField) {
+    if (!mergedConfig.yAxisField) {
       return [];
     }
     
     // Determine if we need data from both collections
     // Some graphs need invoice fields (status, claim_amount) AND summary fields (country, classification, total_amount)
-    const needsInvoiceFields = this.requiresInvoiceFields(config);
-    const needsSummaryFields = this.requiresSummaryFields(config);
+    const needsInvoiceFields = this.requiresInvoiceFields(mergedConfig);
+    const needsSummaryFields = this.requiresSummaryFields(mergedConfig);
     
     if (needsInvoiceFields && needsSummaryFields) {
       // Need both: join invoices with summaries
-      return this.fetchJoinedData(config);
+      return this.fetchJoinedData(mergedConfig);
     } else if (needsSummaryFields) {
       // Only need summary data
-      return this.fetchSummaryData(config);
+      return this.fetchSummaryData(mergedConfig);
     } else {
       // Default to invoices only
-      return this.fetchInvoiceData(config);
+      return this.fetchInvoiceData(mergedConfig);
     }
+  }
+
+  private mergeFilters(config: WidgetDataConfig, globalFilters?: GlobalFilters): WidgetDataConfig {
+    if (!globalFilters) {
+      return config;
+    }
+
+    const mergedConfig = { ...config };
+    mergedConfig.filters = { ...config.filters };
+
+    // Merge entityIds
+    if (globalFilters.entityIds && globalFilters.entityIds.length > 0) {
+      mergedConfig.filters.entityIds = globalFilters.entityIds;
+    }
+
+    // Merge country
+    if (globalFilters.country) {
+      mergedConfig.filters.country = globalFilters.country;
+    }
+
+    // Merge dateRange (global takes precedence)
+    if (globalFilters.dateRange) {
+      mergedConfig.filters.dateRange = {
+        start: globalFilters.dateRange.start,
+        end: globalFilters.dateRange.end,
+        field: config.filters?.dateRange?.field, // Keep widget's field if specified
+      };
+    }
+
+    return mergedConfig;
   }
 
   private requiresInvoiceFields(config: WidgetDataConfig): boolean {
@@ -80,12 +131,22 @@ export class WidgetDataService {
     const pipeline: any[] = [];
 
     const matchStage: any = {};
+    
+    // Apply entityIds filter
+    if (config.filters?.entityIds && Array.isArray(config.filters.entityIds) && config.filters.entityIds.length > 0) {
+      matchStage.entity_id = {
+        $in: config.filters.entityIds.map(id => new Types.ObjectId(id)),
+      };
+    }
+    
+    // Apply dateRange filter
     if (config.filters?.dateRange) {
       matchStage.created_at = {
         $gte: new Date(config.filters.dateRange.start),
         $lte: new Date(config.filters.dateRange.end),
       };
     }
+    
     if (Object.keys(matchStage).length > 0) {
       pipeline.push({ $match: matchStage });
     }
@@ -137,7 +198,11 @@ export class WidgetDataService {
     }
 
     try {
-      const results = await this.invoiceModel.aggregate(pipeline).exec();
+      // Disable entity scope plugin when we have entity filters (plugin conflicts with our filter)
+      const options = config.filters?.entityIds && config.filters.entityIds.length > 0 
+        ? { disableEntityScope: true } 
+        : {};
+      const results = await this.invoiceModel.aggregate(pipeline, options).exec();
       
       // Filter out null/undefined/empty values for all grouping fields
       // BUT: Allow _id: null for metric widgets (no xAxisField - aggregated into single value)
@@ -282,6 +347,14 @@ export class WidgetDataService {
 
     // Start with invoices
     const matchStage: any = {};
+    
+    // Apply entityIds filter
+    if (config.filters?.entityIds && Array.isArray(config.filters.entityIds) && config.filters.entityIds.length > 0) {
+      matchStage.entity_id = {
+        $in: config.filters.entityIds.map(id => new Types.ObjectId(id)),
+      };
+    }
+    
     if (config.filters?.dateRange) {
       matchStage.created_at = {
         $gte: new Date(config.filters.dateRange.start),
@@ -317,7 +390,10 @@ export class WidgetDataService {
     // Add summary-based filters
     const summaryMatchStage: any = {};
     if (config.filters?.country && pipeline.length > 0) {
-      summaryMatchStage['summary.summary_content.country'] = config.filters.country;
+      // Use case-insensitive regex match for country
+      summaryMatchStage['summary.summary_content.country'] = { 
+        $regex: new RegExp(`^${config.filters.country}$`, 'i') 
+      };
     }
     if (config.filters?.classification && pipeline.length > 0) {
       summaryMatchStage['summary.summary_content.classification'] = config.filters.classification;
@@ -374,7 +450,11 @@ export class WidgetDataService {
     }
 
     try {
-      const results = await this.invoiceModel.aggregate(pipeline).exec();
+      // Disable entity scope plugin when we have entity filters (plugin conflicts with our filter)
+      const options = config.filters?.entityIds && config.filters.entityIds.length > 0 
+        ? { disableEntityScope: true } 
+        : {};
+      const results = await this.invoiceModel.aggregate(pipeline, options).exec();
       
       // Filter out null/undefined/empty values for all grouping fields
       // BUT: Allow _id: null for metric widgets (no xAxisField - aggregated into single value)
@@ -496,38 +576,139 @@ export class WidgetDataService {
     }
 
     const pipeline: any[] = [];
+    const hasEntityFilter = config.filters?.entityIds && Array.isArray(config.filters.entityIds) && config.filters.entityIds.length > 0;
+    let yAxisDbPath: string;
+    let useInvoiceModel = false; // Track if we're using invoice model (for joined queries)
 
-    // Match stage with filters
-    const matchStage: any = {};
-    if (config.filters?.dateRange) {
-      matchStage.created_at = {
-        $gte: new Date(config.filters.dateRange.start),
-        $lte: new Date(config.filters.dateRange.end),
-      };
-    }
-    if (config.filters?.country) {
-      matchStage['summary_content.country'] = config.filters.country;
-    }
-    if (config.filters?.classification) {
-      matchStage['summary_content.classification'] = config.filters.classification;
-    }
-    if (config.filters?.category) {
-      matchStage['summary_content.category'] = config.filters.category;
-    }
-    if (config.filters?.is_invoice !== undefined) {
-      matchStage.is_invoice = config.filters.is_invoice;
-    }
-    if (Object.keys(matchStage).length > 0) {
-      pipeline.push({ $match: matchStage });
+    // If we have entity filters, start with invoices (which have entity_id) and join summaries
+    // This works around the issue where summaries might not have entity_id set correctly
+    if (hasEntityFilter) {
+      // Start with invoices filtered by entity_id
+      const invoiceMatchStage: any = {};
+      try {
+        const objectIds = config.filters.entityIds
+          .filter(id => id && Types.ObjectId.isValid(id))
+          .map(id => new Types.ObjectId(id));
+        
+        if (objectIds.length > 0) {
+          invoiceMatchStage.entity_id = { $in: objectIds };
+        }
+      } catch (error) {
+        logger.error('Error processing entity IDs in fetchSummaryData', 'WidgetDataService', { error });
+      }
+      
+      if (config.filters?.dateRange) {
+        invoiceMatchStage.created_at = {
+          $gte: new Date(config.filters.dateRange.start),
+          $lte: new Date(config.filters.dateRange.end),
+        };
+      }
+      
+      if (Object.keys(invoiceMatchStage).length > 0) {
+        pipeline.push({ $match: invoiceMatchStage });
+      }
+      
+      // Join with summaries using invoice.name === summary.file_name
+      pipeline.push({
+        $lookup: {
+          from: 'summaries',
+          localField: 'name',
+          foreignField: 'file_name',
+          as: 'summary'
+        }
+      });
+      
+      // Unwind summary (should be 0 or 1 match per invoice)
+      pipeline.push({
+        $unwind: {
+          path: '$summary',
+          preserveNullAndEmptyArrays: false // Only keep invoices with summaries
+        }
+      });
+      
+      // Now filter summaries
+      const summaryMatchStage: any = {};
+      if (config.filters?.is_invoice === undefined) {
+        summaryMatchStage['summary.is_invoice'] = true;
+      }
+      
+      if (config.filters?.country) {
+        summaryMatchStage['summary.summary_content.country'] = { 
+          $regex: new RegExp(`^${config.filters.country}$`, 'i') 
+        };
+      }
+      if (config.filters?.classification) {
+        summaryMatchStage['summary.summary_content.classification'] = config.filters.classification;
+      }
+      if (config.filters?.category) {
+        summaryMatchStage['summary.summary_content.category'] = config.filters.category;
+      }
+      if (config.filters?.is_invoice !== undefined) {
+        summaryMatchStage['summary.is_invoice'] = config.filters.is_invoice;
+      }
+      
+      if (Object.keys(summaryMatchStage).length > 0) {
+        pipeline.push({ $match: summaryMatchStage });
+      }
+      
+      // Map fields to summary paths (prefixed with 'summary.')
+      yAxisDbPath = this.mapYAxisFieldToSummaryPath(config.yAxisField).replace('$summary_content', '$summary.summary_content');
+      useInvoiceModel = true; // We're using invoice model with join
+    } else {
+      // No entity filter - query summaries directly (entity scope plugin will handle entity filtering)
+      const matchStage: any = {};
+      
+      // Only get successful invoice summaries (if not explicitly overridden)
+      if (config.filters?.is_invoice === undefined) {
+        matchStage.is_invoice = true;
+      }
+    
+      if (config.filters?.dateRange) {
+        // For summary-based widgets, filter by invoice date in summary_content.date if available
+        // Otherwise fall back to created_at (summary creation date)
+        // Note: summary_content.date is a string, so we need to convert it for comparison
+        // For now, use created_at as it's more reliable for filtering
+        matchStage.created_at = {
+          $gte: new Date(config.filters.dateRange.start),
+          $lte: new Date(config.filters.dateRange.end),
+        };
+      }
+      if (config.filters?.country) {
+        // Use case-insensitive regex match for country
+        matchStage['summary_content.country'] = { 
+          $regex: new RegExp(`^${config.filters.country}$`, 'i') 
+        };
+      }
+      if (config.filters?.classification) {
+        matchStage['summary_content.classification'] = config.filters.classification;
+      }
+      if (config.filters?.category) {
+        matchStage['summary_content.category'] = config.filters.category;
+      }
+      if (config.filters?.is_invoice !== undefined) {
+        matchStage.is_invoice = config.filters.is_invoice;
+      }
+      if (Object.keys(matchStage).length > 0) {
+        pipeline.push({ $match: matchStage });
+      }
+
+      // Map fields to actual DB paths
+      yAxisDbPath = this.mapYAxisFieldToSummaryPath(config.yAxisField);
+      useInvoiceModel = false; // We're using summary model directly
     }
 
-    // Map fields to actual DB paths
-    const yAxisDbPath = this.mapYAxisFieldToSummaryPath(config.yAxisField);
+    // Now handle grouping - yAxisDbPath is already set in the if/else above
+    // If we joined with invoices, yAxisDbPath already has 'summary.' prefix
+    // If we queried summaries directly, yAxisDbPath is the direct path
 
     // If xAxisField is missing (e.g., for metric widgets), aggregate everything into a single value
     // Otherwise, group by xAxisField
     if (config.xAxisField) {
-      const xAxisDbPath = this.mapXAxisFieldToSummaryPath(config.xAxisField);
+      // Map xAxis field - if we joined, prefix with 'summary.'
+      const baseXAxisPath = this.mapXAxisFieldToSummaryPath(config.xAxisField);
+      const xAxisDbPath = hasEntityFilter 
+        ? baseXAxisPath.replace('$summary_content', '$summary.summary_content')
+        : baseXAxisPath;
       const isTextField = this.isTextFieldForGrouping(config.xAxisField);
       
       // Group by X-axis (case-insensitive for text fields), aggregate Y-axis
@@ -566,7 +747,27 @@ export class WidgetDataService {
     }
 
     try {
-      const results = await this.summaryModel.aggregate(pipeline).exec();
+      // Disable entity scope plugin when we have entity filters (plugin conflicts with our filter)
+      // Also disable if we're using invoice model (joined query)
+      const options = (hasEntityFilter || useInvoiceModel)
+        ? { disableEntityScope: true } 
+        : {};
+      
+      logger.debug('Executing summary aggregation pipeline', 'WidgetDataService', {
+        pipeline: JSON.stringify(pipeline, null, 2),
+        options,
+        hasEntityFilter,
+        useInvoiceModel,
+      });
+      
+      // Use invoice model if we joined, otherwise use summary model
+      const model = useInvoiceModel ? this.invoiceModel : this.summaryModel;
+      const results = await model.aggregate(pipeline, options).exec();
+      
+      logger.debug('Summary aggregation results', 'WidgetDataService', {
+        resultCount: results.length,
+        sampleResult: results[0],
+      });
       
       // Filter out null/undefined/empty values for all grouping fields
       // BUT: Allow _id: null for metric widgets (no xAxisField - aggregated into single value)
