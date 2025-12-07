@@ -7,16 +7,18 @@
 
 .header {
   flex-shrink: 0;
-  padding: 24px 24px 0 24px;
+  padding: 24px 24px 16px 24px;
   background-color: transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .title {
-  margin-bottom: 8px;
+  margin-bottom: 0;
   font-weight: 600;
   color: #001441;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e5e7eb;
 }
 
 .subtitle {

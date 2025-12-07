@@ -11,7 +11,6 @@ import { useWidgetStore } from '../../store/widgetStore';
 export const useRefreshWidgets = () => {
   const filters = useAnalysisFiltersStore((state) => state.filters);
   const { setWidgets } = useWidgetStore();
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialMount = useRef(true);
   const previousFiltersRef = useRef<string>('');
 
@@ -54,22 +53,8 @@ export const useRefreshWidgets = () => {
 
     previousFiltersRef.current = filtersKey;
 
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Debounce: wait 500ms after last filter change before refreshing
-    debounceTimerRef.current = setTimeout(() => {
-      refreshWidgets();
-    }, 500);
-
-    // Cleanup on unmount
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
+    // Trigger refresh immediately
+    refreshWidgets();
   }, [filtersKey, refreshWidgets]);
 
   return {

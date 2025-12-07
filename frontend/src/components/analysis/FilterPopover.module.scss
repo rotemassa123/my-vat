@@ -1,0 +1,102 @@
+// Popover container
+.popoverPaper {
+  margin-top: 8px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  min-width: 600px;
+}
+
+.popoverContent {
+  padding: 24px;
+}
+
+// Header section
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-weight: 600;
+  color: #333;
+}
+
+.clearAllButton {
+  text-transform: none;
+  color: #000000;
+  font-size: 14px;
+  padding: 8px 24px !important;
+  min-width: 120px;
+  border-radius: 4px;
+  height: 36px;
+  border: none;
+
+  &:hover:not(:disabled) {
+    background-color: rgba(0, 0, 0, 0.05);
+    text-decoration: none;
+  }
+
+  &:disabled {
+    color: rgba(0, 0, 0, 0.26);
+    border: none;
+  }
+}
+
+// Filter columns layout
+.columns {
+  display: flex;
+  gap: 32px;
+}
+
+.column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.columnHeader {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 14px;
+  padding-right: 2px;
+}
+
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+// Filter chip styles
+.filterChip {
+  padding: 8px 16px;
+  height: auto;
+  font-size: 14px;
+  font-weight: 400;
+  border-radius: 4px;
+  cursor: pointer;
+
+  // Unselected state
+  background-color: rgba(0, 0, 0, 0.03);
+  color: #000000;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+  }
+
+  // Selected state
+  &.selected {
+    background-color: #e3f2fd;
+    color: #1976d2;
+
+    &:hover {
+      background-color: #bbdefb;
+    }
+  }
+}

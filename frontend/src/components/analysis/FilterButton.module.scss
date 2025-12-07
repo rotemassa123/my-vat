@@ -1,0 +1,26 @@
+.filterButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-transform: none;
+  border: none;
+  border-radius: 4px;
+
+  // Default state (no filters)
+  background-color: transparent;
+  color: #000000;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  // Active state (filters selected)
+  &.active {
+    background-color: #e3f2fd;
+    color: #1976d2;
+
+    &:hover {
+      background-color: #bbdefb;
+    }
+  }
+}

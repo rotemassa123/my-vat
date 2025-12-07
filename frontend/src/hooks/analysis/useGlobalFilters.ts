@@ -22,7 +22,7 @@ export const useGlobalFilters = () => {
       setEntityIds(entityIdsParam.split(',').filter(id => id.trim().length > 0));
     }
     if (countryParam) {
-      setCountry(countryParam);
+      setCountry(countryParam.split(',').filter(c => c.trim().length > 0));
     }
     if (startDateParam || endDateParam) {
       setDateRange({
@@ -50,8 +50,8 @@ export const useGlobalFilters = () => {
     }
 
     // Update country
-    if (filters.country) {
-      newSearchParams.set('country', filters.country);
+    if (filters.country && filters.country.length > 0) {
+      newSearchParams.set('country', filters.country.join(','));
     } else {
       newSearchParams.delete('country');
     }

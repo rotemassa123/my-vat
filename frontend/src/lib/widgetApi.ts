@@ -116,8 +116,8 @@ export const widgetApi = {
       if (filters?.entityIds && filters.entityIds.length > 0) {
         params.entityIds = filters.entityIds.join(',');
       }
-      if (filters?.country) {
-        params.country = filters.country;
+      if (filters?.country && filters.country.length > 0) {
+        params.country = filters.country.join(',');
       }
       if (filters?.dateRange) {
         params.startDate = filters.dateRange.start.toISOString().split('T')[0];

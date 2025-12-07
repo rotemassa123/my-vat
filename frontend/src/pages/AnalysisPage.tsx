@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, CircularProgress, Box } from '@mui/material';
 import { WidgetPaper } from '../components/analysis/WidgetPaper';
-import { GlobalFiltersBar } from '../components/analysis/GlobalFiltersBar';
+import { FilterButton } from '../components/analysis/FilterButton';
 import { useActiveWidgets } from '../store/widgetStore';
 import { WIDGET_GRID_SIZES } from '../constants/gridConstants';
 import { useAnalysisGrid } from '../hooks/analysis/useAnalysisGrid';
@@ -21,16 +21,18 @@ const AnalysisPage: React.FC = () => {
         <Typography variant="h4" className={styles.title}>
           Analysis
         </Typography>
-        {isRefreshing && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-            <CircularProgress size={20} />
-            <Typography variant="body2" color="text.secondary">
-              Refreshing widgets...
-            </Typography>
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {isRefreshing && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={20} />
+              <Typography variant="body2" color="text.secondary">
+                Refreshing widgets...
+              </Typography>
+            </Box>
+          )}
+          <FilterButton />
+        </Box>
       </div>
-      <GlobalFiltersBar />
       <div className={styles.content}>
         <div
           ref={gridRef}

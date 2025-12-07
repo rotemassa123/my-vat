@@ -2,19 +2,20 @@ import { create } from 'zustand';
 
 export interface GlobalFilters {
   entityIds?: string[];
-  country?: string;
+  country?: string[];
   dateRange?: { start: Date; end: Date };
 }
 
 interface AnalysisFiltersState {
   filters: GlobalFilters;
   setEntityIds: (entityIds: string[] | undefined) => void;
-  setCountry: (country: string | undefined) => void;
+  setCountry: (country: string[] | undefined) => void;
   setDateRange: (dateRange: { start: Date; end: Date } | undefined) => void;
   clearFilters: () => void;
+  getActiveFilterCount: () => number;
 }
 
-export const useAnalysisFiltersStore = create<AnalysisFiltersState>((set) => ({
+export const useAnalysisFiltersStore = create<AnalysisFiltersState>((set, get) => ({
   filters: {},
   
   setEntityIds: (entityIds) =>
@@ -29,7 +30,7 @@ export const useAnalysisFiltersStore = create<AnalysisFiltersState>((set) => ({
     set((state) => ({
       filters: {
         ...state.filters,
-        country: country || undefined,
+        country: country && country.length > 0 ? country : undefined,
       },
     })),
   
@@ -45,5 +46,14 @@ export const useAnalysisFiltersStore = create<AnalysisFiltersState>((set) => ({
     set({
       filters: {},
     }),
+  
+  getActiveFilterCount: () => {
+    const { filters } = get();
+    let count = 0;
+    if (filters.entityIds?.length) count += filters.entityIds.length;
+    if (filters.country?.length) count += filters.country.length;
+    if (filters.dateRange) count += 1;
+    return count;
+  },
 }));
 
