@@ -119,7 +119,7 @@ export class WidgetController {
     }
 
     if (country) {
-      filters.country = country;
+      filters.country = country.split(',').filter(c => c.trim().length > 0);
     }
 
     if (startDate || endDate) {

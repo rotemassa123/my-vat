@@ -15,7 +15,7 @@ export interface ChartDataPoint {
 
 export interface GlobalFilters {
   entityIds?: string[];
-  country?: string;
+  country?: string[];
   dateRange?: {
     start: Date;
     end: Date;
@@ -389,11 +389,17 @@ export class WidgetDataService {
 
     // Add summary-based filters
     const summaryMatchStage: any = {};
-    if (config.filters?.country && pipeline.length > 0) {
-      // Use case-insensitive regex match for country
-      summaryMatchStage['summary.summary_content.country'] = { 
-        $regex: new RegExp(`^${config.filters.country}$`, 'i') 
-      };
+    if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0 && pipeline.length > 0) {
+      // Use case-insensitive regex match for multiple countries
+      if (config.filters.country.length === 1) {
+        summaryMatchStage['summary.summary_content.country'] = { 
+          $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+        };
+      } else {
+        summaryMatchStage['$or'] = config.filters.country.map(c => ({
+          'summary.summary_content.country': { $regex: new RegExp(`^${c}$`, 'i') }
+        }));
+      }
     }
     if (config.filters?.classification && pipeline.length > 0) {
       summaryMatchStage['summary.summary_content.classification'] = config.filters.classification;
@@ -632,10 +638,17 @@ export class WidgetDataService {
         summaryMatchStage['summary.is_invoice'] = true;
       }
       
-      if (config.filters?.country) {
-        summaryMatchStage['summary.summary_content.country'] = { 
-          $regex: new RegExp(`^${config.filters.country}$`, 'i') 
-        };
+      if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
+        // Use case-insensitive regex match for multiple countries
+        if (config.filters.country.length === 1) {
+          summaryMatchStage['summary.summary_content.country'] = { 
+            $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+          };
+        } else {
+          summaryMatchStage['$or'] = config.filters.country.map(c => ({
+            'summary.summary_content.country': { $regex: new RegExp(`^${c}$`, 'i') }
+          }));
+        }
       }
       if (config.filters?.classification) {
         summaryMatchStage['summary.summary_content.classification'] = config.filters.classification;
@@ -673,11 +686,17 @@ export class WidgetDataService {
           $lte: new Date(config.filters.dateRange.end),
         };
       }
-      if (config.filters?.country) {
-        // Use case-insensitive regex match for country
-        matchStage['summary_content.country'] = { 
-          $regex: new RegExp(`^${config.filters.country}$`, 'i') 
-        };
+      if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
+        // Use case-insensitive regex match for multiple countries
+        if (config.filters.country.length === 1) {
+          matchStage['summary_content.country'] = { 
+            $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+          };
+        } else {
+          matchStage['$or'] = config.filters.country.map(c => ({
+            'summary_content.country': { $regex: new RegExp(`^${c}$`, 'i') }
+          }));
+        }
       }
       if (config.filters?.classification) {
         matchStage['summary_content.classification'] = config.filters.classification;
