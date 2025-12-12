@@ -29,7 +29,6 @@ export const useAppBootstrap = (): AppBootstrapState => {
     setUser,
     setAuthenticated,
     clearAuth,
-    user: authUser,
     isAuthenticated,
   } = useAuthStore();
   const {
@@ -184,10 +183,8 @@ export const useAppBootstrap = (): AppBootstrapState => {
       setSecondaryStatus('idle');
       setSecondaryError(null);
       clearAccounts();
-    } else if (mandatoryStatus === 'success') {
-      void runSecondaryStage(authUser);
     }
-  }, [authUser, clearAccounts, isAuthenticated, mandatoryStatus, runSecondaryStage]);
+  }, [clearAccounts, isAuthenticated]);
 
   return {
     mandatoryStatus,
