@@ -30,6 +30,9 @@ const TicketsTab: React.FC = () => {
   const { data, isLoading, error } = useQuery({
     queryKey: ['user-tickets'],
     queryFn: () => ticketsApi.getUserTickets(),
+    staleTime: Infinity, // Data is only loaded on startup, never refetch
+    refetchOnMount: false, // Don't refetch when component mounts
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   const handleTicketClick = (ticketId: string) => {

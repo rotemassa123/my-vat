@@ -11,7 +11,7 @@ const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
 
-const queryClient = new QueryClient();
+export const queryClient = new QueryClient();
 
 // Expose store states globally for debugging in console (read-only, lazy evaluation)
 // Only enabled in development to avoid performance impact in production

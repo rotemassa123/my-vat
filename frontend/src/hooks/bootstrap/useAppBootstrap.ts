@@ -4,6 +4,7 @@ import { authApi } from '../../lib/authApi';
 import { profileApi } from '../../lib/profileApi';
 import { loadAllData as loadInvoices } from '../../services/invoiceService';
 import { loadAllWidgets as loadWidgets } from '../../services/widgetService';
+import { loadAllTickets } from '../../services/ticketService';
 import { useAuthStore } from '../../store/authStore';
 import { useAccountStore } from '../../store/accountStore';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
@@ -85,11 +86,12 @@ export const useAppBootstrap = (): AppBootstrapState => {
           clearAccounts();
         }
 
-        // Load invoices and widgets in parallel (non-blocking)
-        // Fire both off without blocking - they'll load in the background
+        // Load invoices, widgets, and tickets in parallel (non-blocking)
+        // Fire all off without blocking - they'll load in the background
         void Promise.all([
           loadInvoices(),
           loadWidgets(),
+          loadAllTickets(),
         ]).catch((error) => {
           // Log errors but don't block bootstrap
           console.error('Background data loading failed:', error);
