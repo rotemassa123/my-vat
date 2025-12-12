@@ -46,9 +46,18 @@ export class TicketsService {
   }
 
   async getUserTickets(): Promise<TicketListResponse> {
-    // UserScopePlugin automatically filters by user_id
-    const tickets = await this.ticketModel
-      .find()
+    const userContext = this.getUserContext();
+    const userType = userContext.userType;
+    const isOperator = userType === UserType.operator;
+
+    // For operators, get all tickets. For regular users, UserScopePlugin filters by user_id
+    const query = this.ticketModel.find();
+    
+    if (isOperator) {
+      query.setOptions({ disableUserScope: true });
+    }
+    
+    const tickets = await query
       .sort({ lastMessageAt: -1 })
       .populate('handlerId', 'fullName email')
       .populate({
