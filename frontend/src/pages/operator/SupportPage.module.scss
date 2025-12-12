@@ -64,31 +64,53 @@
   }
 }
 
-.assignButton {
-  text-transform: none;
-  font-size: 0.75rem;
+.ticketButton {
+  width: 100%;
+  padding: 16px !important;
+}
+
+.ticketContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .ticketHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  gap: 12px;
+  width: 100%;
 }
 
 .ticketTitle {
   font-weight: 500;
   flex: 1;
+  min-width: 0; // Allow text truncation
+}
+
+.ticketActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.assignButton {
+  text-transform: none;
+  font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .statusChip {
-  margin-left: 12px;
+  flex-shrink: 0;
 }
 
 .ticketMeta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 4px;
+  gap: 16px;
 }
 

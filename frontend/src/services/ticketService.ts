@@ -1,5 +1,6 @@
 import { queryClient } from '../main';
 import { ticketsApi, type TicketListResponse } from './tickets.service';
+import { useTicketStore } from '../store/ticketStore';
 
 class TicketService {
   private static instance: TicketService;
@@ -12,7 +13,7 @@ class TicketService {
   }
 
   /**
-   * Main function to load all ticket data (prefetches into React Query cache)
+   * Main function to load all ticket data (prefetches into React Query cache and updates Zustand store)
    */
   async loadAllTickets(): Promise<{ tickets: TicketListResponse }> {
     try {
@@ -27,12 +28,19 @@ class TicketService {
 
       console.log(`✅ Successfully prefetched tickets`);
 
-      // Return the cached data
+      // Get the cached data
       const cachedData = queryClient.getQueryData<TicketListResponse>(['user-tickets']);
-      return { tickets: cachedData || { tickets: [], total: 0 } };
+      const tickets = cachedData || { tickets: [], total: 0 };
+
+      // Update Zustand store
+      useTicketStore.getState().setTickets(tickets.tickets);
+      useTicketStore.getState().setLastUpdated(Date.now());
+
+      return { tickets };
 
     } catch (error) {
       console.error('❌ Failed to load ticket data:', error);
+      useTicketStore.getState().setError(error instanceof Error ? error.message : 'Failed to load tickets');
       throw error;
     }
   }

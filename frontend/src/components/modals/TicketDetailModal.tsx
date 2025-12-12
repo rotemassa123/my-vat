@@ -13,9 +13,7 @@ import {
 } from '@mui/material';
 import {
   Close,
-  Send,
   AttachFile,
-  Download,
   Image as ImageIcon,
   VideoFile,
   PictureAsPdf,
@@ -27,6 +25,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ticketsApi, type Ticket, type TicketMessage } from '../../services/tickets.service';
 import { useTicketSocket } from '../../hooks/tickets/useTicketSocket';
 import { useAuthStore } from '../../store/authStore';
+import { useTicketStore } from '../../store/ticketStore';
 import { format } from 'date-fns';
 import apiClient from '../../lib/apiClient';
 import styles from './TicketDetailModal.module.scss';
@@ -40,21 +39,31 @@ interface TicketDetailModalProps {
 const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ticketId }) => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const tickets = useTicketStore((state) => state.tickets);
   const [message, setMessage] = useState('');
   const [attachments, setAttachments] = useState<Array<{ url: string; fileName: string }>>([]);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: ticket, isLoading, error } = useQuery({
+  // Get ticket from Zustand store first (reactive)
+  const cachedTicket = tickets.find((t) => t.id === ticketId);
+
+  // Only fetch if ticket not found in store
+  const { data: fetchedTicket, isLoading, error } = useQuery({
     queryKey: ['ticket', ticketId],
     queryFn: () => ticketsApi.getTicketById(ticketId),
-    enabled: open && !!ticketId,
+    enabled: open && !!ticketId && !cachedTicket,
+    staleTime: Infinity,
   });
+
+  // Use cached ticket if available, otherwise use fetched ticket
+  const ticket = cachedTicket || fetchedTicket;
 
   // Note: We don't need a REST API mutation here since WebSocket handles the message sending
   // The socket gateway will save to MongoDB and broadcast updates
 
   const handleNewMessage = (newMessage: TicketMessage) => {
+    // Update individual ticket cache
     queryClient.setQueryData(['ticket', ticketId], (old: Ticket | undefined) => {
       if (!old) return old;
       return {
@@ -63,12 +72,29 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ti
         lastMessageAt: newMessage.createdAt,
       };
     });
-    queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
+    
+    // Update ticket in Zustand store
+    const currentTicket = tickets.find((t) => t.id === ticketId);
+    if (currentTicket) {
+      const newTicket: Ticket = {
+        ...currentTicket,
+        messages: [...currentTicket.messages, newMessage],
+        lastMessageAt: newMessage.createdAt,
+      };
+      useTicketStore.getState().setTickets(
+        tickets.map((t) => (t.id === ticketId ? newTicket : t))
+      );
+    }
   };
 
   const handleTicketUpdate = (updatedTicket: Ticket) => {
+    // Update individual ticket cache
     queryClient.setQueryData(['ticket', ticketId], updatedTicket);
-    queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
+    
+    // Update ticket in Zustand store
+    useTicketStore.getState().setTickets(
+      tickets.map((t) => (t.id === ticketId ? updatedTicket : t))
+    );
   };
 
   const { sendMessage: sendSocketMessage, isConnected } = useTicketSocket(
@@ -215,10 +241,11 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ti
                       <Box className={styles.messageAttachments}>
                         {ticket.attachments.map((attachment, idx) => {
                           // Handle backward compatibility: attachment might be a string (old format) or object (new format)
-                          const attachmentUrl = typeof attachment === 'string' ? attachment : attachment?.url;
-                          const fileName = typeof attachment === 'string' 
-                            ? attachment.split('/').pop() || 'file' 
-                            : attachment?.fileName || 'file';
+                          const attachmentAny = attachment as any;
+                          const attachmentUrl = typeof attachmentAny === 'string' ? attachmentAny : attachmentAny?.url;
+                          const fileName = typeof attachmentAny === 'string' 
+                            ? attachmentAny.split('/').pop() || 'file' 
+                            : attachmentAny?.fileName || 'file';
                           
                           if (!attachmentUrl) return null;
                           
@@ -303,10 +330,11 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ti
                           <Box className={styles.messageAttachments}>
                             {msg.attachments.map((attachment, idx) => {
                               // Handle backward compatibility: attachment might be a string (old format) or object (new format)
-                              const attachmentUrl = typeof attachment === 'string' ? attachment : attachment?.url;
-                              const fileName = typeof attachment === 'string' 
-                                ? attachment.split('/').pop() || 'file' 
-                                : attachment?.fileName || 'file';
+                              const attachmentAny = attachment as any;
+                              const attachmentUrl = typeof attachmentAny === 'string' ? attachmentAny : attachmentAny?.url;
+                              const fileName = typeof attachmentAny === 'string' 
+                                ? attachmentAny.split('/').pop() || 'file' 
+                                : attachmentAny?.fileName || 'file';
                               
                               if (!attachmentUrl) return null;
                               

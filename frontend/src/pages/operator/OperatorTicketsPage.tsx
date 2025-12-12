@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
-  Button,
   Card,
   CardContent,
   List,
@@ -14,40 +12,49 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  Button,
+  IconButton,
 } from '@mui/material';
-import { ArrowBack as ArrowBackIcon, Support as SupportIcon } from '@mui/icons-material';
+import { Support as SupportIcon } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketsApi, type Ticket } from '../../services/tickets.service';
 import { useAuthStore } from '../../store/authStore';
+import TicketDetailModal from '../../components/modals/TicketDetailModal';
 import { format } from 'date-fns';
 import styles from './OperatorTicketsPage.module.scss';
 
 const OperatorTicketsPage: React.FC = () => {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
-  const { data: unhandledData, isLoading: isLoadingUnhandled } = useQuery({
-    queryKey: ['operator-unhandled-tickets'],
-    queryFn: () => ticketsApi.getUnhandledTickets(),
-  });
-
-  const { data: allData, isLoading: isLoadingAll } = useQuery({
-    queryKey: ['operator-all-tickets'],
-    queryFn: () => ticketsApi.getAllTickets(),
+  // Get all tickets (for operators, getUserTickets returns all tickets)
+  const { data: allTicketsData, isLoading: isLoadingAll, error } = useQuery({
+    queryKey: ['user-tickets'],
+    queryFn: () => ticketsApi.getUserTickets(),
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const assignMutation = useMutation({
     mutationFn: (ticketId: string) => ticketsApi.assignTicket(ticketId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['operator-unhandled-tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['operator-all-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', selectedTicketId] });
     },
   });
 
   const handleTicketClick = (ticketId: string) => {
-    navigate(`/tickets/${ticketId}`);
+    setSelectedTicketId(ticketId);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedTicketId(null);
   };
 
   const handleAssignToSelf = async (ticketId: string, e: React.MouseEvent) => {
@@ -70,19 +77,41 @@ const OperatorTicketsPage: React.FC = () => {
     }
   };
 
-  const unhandledTickets = unhandledData?.tickets || [];
-  const allTickets = allData?.tickets || [];
+  if (isLoadingAll) {
+    return (
+      <Box className={styles.container}>
+        <Card>
+          <CardContent>
+            <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
+              <CircularProgress />
+            </Box>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box className={styles.container}>
+        <Card>
+          <CardContent>
+            <Typography color="error">
+              Failed to load tickets. Please try again.
+            </Typography>
+          </CardContent>
+        </Card>
+      </Box>
+    );
+  }
+
+  const allTickets = allTicketsData?.tickets || [];
+  const unhandledTickets = allTickets.filter((ticket) => ticket.status === 'open');
+  const displayedTickets = tabValue === 0 ? unhandledTickets : allTickets;
 
   return (
     <Box className={styles.container}>
       <Box className={styles.header}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate('/tickets')}
-          className={styles.backButton}
-        >
-          Back
-        </Button>
         <Box className={styles.titleSection}>
           <SupportIcon className={styles.icon} />
           <Typography variant="h4" className={styles.title}>
@@ -93,113 +122,90 @@ const OperatorTicketsPage: React.FC = () => {
 
       <Card>
         <CardContent>
-          <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)}>
+          <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} className={styles.tabs}>
             <Tab label={`Unhandled (${unhandledTickets.length})`} />
             <Tab label={`All Tickets (${allTickets.length})`} />
           </Tabs>
 
-          {tabValue === 0 && (
-            <Box className={styles.tabContent}>
-              {isLoadingUnhandled ? (
-                <Box display="flex" justifyContent="center" padding={4}>
-                  <CircularProgress />
-                </Box>
-              ) : unhandledTickets.length === 0 ? (
-                <Typography variant="body1" color="text.secondary" padding={4} textAlign="center">
-                  No unhandled tickets
-                </Typography>
-              ) : (
-                <List>
-                  {unhandledTickets.map((ticket) => (
-                    <ListItem key={ticket.id} disablePadding>
-                      <ListItemButton onClick={() => handleTicketClick(ticket.id)}>
-                        <ListItemText
-                          primary={
-                            <Box className={styles.ticketHeader}>
-                              <Typography variant="subtitle1" className={styles.ticketTitle}>
-                                {ticket.title}
-                              </Typography>
-                              <Chip
-                                label={ticket.status}
-                                size="small"
-                                color={getStatusColor(ticket.status) as any}
-                              />
-                            </Box>
-                          }
-                          secondary={
-                            <Box className={styles.ticketMeta}>
-                              <Typography variant="body2" color="text.secondary">
-                                User: {ticket.userId}
-                              </Typography>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                onClick={(e) => handleAssignToSelf(ticket.id, e)}
-                                disabled={assignMutation.isPending}
-                              >
-                                Assign to Me
-                              </Button>
-                            </Box>
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              )}
+          {displayedTickets.length === 0 ? (
+            <Box className={styles.emptyState}>
+              <SupportIcon className={styles.emptyIcon} />
+              <Typography variant="body1" className={styles.emptyText}>
+                {tabValue === 0 ? 'No unhandled tickets' : 'No tickets'}
+              </Typography>
             </Box>
-          )}
+          ) : (
+            <List className={styles.ticketList}>
+              {displayedTickets.map((ticket) => {
+                const isAssignedToMe = ticket.handlerId === user?._id;
+                const canAssign = !isAssignedToMe && ticket.status !== 'closed';
 
-          {tabValue === 1 && (
-            <Box className={styles.tabContent}>
-              {isLoadingAll ? (
-                <Box display="flex" justifyContent="center" padding={4}>
-                  <CircularProgress />
-                </Box>
-              ) : allTickets.length === 0 ? (
-                <Typography variant="body1" color="text.secondary" padding={4} textAlign="center">
-                  No tickets
-                </Typography>
-              ) : (
-                <List>
-                  {allTickets.map((ticket) => (
-                    <ListItem key={ticket.id} disablePadding>
-                      <ListItemButton onClick={() => handleTicketClick(ticket.id)}>
-                        <ListItemText
-                          primary={
-                            <Box className={styles.ticketHeader}>
-                              <Typography variant="subtitle1" className={styles.ticketTitle}>
-                                {ticket.title}
-                              </Typography>
-                              <Chip
-                                label={ticket.status}
-                                size="small"
-                                color={getStatusColor(ticket.status) as any}
-                              />
-                            </Box>
-                          }
-                          secondary={
-                            <Box className={styles.ticketMeta}>
-                              <Typography variant="body2" color="text.secondary">
-                                {ticket.handlerName
-                                  ? `Handled by ${ticket.handlerName}`
-                                  : 'Unassigned'}
-                              </Typography>
-                              <Typography variant="caption" color="text.secondary">
-                                {format(new Date(ticket.lastMessageAt), 'MMM d, yyyy HH:mm')}
-                              </Typography>
-                            </Box>
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                  ))}
-                </List>
-              )}
-            </Box>
+                return (
+                  <ListItem
+                    key={ticket.id}
+                    disablePadding
+                    className={styles.ticketItem}
+                    secondaryAction={
+                      canAssign && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={(e) => handleAssignToSelf(ticket.id, e)}
+                          disabled={assignMutation.isPending}
+                          className={styles.assignButton}
+                        >
+                          Assign to Me
+                        </Button>
+                      )
+                    }
+                  >
+                    <ListItemButton
+                      onClick={() => handleTicketClick(ticket.id)}
+                      selected={selectedTicketId === ticket.id}
+                    >
+                      <ListItemText
+                        primary={
+                          <Box className={styles.ticketHeader}>
+                            <Typography variant="subtitle1" className={styles.ticketTitle}>
+                              {ticket.title}
+                            </Typography>
+                            <Chip
+                              label={ticket.status}
+                              size="small"
+                              color={getStatusColor(ticket.status) as any}
+                              className={styles.statusChip}
+                            />
+                          </Box>
+                        }
+                        secondary={
+                          <Box className={styles.ticketMeta}>
+                            <Typography variant="body2" color="text.secondary">
+                              {ticket.handlerName
+                                ? `Handled by ${ticket.handlerName}${isAssignedToMe ? ' (You)' : ''}`
+                                : 'Unassigned'}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Last updated: {format(new Date(ticket.lastMessageAt), 'MMM d, yyyy HH:mm')}
+                            </Typography>
+                          </Box>
+                        }
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                );
+              })}
+            </List>
           )}
         </CardContent>
       </Card>
+
+      {selectedTicketId && (
+        <TicketDetailModal
+          open={isDetailModalOpen}
+          onClose={handleCloseDetailModal}
+          ticketId={selectedTicketId}
+        />
+      )}
     </Box>
   );
 };
