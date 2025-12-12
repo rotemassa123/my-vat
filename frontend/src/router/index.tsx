@@ -18,11 +18,16 @@ const ManagePage = lazy(() => import("../pages/ManagePage"));
 const EntitiesPage = lazy(() => import("../pages/EntitiesPage"));
 const SettingsPage = lazy(() => import("../pages/SettingsPage"));
 const LandingPage = lazy(() => import("../components/LandingPage/landing-page"));
+// Ticket pages
+const TicketsPage = lazy(() => import("../pages/TicketsPage"));
+const TicketDetailPage = lazy(() => import("../pages/TicketDetailPage"));
+const CreateTicketPage = lazy(() => import("../pages/CreateTicketPage"));
 // Operator pages
 const MagicLinkPage = lazy(() => import("../pages/operator/MagicLinkPage"));
 const TriggerJobsPage = lazy(() => import("../pages/operator/TriggerJobsPage"));
 const CreateAccountsPage = lazy(() => import("../pages/operator/CreateAccountsPage"));
 const SupportPage = lazy(() => import("../pages/operator/SupportPage"));
+const OperatorTicketsPage = lazy(() => import("../pages/operator/OperatorTicketsPage"));
 
 function Router() {
   const router = createBrowserRouter(
@@ -43,11 +48,16 @@ function Router() {
           <Route path="/users" element={<ManagePage />} />
           <Route path="/entities" element={<EntitiesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          {/* Ticket Routes */}
+          <Route path="/tickets" element={<TicketsPage />} />
+          <Route path="/tickets/new" element={<CreateTicketPage />} />
+          <Route path="/tickets/:id" element={<TicketDetailPage />} />
           {/* Operator Routes */}
           <Route path="/magic-link" element={<MagicLinkPage />} />
           <Route path="/trigger-jobs" element={<TriggerJobsPage />} />
           <Route path="/create-accounts" element={<CreateAccountsPage />} />
           <Route path="/support" element={<SupportPage />} />
+          <Route path="/operator/tickets" element={<OperatorTicketsPage />} />
         </Route>
       </Route>
     )

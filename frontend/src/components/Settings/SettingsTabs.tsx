@@ -4,6 +4,7 @@ import {
   Person as PersonIcon,
   Security as SecurityIcon,
   IntegrationInstructions as IntegrationIcon,
+  Support as SupportIcon,
 } from '@mui/icons-material';
 import styles from './SettingsTabs.module.scss';
 
@@ -17,6 +18,7 @@ const SettingsTabs: React.FC<SettingsTabsProps> = ({ value, onChange }) => {
     { label: 'Profile', icon: <PersonIcon />, index: 0 },
     { label: 'Security', icon: <SecurityIcon />, index: 1 },
     { label: 'Integrations', icon: <IntegrationIcon />, index: 2 },
+    { label: 'Tickets', icon: <SupportIcon />, index: 3 },
   ];
 
   return (

@@ -17,11 +17,16 @@ export enum SenderType {
   OPERATOR = 'operator',
 }
 
+export interface AttachmentInfo {
+  url: string;
+  fileName: string;
+}
+
 export interface TicketMessage {
   content: string;
   senderId: mongoose.Types.ObjectId;
   senderType: SenderType;
-  attachments?: string[];
+  attachments?: AttachmentInfo[];
   createdAt: Date;
 }
 
@@ -59,7 +64,15 @@ export class Ticket {
         content: { type: String, required: true },
         senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
         senderType: { type: String, enum: Object.values(SenderType), required: true },
-        attachments: { type: [String], default: [] },
+        attachments: {
+          type: [
+            {
+              url: { type: String, required: true },
+              fileName: { type: String, required: true },
+            },
+          ],
+          default: [],
+        },
         createdAt: { type: Date, default: Date.now },
       },
     ],
@@ -67,8 +80,16 @@ export class Ticket {
   })
   messages: TicketMessage[];
 
-  @Prop({ type: [String], default: [] })
-  attachments: string[];
+  @Prop({
+    type: [
+      {
+        url: { type: String, required: true },
+        fileName: { type: String, required: true },
+      },
+    ],
+    default: [],
+  })
+  attachments: AttachmentInfo[];
 
   @Prop({ type: Date, default: Date.now, index: true })
   lastMessageAt: Date;

@@ -8,6 +8,7 @@ import {
   IntegrationsTab,
   TabPanel,
 } from '../components/Settings';
+import TicketsTab from '../components/Settings/TicketsTab';
 import styles from './SettingsPage.module.scss';
 
 const SettingsPage: React.FC = () => {
@@ -39,6 +40,10 @@ const SettingsPage: React.FC = () => {
 
           <TabPanel value={tabValue} index={2}>
             <IntegrationsTab />
+          </TabPanel>
+
+          <TabPanel value={tabValue} index={3}>
+            <TicketsTab />
           </TabPanel>
         </Box>
       </Box>

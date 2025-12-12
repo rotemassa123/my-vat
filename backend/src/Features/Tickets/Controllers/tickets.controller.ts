@@ -14,6 +14,7 @@ import {
   SendTicketMessageDto,
   UpdateTicketStatusDto,
   AssignTicketDto,
+  UpdateTicketAttachmentsDto,
 } from '../Requests/ticket.requests';
 import {
   TicketResponse,
@@ -117,6 +118,17 @@ export class TicketsController {
     @Body() statusDto: UpdateTicketStatusDto,
   ): Promise<TicketResponse> {
     return this.ticketsService.updateTicketStatus(ticketId, statusDto);
+  }
+
+  @Put(':id/attachments')
+  @ApiParam({ name: 'id', type: String })
+  @ApiOperation({ summary: 'Update ticket attachments' })
+  @ApiResponse({ status: 200, description: 'Ticket attachments updated successfully', type: TicketResponse })
+  async updateTicketAttachments(
+    @Param('id') ticketId: string,
+    @Body() attachmentsDto: UpdateTicketAttachmentsDto,
+  ): Promise<TicketResponse> {
+    return this.ticketsService.updateTicketAttachments(ticketId, attachmentsDto);
   }
 }
 

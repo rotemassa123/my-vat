@@ -78,7 +78,8 @@ export function UserScopePlugin(schema: Schema, options?: { is_required?: boolea
   // Use pre('validate') to set fields BEFORE validation runs
   schema.pre('validate', function (next) {
     try {
-      const userId = getUserId();  
+      const userId = getUserId();
+      if (!userId) return next();
       this.set('user_id', new Types.ObjectId(userId));
       next();
     } catch (error) {

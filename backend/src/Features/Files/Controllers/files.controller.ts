@@ -178,6 +178,66 @@ export class FilesController {
     };
   }
 
+  @Post('tickets/:ticketId/upload')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: {
+        fileSize: 1024 * 1024 * 1024, // 1GB limit
+      },
+    }),
+  )
+  @ApiOperation({ 
+    summary: 'Upload file for a ticket',
+    description: 'Upload a file for a specific ticket. File will be stored in /tickets/ticket_id/ path in GCS.'
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'ticketId', type: String, description: 'Ticket ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+      required: ['file'],
+    },
+  })
+  @ApiResponse({ 
+    status: 201, 
+    description: 'File uploaded successfully',
+    type: UploadFileResponse 
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - no file provided or upload failed' })
+  async uploadTicketFile(
+    @UploadedFile() file: Express.Multer.File,
+    @Param('ticketId') ticketId: string,
+  ): Promise<UploadFileResponse> {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    // Create a readable stream from the buffer for memory efficiency
+    const stream = Readable.from(file.buffer);
+
+    // Generate unique file path in tickets folder
+    const uniqueFileName = `tickets/${ticketId}/${Date.now()}-${file.originalname}`;
+
+    try {
+      const fileUrl = await this.gcsService.uploadFileStream(
+        uniqueFileName,
+        stream,
+        file.mimetype,
+      );
+
+      return {
+        fileUrl,
+        fileName: uniqueFileName,
+        message: 'File uploaded successfully',
+      };
+    } catch (error) {
+      throw new BadRequestException(`Failed to upload file: ${error.message}`);
+    }
+  }
+
   @Post('upload-stream')
   @ApiOperation({ 
     summary: 'Upload file via streaming',

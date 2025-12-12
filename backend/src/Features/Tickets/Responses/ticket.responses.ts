@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { TicketStatus, SenderType } from 'src/Common/Infrastructure/DB/schemas/ticket.schema';
+import { TicketStatus, SenderType, AttachmentInfo } from 'src/Common/Infrastructure/DB/schemas/ticket.schema';
+
+export class AttachmentResponse {
+  @ApiProperty({ description: 'File URL' })
+  url: string;
+
+  @ApiProperty({ description: 'Original file name' })
+  fileName: string;
+}
 
 export class TicketMessageResponse {
   @ApiProperty({ description: 'Message content' })
@@ -11,8 +19,8 @@ export class TicketMessageResponse {
   @ApiProperty({ description: 'Sender type', enum: SenderType })
   senderType: SenderType;
 
-  @ApiProperty({ description: 'Message attachments', type: [String] })
-  attachments: string[];
+  @ApiProperty({ description: 'Message attachments', type: [AttachmentResponse] })
+  attachments: AttachmentResponse[];
 
   @ApiProperty({ description: 'Message creation date' })
   createdAt: Date;
@@ -43,8 +51,8 @@ export class TicketResponse {
   @ApiProperty({ description: 'Ticket messages', type: [TicketMessageResponse] })
   messages: TicketMessageResponse[];
 
-  @ApiProperty({ description: 'Initial ticket attachments', type: [String] })
-  attachments: string[];
+  @ApiProperty({ description: 'Initial ticket attachments', type: [AttachmentResponse] })
+  attachments: AttachmentResponse[];
 
   @ApiProperty({ description: 'Last message timestamp' })
   lastMessageAt: Date;

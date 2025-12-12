@@ -9,15 +9,11 @@ interface SettingsHeaderProps {
 
 const SettingsHeader: React.FC<SettingsHeaderProps> = ({
   title = 'Settings',
-  subtitle = 'Manage your account preferences and security settings'
 }) => {
   return (
     <Box className={styles.header}>
       <Typography variant="h4" className={styles.title}>
         {title}
-      </Typography>
-      <Typography variant="body1" className={styles.subtitle}>
-        {subtitle}
       </Typography>
     </Box>
   );

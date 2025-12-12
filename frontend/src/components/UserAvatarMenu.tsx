@@ -52,9 +52,7 @@ export default function UserAvatarMenu({ onSupportClick }: UserAvatarMenuProps) 
   };
 
   const handleSupport = () => {
-    if (onSupportClick) {
-      onSupportClick();
-    }
+    onSupportClick?.();
     handleClose();
   };
 
@@ -145,7 +143,7 @@ export default function UserAvatarMenu({ onSupportClick }: UserAvatarMenuProps) 
             <SupportIcon sx={{ color: '#40578c' }} />
           </ListItemIcon>
           <ListItemText 
-            primary="Contact Support" 
+            primary="Open a Ticket" 
             primaryTypographyProps={{ className: styles.menuText }}
           />
         </MenuItem>

@@ -1,8 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Ticket, TicketDocument, TicketStatus, SenderType } from 'src/Common/Infrastructure/DB/schemas/ticket.schema';
-import { CreateTicketDto, SendTicketMessageDto, UpdateTicketStatusDto, AssignTicketDto } from '../Requests/ticket.requests';
+import { CreateTicketDto, SendTicketMessageDto, UpdateTicketStatusDto, AssignTicketDto, UpdateTicketAttachmentsDto } from '../Requests/ticket.requests';
 import { TicketResponse, TicketListResponse, TicketMessageResponse } from '../Responses/ticket.responses';
 import { UserType } from 'src/Common/consts/userType';
 import * as httpContext from 'express-http-context';
@@ -25,9 +25,16 @@ export class TicketsService {
   }
 
   async createTicket(createDto: CreateTicketDto): Promise<TicketResponse> {
-    // UserScopePlugin will automatically set user_id on save
+    const userContext = this.getUserContext();
+    const userId = userContext.userId;
+    
+    if (!userId) {
+      throw new ForbiddenException('User ID not found in context');
+    }
+
     const ticket = new this.ticketModel({
       ...createDto,
+      user_id: new mongoose.Types.ObjectId(userId),
       status: TicketStatus.OPEN,
       messages: [],
       attachments: createDto.attachments || [],
@@ -44,7 +51,21 @@ export class TicketsService {
       .find()
       .sort({ lastMessageAt: -1 })
       .populate('handlerId', 'fullName email')
+      .populate({
+        path: 'user_id',
+        select: 'fullName email',
+      })
       .exec();
+
+    // Handle cases where populate set user_id to null (user doesn't exist)
+    for (const ticket of tickets) {
+      if (!ticket.user_id) {
+        const rawTicket = await this.ticketModel.findById(ticket._id).lean().exec();
+        if (rawTicket?.user_id) {
+          (ticket as any).user_id = rawTicket.user_id;
+        }
+      }
+    }
 
     return {
       tickets: tickets.map(t => this.mapToTicketResponse(t)),
@@ -53,7 +74,6 @@ export class TicketsService {
   }
 
   async getTicketById(ticketId: string, userType: UserType): Promise<TicketResponse> {
-    // For operators, disable user scope to allow viewing any ticket
     const query = this.ticketModel.findOne({
       _id: new mongoose.Types.ObjectId(ticketId),
     });
@@ -71,8 +91,15 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    // UserScopePlugin automatically filters by user_id for regular users, so no additional permission check needed
-    // Operators can see all tickets (user scope is disabled)
+    // If populate set user_id to null (user doesn't exist), restore the ObjectId from raw document
+    if (!ticket.user_id) {
+      const rawTicket = await this.ticketModel.findById(ticketId).lean().exec();
+      if (rawTicket?.user_id) {
+        (ticket as any).user_id = rawTicket.user_id;
+      } else {
+        throw new Error('Ticket user_id is missing in database');
+      }
+    }
 
     return this.mapToTicketResponse(ticket);
   }
@@ -81,12 +108,13 @@ export class TicketsService {
     ticketId: string,
     messageDto: SendTicketMessageDto,
     userType: UserType,
+    userId?: string,
   ): Promise<TicketMessageResponse> {
-    const userContext = this.getUserContext();
-    const userId = userContext.userId;
+    // Get userId from parameter (WebSocket) or context (HTTP)
+    let finalUserId = userId;
     
-    if (!userId) {
-      throw new ForbiddenException('User ID not found in context');
+    if (!finalUserId) {
+      throw new ForbiddenException('User ID not found');
     }
 
     // For operators, disable user scope to allow messaging any ticket
@@ -104,30 +132,42 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    // UserScopePlugin automatically filters by user_id for regular users, so no additional permission check needed
-    // Operators can send messages to any ticket (user scope is disabled)
-
     const senderType = userType === UserType.operator ? SenderType.OPERATOR : SenderType.USER;
 
+    // Validate that either content or attachments are provided
+    if (!messageDto.content?.trim() && (!messageDto.attachments || messageDto.attachments.length === 0)) {
+      throw new BadRequestException('Message must have either content or attachments');
+    }
+
     const newMessage = {
-      content: messageDto.content,
-      senderId: new mongoose.Types.ObjectId(userId),
+      content: messageDto.content || '',
+      senderId: new mongoose.Types.ObjectId(finalUserId),
       senderType: senderType,
       attachments: messageDto.attachments || [],
       createdAt: new Date(),
     };
 
-    ticket.messages.push(newMessage);
-    ticket.lastMessageAt = new Date();
+    // Use updateOne with $push to ensure the message is saved
+    // This avoids issues with Mongoose not detecting array changes on save()
+    const updateData: any = {
+      $push: { messages: newMessage },
+      $set: {
+        lastMessageAt: new Date(),
+      },
+    };
 
-    // Auto-update status: if operator sends message, set to in_progress; if user sends, set to waiting
+    // Auto-update status based on sender
     if (userType === UserType.operator && ticket.status === TicketStatus.OPEN) {
-      ticket.status = TicketStatus.IN_PROGRESS;
+      updateData.$set.status = TicketStatus.IN_PROGRESS;
     } else if (userType !== UserType.operator && ticket.status === TicketStatus.IN_PROGRESS) {
-      ticket.status = TicketStatus.WAITING;
+      updateData.$set.status = TicketStatus.WAITING;
     }
 
-    await ticket.save();
+    // Use updateOne to ensure the message is saved (avoids Mongoose array detection issues)
+    await this.ticketModel.updateOne(
+      { _id: ticket._id },
+      updateData,
+    );
 
     return {
       content: newMessage.content,
@@ -139,11 +179,8 @@ export class TicketsService {
   }
 
   async getUnhandledTickets(): Promise<TicketListResponse> {
-    // Disable user scope for operators to see all unhandled tickets
     const tickets = await this.ticketModel
-      .find({
-        status: TicketStatus.OPEN,
-      })
+      .find({ status: TicketStatus.OPEN })
       .setOptions({ disableUserScope: true })
       .sort({ lastMessageAt: -1 })
       .populate('user_id', 'fullName email')
@@ -156,7 +193,6 @@ export class TicketsService {
   }
 
   async getAllTickets(): Promise<TicketListResponse> {
-    // Disable user scope for operators to see all tickets
     const tickets = await this.ticketModel
       .find()
       .setOptions({ disableUserScope: true })
@@ -179,11 +215,8 @@ export class TicketsService {
       throw new ForbiddenException('User ID not found in context');
     }
 
-    // Disable user scope for operators
     const ticket = await this.ticketModel
-      .findOne({
-        _id: new mongoose.Types.ObjectId(ticketId),
-      })
+      .findOne({ _id: new mongoose.Types.ObjectId(ticketId) })
       .setOptions({ disableUserScope: true })
       .exec();
 
@@ -191,10 +224,12 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    const handlerId = assignDto.operatorId ? new mongoose.Types.ObjectId(assignDto.operatorId) : new mongoose.Types.ObjectId(operatorId);
+    const handlerId = assignDto.operatorId 
+      ? new mongoose.Types.ObjectId(assignDto.operatorId) 
+      : new mongoose.Types.ObjectId(operatorId);
+    
     ticket.handlerId = handlerId;
     ticket.status = TicketStatus.IN_PROGRESS;
-
     await ticket.save();
 
     const populatedTicket = await this.ticketModel
@@ -211,11 +246,8 @@ export class TicketsService {
     ticketId: string,
     statusDto: UpdateTicketStatusDto,
   ): Promise<TicketResponse> {
-    // Disable user scope for operators
     const ticket = await this.ticketModel
-      .findOne({
-        _id: new mongoose.Types.ObjectId(ticketId),
-      })
+      .findOne({ _id: new mongoose.Types.ObjectId(ticketId) })
       .setOptions({ disableUserScope: true })
       .exec();
 
@@ -236,21 +268,69 @@ export class TicketsService {
     return this.mapToTicketResponse(populatedTicket);
   }
 
+  async updateTicketAttachments(
+    ticketId: string,
+    attachmentsDto: UpdateTicketAttachmentsDto,
+  ): Promise<TicketResponse> {
+    const userContext = this.getUserContext();
+    const userId = userContext.userId;
+
+    const ticket = await this.ticketModel
+      .findOne({ _id: new mongoose.Types.ObjectId(ticketId) })
+      .exec();
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    // UserScopePlugin ensures user_id matches, but verify ownership
+    if (ticket.user_id.toString() !== userId) {
+      throw new ForbiddenException('You can only update your own tickets');
+    }
+
+    ticket.attachments = attachmentsDto.attachments;
+    await ticket.save();
+
+    const populatedTicket = await this.ticketModel
+      .findById(ticket._id)
+      .populate('handlerId', 'fullName email')
+      .populate('user_id', 'fullName email')
+      .exec();
+
+    return this.mapToTicketResponse(populatedTicket);
+  }
+
   private mapToTicketResponse(ticket: TicketDocument): TicketResponse {
     const handler = ticket.handlerId && typeof ticket.handlerId === 'object' ? ticket.handlerId : null;
-    // UserScopePlugin adds user_id field (with alias userId), so we use user_id
-    const user = ticket.user_id && typeof ticket.user_id === 'object' ? ticket.user_id : null;
-
-    // Type guard for handler with fullName
     const handlerName = handler && 'fullName' in handler && typeof handler.fullName === 'string' 
       ? handler.fullName 
       : undefined;
+
+    // Extract userId - handle both populated user object and ObjectId
+    let userId: string;
+    if (!ticket.user_id) {
+      throw new Error('Ticket user_id is missing - this indicates a data integrity issue');
+    }
+    
+    if (typeof ticket.user_id === 'object') {
+      if ('_id' in ticket.user_id && ticket.user_id._id) {
+        userId = ticket.user_id._id.toString();
+      } else if ('id' in ticket.user_id && ticket.user_id.id) {
+        userId = ticket.user_id.id.toString();
+      } else if ('toString' in ticket.user_id) {
+        userId = ticket.user_id.toString();
+      } else {
+        throw new Error('Unable to extract userId from ticket.user_id');
+      }
+    } else {
+      userId = String(ticket.user_id);
+    }
 
     return {
       id: ticket._id.toString(),
       title: ticket.title,
       content: ticket.content,
-      userId: ticket.user_id.toString(),
+      userId,
       handlerId: ticket.handlerId?.toString(),
       handlerName,
       status: ticket.status,
@@ -258,10 +338,16 @@ export class TicketsService {
         content: msg.content,
         senderId: msg.senderId.toString(),
         senderType: msg.senderType,
-        attachments: msg.attachments || [],
+        attachments: (msg.attachments || []).map((att: any) => ({
+          url: typeof att === 'string' ? att : att.url,
+          fileName: typeof att === 'string' ? (att as string).split('/').pop() || 'file' : att.fileName,
+        })),
         createdAt: msg.createdAt,
       })),
-      attachments: ticket.attachments || [],
+      attachments: (ticket.attachments || []).map((att: any) => ({
+        url: typeof att === 'string' ? att : att.url,
+        fileName: typeof att === 'string' ? (att as string).split('/').pop() || 'file' : att.fileName,
+      })),
       lastMessageAt: ticket.lastMessageAt,
       createdAt: ticket.created_at,
       updatedAt: ticket.updated_at,

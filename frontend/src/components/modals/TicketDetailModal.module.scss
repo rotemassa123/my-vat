@@ -1,0 +1,400 @@
+// Dialog Paper
+.dialogPaper {
+  border-radius: 16px;
+  padding: 8px;
+  max-height: 90vh;
+  min-height: 600px;
+  display: flex;
+  flex-direction: column;
+}
+
+// Modal Header
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  background-color: #fff;
+  z-index: 10;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.modalTitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.statusChip {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+}
+
+.closeButton {
+  color: #6b7280;
+  padding: 8px;
+  
+  &:hover {
+    color: #374151;
+    background-color: #f9fafb;
+  }
+}
+
+// Modal Content
+.modalContent {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px;
+  gap: 16px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+// Loading & Error States
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 24px;
+  gap: 16px;
+}
+
+.attachmentLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.attachmentItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border-radius: 0;
+  background-color: transparent;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  border: none;
+  
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.attachmentIconContainer {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.attachmentIcon {
+  font-size: 36px;
+  color: rgba(255, 255, 255, 0.9);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+}
+
+.attachmentIconText {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  line-height: 1;
+  letter-spacing: 0.5px;
+}
+
+.operatorMessageRow .attachmentIconContainer {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.operatorMessageRow .attachmentIcon {
+  color: #6b7280;
+  opacity: 0.5;
+}
+
+.operatorMessageRow .attachmentIconText {
+  color: #4b5563;
+}
+
+.attachmentInfo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+  min-width: 0; // Allow text truncation
+}
+
+.attachmentFileName {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 1);
+  word-break: break-word;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.operatorMessageRow .attachmentFileName {
+  color: #1f2937;
+}
+
+.attachmentFileDetails {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.3;
+}
+
+.operatorMessageRow .attachmentFileDetails {
+  color: #6b7280;
+}
+
+// Conversation Section
+.conversationSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.messagesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  min-height: 400px;
+}
+
+.messageRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 80%;
+}
+
+.userMessageRow {
+  align-self: flex-end;
+  margin-left: auto;
+}
+
+.operatorMessageRow {
+  align-self: flex-start;
+}
+
+.messageAvatar {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.messageContentWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  word-wrap: break-word;
+}
+
+.userMessageRow .messageContentWrapper {
+  background-color: rgba(37, 99, 235, 0.85);
+  color: #fff;
+}
+
+.operatorMessageRow .messageContentWrapper {
+  background-color: rgba(243, 244, 246, 0.85);
+  color: #374151;
+}
+
+.messageContent {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+.userMessageRow .messageContent {
+  color: #fff;
+}
+
+.operatorMessageRow .messageContent {
+  color: #374151;
+}
+
+.messageTime {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  opacity: 0.7;
+  align-self: flex-end;
+  margin-top: 2px;
+}
+
+.messageAttachments {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+// Input Area
+.inputArea {
+  padding: 16px 20px;
+  background-color: #fff;
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputWrapper {
+  width: 100%;
+}
+
+.messageInput {
+  width: 100%;
+  
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 12px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.95rem;
+    min-height: 56px;
+    padding: 12px 16px;
+    padding-right: 8px; // Less padding on right to accommodate buttons
+    
+    :global(.MuiOutlinedInput-input) {
+      padding: 0;
+      line-height: 1.5;
+      padding-right: 8px; // Space before buttons
+    }
+    
+    :global(.MuiOutlinedInput-notchedOutline) {
+      border-width: 1px;
+    }
+  }
+}
+
+.inputEndAdornment {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.attachButton {
+  color: #6b7280;
+  padding: 6px;
+  width: 28px;
+  height: 28px;
+  
+  &:hover {
+    color: #374151;
+    background-color: #f9fafb;
+  }
+  
+  :global(.MuiSvgIcon-root) {
+    font-size: 18px;
+  }
+}
+
+.sendButton {
+  color: #fff;
+  background-color: #2563eb;
+  padding: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  
+  &:hover {
+    background-color: #1d4ed8;
+  }
+  
+  &:disabled {
+    background-color: #9ca3af;
+    color: #fff;
+  }
+  
+  :global(.MuiSvgIcon-root) {
+    font-size: 18px;
+  }
+}
+
+.attachmentsPreview {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  max-width: 200px;
+  overflow-x: auto;
+}
+
+.attachmentChip {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.7rem;
+  height: 24px;
+  
+  :global(.MuiChip-label) {
+    padding: 0 8px;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  :global(.MuiChip-deleteIcon) {
+    font-size: 14px;
+    margin: 0 4px 0 -4px;
+  }
+}
+
+.connectionStatus {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  color: #f59e0b;
+  margin-top: 8px;
+  display: block;
+}
+

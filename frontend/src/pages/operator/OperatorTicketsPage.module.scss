@@ -1,0 +1,57 @@
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.backButton {
+  text-transform: none;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.icon {
+  color: #40578c;
+  font-size: 32px;
+}
+
+.title {
+  color: #40578c;
+  font-weight: 600;
+}
+
+.tabContent {
+  margin-top: 16px;
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ticketTitle {
+  font-weight: 500;
+  flex: 1;
+}
+
+.ticketMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+

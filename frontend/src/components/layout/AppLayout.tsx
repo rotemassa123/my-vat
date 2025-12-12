@@ -19,6 +19,7 @@ import UploadProgressManager from '../UploadProgressManager/UploadProgressManage
 import ChatPanel from '../Chat/ChatPanel';
 import { UploadProvider } from '../../contexts/UploadContext';
 import RouteGuard from '../RouteGuard';
+import CreateTicketModal from '../modals/CreateTicketModal';
 import styles from './AppLayout.module.scss';
 import { CLOUDINARY_IMAGES } from '../../consts/cloudinary';
 import { getNavigationItems, getUserTypeIndicator } from '../../consts/navigationItems';
@@ -28,6 +29,7 @@ export default function AppLayout() {
   const location = useLocation();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isChatPanelOpen, setIsChatPanelOpen] = useState(false);
+  const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState(false);
   const [chatMode, setChatMode] = useState<'ai' | 'support'>('ai');
   const [chatPanelWidth, setChatPanelWidth] = useState(() => {
     // Initialize to 15% of screen width
@@ -49,8 +51,7 @@ export default function AppLayout() {
   };
 
   const handleSupportClick = () => {
-    setChatMode('support');
-    setIsChatPanelOpen(true);
+    setIsCreateTicketModalOpen(true);
   };
 
   const handleCloseUploadModal = () => {
@@ -201,6 +202,12 @@ export default function AppLayout() {
         {/* Upload Progress Manager */}
         <UploadProgressManager />
       </UploadProvider>
+
+      {/* Create Ticket Modal */}
+      <CreateTicketModal
+        open={isCreateTicketModalOpen}
+        onClose={() => setIsCreateTicketModalOpen(false)}
+      />
     </Box>
   );
 } 

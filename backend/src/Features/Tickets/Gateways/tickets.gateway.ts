@@ -36,7 +36,6 @@ export class TicketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
   @SubscribeMessage('join-ticket')
   async handleJoinTicket(client: Socket, payload: { ticketId: string; userId: string }) {
     await client.join(`ticket-${payload.ticketId}`);
-    console.log(`Client ${client.id} joined ticket room: ticket-${payload.ticketId}`);
   }
 
   @SubscribeMessage('send-message')
@@ -46,33 +45,26 @@ export class TicketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
   ) {
     const { ticketId, userId, ...messageDto } = payload;
 
-    console.log(`\n🔌 Tickets Gateway: Received message for ticket ${ticketId}`);
-    console.log(`   User ID: ${userId}`);
-    console.log(`   Message: "${messageDto.content}"`);
-
     try {
-      // Look up user to determine user type
       const user = await this.userModel.findById(userId).exec();
       const userType = user?.userType || UserType.member;
 
-      // Set httpContext for service methods (they use getUserContext())
+      // Set httpContext for service methods
       const userContext: UserContext = {
         userId: userId,
         userType: userType,
       };
       httpContext.set('user_context', userContext);
 
-      // Send message via service
       const message = await this.ticketsService.sendMessage(
         ticketId,
         messageDto,
         userType,
+        userId,
       );
 
-      // Get updated ticket to broadcast
       const ticket = await this.ticketsService.getTicketById(ticketId, userType);
 
-      // Broadcast new message to all clients in the ticket room
       const event: TicketMessageEvent = {
         ticketId,
         message: {
@@ -85,16 +77,11 @@ export class TicketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
       };
 
       this.server.to(`ticket-${ticketId}`).emit('new-message', event);
-
-      // Broadcast ticket update (status change, etc.)
       this.server.to(`ticket-${ticketId}`).emit('ticket-updated', {
         ticketId,
         ticket,
       });
-
-      console.log(`✅ Tickets Gateway: Message sent successfully for ticket ${ticketId}`);
     } catch (error) {
-      console.error('❌ Tickets Gateway: Error sending message:', error);
       client.emit('message-error', {
         ticketId,
         error: error.message || 'Failed to send message',
@@ -102,12 +89,8 @@ export class TicketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
     }
   }
 
-  handleConnection(client: Socket) {
-    console.log(`Tickets client connected: ${client.id}`);
-  }
+  handleConnection(client: Socket) {}
 
-  handleDisconnect(client: Socket) {
-    console.log(`Tickets client disconnected: ${client.id}`);
-  }
+  handleDisconnect(client: Socket) {}
 }
 

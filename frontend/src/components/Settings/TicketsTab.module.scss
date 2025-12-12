@@ -1,0 +1,90 @@
+.card {
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.icon {
+  color: #40578c;
+  font-size: 28px;
+}
+
+.title {
+  color: #40578c;
+  font-weight: 600;
+}
+
+.createButton {
+  text-transform: none;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 64px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.emptyText {
+  color: #666;
+  margin-bottom: 24px;
+}
+
+.emptyButton {
+  text-transform: none;
+}
+
+.ticketList {
+  width: 100%;
+}
+
+.ticketItem {
+  border-bottom: 1px solid #e0e0e0;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.ticketHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.ticketTitle {
+  font-weight: 500;
+  flex: 1;
+}
+
+.statusChip {
+  margin-left: 12px;
+}
+
+.ticketMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
