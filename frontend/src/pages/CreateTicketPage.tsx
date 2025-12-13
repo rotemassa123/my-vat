@@ -24,10 +24,10 @@ const CreateTicketPage: React.FC = () => {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [attachments, setAttachments] = useState<string[]>([]);
+  const [attachments, setAttachments] = useState<Array<{ url: string; fileName: string }>>([]);
 
   const createMutation = useMutation({
-    mutationFn: (data: { title: string; content: string; attachments?: string[] }) =>
+    mutationFn: (data: { title: string; content: string; attachments?: Array<{ url: string; fileName: string }> }) =>
       ticketsApi.createTicket(data),
     onSuccess: (ticket) => {
       navigate(`/tickets/${ticket.id}`);
@@ -38,7 +38,7 @@ const CreateTicketPage: React.FC = () => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
-    const fileUrls: string[] = [];
+    const newAttachments: Array<{ url: string; fileName: string }> = [];
     for (const file of Array.from(files)) {
       try {
         const formData = new FormData();
@@ -46,12 +46,15 @@ const CreateTicketPage: React.FC = () => {
         const response = await api.post('/files/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
-        fileUrls.push(response.data.fileUrl);
+        newAttachments.push({
+          url: response.data.fileUrl,
+          fileName: file.name,
+        });
       } catch (error) {
         console.error('File upload failed:', error);
       }
     }
-    setAttachments([...attachments, ...fileUrls]);
+    setAttachments([...attachments, ...newAttachments]);
   };
 
   const handleSubmit = () => {
@@ -122,10 +125,10 @@ const CreateTicketPage: React.FC = () => {
               </label>
               {attachments.length > 0 && (
                 <Box className={styles.attachmentsPreview}>
-                  {attachments.map((url, idx) => (
+                  {attachments.map((attachment, idx) => (
                     <Chip
                       key={idx}
-                      label={`Attachment ${idx + 1}`}
+                      label={attachment.fileName}
                       onDelete={() => setAttachments(attachments.filter((_, i) => i !== idx))}
                       size="small"
                     />

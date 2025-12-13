@@ -33,9 +33,6 @@ export class TicketResponse {
   @ApiProperty({ description: 'Ticket title' })
   title: string;
 
-  @ApiProperty({ description: 'Ticket content' })
-  content: string;
-
   @ApiProperty({ description: 'User ID who created the ticket' })
   userId: string;
 
@@ -50,9 +47,6 @@ export class TicketResponse {
 
   @ApiProperty({ description: 'Ticket messages', type: [TicketMessageResponse] })
   messages: TicketMessageResponse[];
-
-  @ApiProperty({ description: 'Initial ticket attachments', type: [AttachmentResponse] })
-  attachments: AttachmentResponse[];
 
   @ApiProperty({ description: 'Last message timestamp' })
   lastMessageAt: Date;

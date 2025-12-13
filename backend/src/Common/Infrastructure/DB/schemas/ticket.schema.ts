@@ -39,9 +39,6 @@ export class Ticket {
   @Prop({ required: true })
   title: string;
 
-  @Prop({ required: true })
-  content: string;
-
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -79,17 +76,6 @@ export class Ticket {
     default: [],
   })
   messages: TicketMessage[];
-
-  @Prop({
-    type: [
-      {
-        url: { type: String, required: true },
-        fileName: { type: String, required: true },
-      },
-    ],
-    default: [],
-  })
-  attachments: AttachmentInfo[];
 
   @Prop({ type: Date, default: Date.now, index: true })
   lastMessageAt: Date;

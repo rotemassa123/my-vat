@@ -231,75 +231,7 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ti
             {/* Conversation History */}
             <Box className={styles.conversationSection}>
               <Box className={styles.messagesList}>
-                {/* Initial ticket description as first message */}
-                <Box className={`${styles.messageRow} ${styles.userMessageRow}`}>
-                  <Box className={styles.messageContentWrapper}>
-                    <Typography variant="body2" className={styles.messageContent}>
-                      {ticket.content}
-                    </Typography>
-                    {ticket.attachments && ticket.attachments.length > 0 && (
-                      <Box className={styles.messageAttachments}>
-                        {ticket.attachments.map((attachment, idx) => {
-                          // Handle backward compatibility: attachment might be a string (old format) or object (new format)
-                          const attachmentAny = attachment as any;
-                          const attachmentUrl = typeof attachmentAny === 'string' ? attachmentAny : attachmentAny?.url;
-                          const fileName = typeof attachmentAny === 'string' 
-                            ? attachmentAny.split('/').pop() || 'file' 
-                            : attachmentAny?.fileName || 'file';
-                          
-                          if (!attachmentUrl) return null;
-                          
-                          const FileIcon = getFileIcon(attachmentUrl);
-                          const fileExtension = fileName.split('.').pop()?.toUpperCase() || 'FILE';
-                          return (
-                            <a
-                              key={idx}
-                              href={attachmentUrl}
-                              download={fileName}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={styles.attachmentLink}
-                            >
-                              <Box className={styles.attachmentItem}>
-                                <Box className={styles.attachmentIconContainer}>
-                                  <FileIcon className={styles.attachmentIcon} />
-                                  <Typography variant="caption" className={styles.attachmentIconText}>
-                                    {fileExtension.length > 4 ? fileExtension.substring(0, 4) : fileExtension}
-                                  </Typography>
-                                </Box>
-                                <Box className={styles.attachmentInfo}>
-                                  <Typography variant="body2" className={styles.attachmentFileName}>
-                                    {fileName}
-                                  </Typography>
-                                  <Typography variant="caption" className={styles.attachmentFileDetails}>
-                                    {fileExtension.toLowerCase()}
-                                  </Typography>
-                                </Box>
-                              </Box>
-                            </a>
-                          );
-                        })}
-                      </Box>
-                    )}
-                    <Typography variant="caption" className={styles.messageTime}>
-                      {format(new Date(ticket.createdAt), 'MMM d, HH:mm')}
-                    </Typography>
-                  </Box>
-                  <Avatar
-                    className={styles.messageAvatar}
-                    sx={{ bgcolor: '#2563eb' }}
-                    src={user?.profile_image_url}
-                  >
-                    {user?.fullName
-                      ?.split(' ')
-                      .map((word) => word[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2) || 'U'}
-                  </Avatar>
-                </Box>
-
-                {/* Rest of the messages */}
+                {/* All messages including the first one (created during ticket creation) */}
                 {ticket.messages.map((msg, index) => {
                   const isUserMessage = isUser(msg.senderId);
                   return (

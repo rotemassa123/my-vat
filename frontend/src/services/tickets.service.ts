@@ -16,13 +16,11 @@ export interface TicketMessage {
 export interface Ticket {
   id: string;
   title: string;
-  content: string;
   userId: string;
   handlerId?: string;
   handlerName?: string;
   status: 'open' | 'in_progress' | 'waiting' | 'closed';
   messages: TicketMessage[];
-  attachments: Attachment[];
   lastMessageAt: string;
   createdAt: string;
   updatedAt: string;
@@ -90,11 +88,6 @@ export const ticketsApi = {
 
   updateTicketStatus: async (ticketId: string, data: UpdateStatusRequest): Promise<Ticket> => {
     const response = await apiClient.put<Ticket>(`/tickets/${ticketId}/status`, data);
-    return response.data;
-  },
-
-  updateTicketAttachments: async (ticketId: string, attachments: Attachment[]): Promise<Ticket> => {
-    const response = await apiClient.put<Ticket>(`/tickets/${ticketId}/attachments`, { attachments });
     return response.data;
   },
 };

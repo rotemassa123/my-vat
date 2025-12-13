@@ -62,12 +62,3 @@ export class AssignTicketDto {
   operatorId?: string;
 }
 
-export class UpdateTicketAttachmentsDto {
-  @ApiProperty({ description: 'Attachment file information', type: [AttachmentDto] })
-  @IsArray()
-  @IsNotEmpty()
-  @ValidateNested({ each: true })
-  @Type(() => AttachmentDto)
-  attachments: AttachmentDto[];
-}
-

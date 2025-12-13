@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException,
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Ticket, TicketDocument, TicketStatus, SenderType } from 'src/Common/Infrastructure/DB/schemas/ticket.schema';
-import { CreateTicketDto, SendTicketMessageDto, UpdateTicketStatusDto, AssignTicketDto, UpdateTicketAttachmentsDto } from '../Requests/ticket.requests';
+import { CreateTicketDto, SendTicketMessageDto, UpdateTicketStatusDto, AssignTicketDto } from '../Requests/ticket.requests';
 import { TicketResponse, TicketListResponse, TicketMessageResponse } from '../Responses/ticket.responses';
 import { UserType } from 'src/Common/consts/userType';
 import * as httpContext from 'express-http-context';
@@ -32,12 +32,20 @@ export class TicketsService {
       throw new ForbiddenException('User ID not found in context');
     }
 
+    // Create the first message with the ticket content and attachments
+    const firstMessage = {
+      content: createDto.content,
+      senderId: new mongoose.Types.ObjectId(userId),
+      senderType: SenderType.USER,
+      attachments: createDto.attachments || [],
+      createdAt: new Date(),
+    };
+
     const ticket = new this.ticketModel({
-      ...createDto,
+      title: createDto.title,
       user_id: new mongoose.Types.ObjectId(userId),
       status: TicketStatus.OPEN,
-      messages: [],
-      attachments: createDto.attachments || [],
+      messages: [firstMessage],
       lastMessageAt: new Date(),
     });
 
@@ -277,38 +285,6 @@ export class TicketsService {
     return this.mapToTicketResponse(populatedTicket);
   }
 
-  async updateTicketAttachments(
-    ticketId: string,
-    attachmentsDto: UpdateTicketAttachmentsDto,
-  ): Promise<TicketResponse> {
-    const userContext = this.getUserContext();
-    const userId = userContext.userId;
-
-    const ticket = await this.ticketModel
-      .findOne({ _id: new mongoose.Types.ObjectId(ticketId) })
-      .exec();
-
-    if (!ticket) {
-      throw new NotFoundException('Ticket not found');
-    }
-
-    // UserScopePlugin ensures user_id matches, but verify ownership
-    if (ticket.user_id.toString() !== userId) {
-      throw new ForbiddenException('You can only update your own tickets');
-    }
-
-    ticket.attachments = attachmentsDto.attachments;
-    await ticket.save();
-
-    const populatedTicket = await this.ticketModel
-      .findById(ticket._id)
-      .populate('handlerId', 'fullName email')
-      .populate('user_id', 'fullName email')
-      .exec();
-
-    return this.mapToTicketResponse(populatedTicket);
-  }
-
   private mapToTicketResponse(ticket: TicketDocument): TicketResponse {
     const handler = ticket.handlerId && typeof ticket.handlerId === 'object' ? ticket.handlerId : null;
     const handlerName = handler && 'fullName' in handler && typeof handler.fullName === 'string' 
@@ -335,15 +311,31 @@ export class TicketsService {
       userId = String(ticket.user_id);
     }
 
+    // Handle legacy data: if messages array is empty but content/attachments exist, create a message from them
+    let messages = ticket.messages || [];
+    const ticketAny = ticket as any;
+    if (messages.length === 0 && (ticketAny.content || (ticketAny.attachments && ticketAny.attachments.length > 0))) {
+      // Legacy ticket - create first message from content/attachments
+      messages = [{
+        content: ticketAny.content || '',
+        senderId: ticket.user_id,
+        senderType: SenderType.USER,
+        attachments: (ticketAny.attachments || []).map((att: any) => ({
+          url: typeof att === 'string' ? att : att.url,
+          fileName: typeof att === 'string' ? (att as string).split('/').pop() || 'file' : att.fileName,
+        })),
+        createdAt: ticket.created_at || new Date(),
+      }];
+    }
+
     return {
       id: ticket._id.toString(),
       title: ticket.title,
-      content: ticket.content,
       userId,
       handlerId: ticket.handlerId?.toString(),
       handlerName,
       status: ticket.status,
-      messages: ticket.messages.map(msg => ({
+      messages: messages.map(msg => ({
         content: msg.content,
         senderId: msg.senderId.toString(),
         senderType: msg.senderType,
@@ -352,10 +344,6 @@ export class TicketsService {
           fileName: typeof att === 'string' ? (att as string).split('/').pop() || 'file' : att.fileName,
         })),
         createdAt: msg.createdAt,
-      })),
-      attachments: (ticket.attachments || []).map((att: any) => ({
-        url: typeof att === 'string' ? att : att.url,
-        fileName: typeof att === 'string' ? (att as string).split('/').pop() || 'file' : att.fileName,
       })),
       lastMessageAt: ticket.lastMessageAt,
       createdAt: ticket.created_at,

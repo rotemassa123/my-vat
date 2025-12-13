@@ -32,20 +32,14 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ open, onClose, on
 
   const createMutation = useMutation({
     mutationFn: async (data: { title: string; content: string; files?: File[] }) => {
-      // First create the ticket
-      const ticket = await ticketsApi.createTicket({
-        title: data.title,
-        content: data.content,
-      });
-
-      // Then upload files to ticket-specific path if any
+      // Upload files first if any, to get URLs
+      let attachments: Array<{ url: string; fileName: string }> = [];
       if (data.files && data.files.length > 0) {
-        const attachments: Array<{ url: string; fileName: string }> = [];
         for (const file of data.files) {
           try {
             const formData = new FormData();
             formData.append('file', file);
-            const response = await apiClient.post(`/files/tickets/${ticket.id}/upload`, formData, {
+            const response = await apiClient.post('/files/upload', formData, {
               headers: { 'Content-Type': 'multipart/form-data' },
             });
             attachments.push({
@@ -56,13 +50,15 @@ const CreateTicketModal: React.FC<CreateTicketModalProps> = ({ open, onClose, on
             console.error('File upload failed:', error);
           }
         }
-
-        // Update ticket with attachments
-        if (attachments.length > 0) {
-          await ticketsApi.updateTicketAttachments(ticket.id, attachments);
-          return { ...ticket, attachments };
-        }
       }
+
+      // Create ticket with content and attachments
+      // The backend will create the first message automatically with this data
+      const ticket = await ticketsApi.createTicket({
+        title: data.title,
+        content: data.content,
+        attachments: attachments.length > 0 ? attachments : undefined,
+      });
 
       return ticket;
     },
