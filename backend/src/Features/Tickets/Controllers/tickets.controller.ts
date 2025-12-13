@@ -6,6 +6,8 @@ import {
   Param,
   Body,
   UseGuards,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { TicketsService } from '../Services/tickets.service';
@@ -26,12 +28,17 @@ import { RolesGuard } from '../../../Common/Infrastructure/guards/roles.guard';
 import { AuthenticationGuard } from '../../../Common/Infrastructure/guards/authentication.guard';
 import * as httpContext from 'express-http-context';
 import { UserContext } from '../../../Common/Infrastructure/types/user-context.type';
+import { TicketsGateway } from '../Gateways/tickets.gateway';
 
 @ApiTags('tickets')
 @Controller('tickets')
 @UseGuards(AuthenticationGuard)
 export class TicketsController {
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(
+    private readonly ticketsService: TicketsService,
+    @Inject(forwardRef(() => TicketsGateway))
+    private readonly ticketsGateway: TicketsGateway,
+  ) {}
 
   private getUserType(): UserType {
     const userContext = httpContext.get('user_context') as UserContext | undefined;
@@ -104,7 +111,12 @@ export class TicketsController {
     @Param('id') ticketId: string,
     @Body() assignDto: AssignTicketDto,
   ): Promise<TicketResponse> {
-    return this.ticketsService.assignTicket(ticketId, assignDto);
+    const ticket = await this.ticketsService.assignTicket(ticketId, assignDto);
+    
+    // Emit WebSocket event to notify all connected clients about the assignment
+    this.ticketsGateway.emitTicketUpdate(ticketId, ticket);
+    
+    return ticket;
   }
 
   @Put(':id/status')

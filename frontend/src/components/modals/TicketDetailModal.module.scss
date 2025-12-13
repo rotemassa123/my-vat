@@ -23,8 +23,8 @@
 
 .headerContent {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
   flex: 1;
 }
 
@@ -37,9 +37,22 @@
   line-height: 1.2;
 }
 
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .statusChip {
   font-family: 'Poppins', sans-serif;
   font-size: 0.75rem;
+}
+
+.handlerInfo {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 .closeButton {

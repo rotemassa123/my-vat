@@ -17,7 +17,7 @@ import { InfraModule } from 'src/Common/Infrastructure/infra.module';
   ],
   controllers: [TicketsController],
   providers: [TicketsService, TicketsGateway],
-  exports: [TicketsService],
+  exports: [TicketsService, TicketsGateway],
 })
 export class TicketsModule {}
 

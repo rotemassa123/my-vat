@@ -215,12 +215,24 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ti
           <Box className={styles.modalHeader}>
             <Box className={styles.headerContent}>
               <Typography variant="h4" className={styles.modalTitle}>{ticket.title}</Typography>
-              <Chip
-                label={ticket.status}
-                size="small"
-                color={getStatusColor(ticket.status) as any}
-                className={styles.statusChip}
-              />
+              <Box className={styles.headerMeta}>
+                <Chip
+                  label={ticket.status}
+                  size="small"
+                  color={getStatusColor(ticket.status) as any}
+                  className={styles.statusChip}
+                />
+                {ticket.handlerName && (
+                  <Typography variant="body2" color="text.secondary" className={styles.handlerInfo}>
+                    Handled by: {ticket.handlerName}
+                  </Typography>
+                )}
+                {!ticket.handlerName && (
+                  <Typography variant="body2" color="text.secondary" className={styles.handlerInfo}>
+                    Unassigned
+                  </Typography>
+                )}
+              </Box>
             </Box>
             <IconButton onClick={onClose} className={styles.closeButton}>
               <Close />

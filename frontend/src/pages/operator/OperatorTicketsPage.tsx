@@ -19,6 +19,7 @@ import { Support as SupportIcon } from '@mui/icons-material';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ticketsApi, type Ticket } from '../../services/tickets.service';
 import { useAuthStore } from '../../store/authStore';
+import { useTicketStore } from '../../store/ticketStore';
 import TicketDetailModal from '../../components/modals/TicketDetailModal';
 import { format } from 'date-fns';
 import styles from './OperatorTicketsPage.module.scss';
@@ -26,6 +27,8 @@ import styles from './OperatorTicketsPage.module.scss';
 const OperatorTicketsPage: React.FC = () => {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
+  const tickets = useTicketStore((state) => state.tickets);
+  const setTickets = useTicketStore((state) => state.setTickets);
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
@@ -41,9 +44,16 @@ const OperatorTicketsPage: React.FC = () => {
 
   const assignMutation = useMutation({
     mutationFn: (ticketId: string) => ticketsApi.assignTicket(ticketId),
-    onSuccess: () => {
+    onSuccess: (updatedTicket) => {
       queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', selectedTicketId] });
+      // Update ticket in Zustand store
+      const updatedTickets = tickets.map((t) => 
+        t.id === updatedTicket.id ? updatedTicket : t
+      );
+      setTickets(updatedTickets);
+      // Update individual ticket cache
+      queryClient.setQueryData(['ticket', updatedTicket.id], updatedTicket);
     },
   });
 

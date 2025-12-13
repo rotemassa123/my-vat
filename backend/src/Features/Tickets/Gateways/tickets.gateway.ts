@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { TicketsService } from '../Services/tickets.service';
 import { SendTicketMessageDto } from '../Requests/ticket.requests';
-import { TicketMessageEvent } from '../Responses/ticket.responses';
+import { TicketMessageEvent, TicketResponse } from '../Responses/ticket.responses';
 import { UserType } from 'src/Common/consts/userType';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -87,6 +87,17 @@ export class TicketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
         error: error.message || 'Failed to send message',
       });
     }
+  }
+
+  /**
+   * Emit ticket update event to all clients connected to the ticket room
+   * This can be called from controllers or services to notify clients of ticket changes
+   */
+  emitTicketUpdate(ticketId: string, ticket: TicketResponse): void {
+    this.server.to(`ticket-${ticketId}`).emit('ticket-updated', {
+      ticketId,
+      ticket,
+    });
   }
 
   handleConnection(client: Socket) {}
