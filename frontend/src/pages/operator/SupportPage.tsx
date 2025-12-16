@@ -6,7 +6,6 @@ import {
   CardContent,
   List,
   ListItem,
-  ListItemText,
   ListItemButton,
   Chip,
   CircularProgress,
@@ -41,10 +40,36 @@ const SupportPage: React.FC = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Get tickets assigned to me
+  const { data: assignedToMeData, isLoading: isLoadingAssigned } = useQuery({
+    queryKey: ['tickets-assigned-to-me'],
+    queryFn: () => ticketsApi.getTicketsAssignedToMe(),
+    staleTime: Infinity,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
+
   const assignMutation = useMutation({
     mutationFn: (ticketId: string) => ticketsApi.assignTicket(ticketId),
     onSuccess: (updatedTicket) => {
       queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['tickets-assigned-to-me'] });
+      queryClient.invalidateQueries({ queryKey: ['ticket', selectedTicketId] });
+      // Update ticket in Zustand store
+      const updatedTickets = tickets.map((t) => 
+        t.id === updatedTicket.id ? updatedTicket : t
+      );
+      setTickets(updatedTickets);
+      // Update individual ticket cache
+      queryClient.setQueryData(['ticket', updatedTicket.id], updatedTicket);
+    },
+  });
+
+  const unassignMutation = useMutation({
+    mutationFn: (ticketId: string) => ticketsApi.unassignTicket(ticketId),
+    onSuccess: (updatedTicket) => {
+      queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
+      queryClient.invalidateQueries({ queryKey: ['tickets-assigned-to-me'] });
       queryClient.invalidateQueries({ queryKey: ['ticket', selectedTicketId] });
       // Update ticket in Zustand store
       const updatedTickets = tickets.map((t) => 
@@ -71,6 +96,11 @@ const SupportPage: React.FC = () => {
     await assignMutation.mutateAsync(ticketId);
   };
 
+  const handleUnassign = async (ticketId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    await unassignMutation.mutateAsync(ticketId);
+  };
+
   const getStatusColor = (status: Ticket['status']) => {
     switch (status) {
       case 'open':
@@ -86,7 +116,7 @@ const SupportPage: React.FC = () => {
     }
   };
 
-  if (isLoadingAll) {
+  if (isLoadingAll || isLoadingAssigned) {
     return (
       <Box className={styles.container}>
         <Card>
@@ -115,8 +145,36 @@ const SupportPage: React.FC = () => {
   }
 
   const allTickets = allTicketsData?.tickets || [];
-  const unhandledTickets = allTickets.filter((ticket) => ticket.status === 'open');
-  const displayedTickets = tabValue === 0 ? unhandledTickets : allTickets;
+  const assignedToMeTickets = assignedToMeData?.tickets || [];
+  const unassignedTickets = allTickets.filter((ticket) => !ticket.handlerId);
+  
+  const getDisplayedTickets = () => {
+    switch (tabValue) {
+      case 0:
+        return allTickets;
+      case 1:
+        return assignedToMeTickets;
+      case 2:
+        return unassignedTickets;
+      default:
+        return allTickets;
+    }
+  };
+  
+  const displayedTickets = getDisplayedTickets();
+  
+  const getEmptyStateMessage = () => {
+    switch (tabValue) {
+      case 0:
+        return 'No tickets';
+      case 1:
+        return 'No tickets assigned to you';
+      case 2:
+        return 'No unassigned tickets';
+      default:
+        return 'No tickets';
+    }
+  };
 
   return (
     <Box className={styles.container}>
@@ -132,15 +190,16 @@ const SupportPage: React.FC = () => {
       <Card>
         <CardContent>
           <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} className={styles.tabs}>
-            <Tab label={`Unhandled (${unhandledTickets.length})`} />
             <Tab label={`All Tickets (${allTickets.length})`} />
+            <Tab label={`Assigned to Me (${assignedToMeTickets.length})`} />
+            <Tab label={`Unassigned (${unassignedTickets.length})`} />
           </Tabs>
 
           {displayedTickets.length === 0 ? (
             <Box className={styles.emptyState}>
               <SupportIcon className={styles.emptyIcon} />
               <Typography variant="body1" className={styles.emptyText}>
-                {tabValue === 0 ? 'No unhandled tickets' : 'No tickets'}
+                {getEmptyStateMessage()}
               </Typography>
             </Box>
           ) : (
@@ -148,6 +207,7 @@ const SupportPage: React.FC = () => {
               {displayedTickets.map((ticket) => {
                 const isAssignedToMe = ticket.handlerId === user?._id;
                 const canAssign = !isAssignedToMe && ticket.status !== 'closed';
+                const canUnassign = isAssignedToMe && ticket.status !== 'closed';
 
                 return (
                   <ListItem
@@ -177,7 +237,7 @@ const SupportPage: React.FC = () => {
                                 size="small"
                                 variant="outlined"
                                 onClick={(e) => handleAssignToSelf(ticket.id, e)}
-                                disabled={assignMutation.isPending}
+                                disabled={assignMutation.isPending || unassignMutation.isPending}
                                 className={styles.assignButton}
                                 sx={{
                                   borderRadius: '24px',
@@ -192,6 +252,29 @@ const SupportPage: React.FC = () => {
                                 }}
                               >
                                 Assign to Me
+                              </Button>
+                            )}
+                            {canUnassign && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="secondary"
+                                onClick={(e) => handleUnassign(ticket.id, e)}
+                                disabled={assignMutation.isPending || unassignMutation.isPending}
+                                className={styles.assignButton}
+                                sx={{
+                                  borderRadius: '24px',
+                                  textTransform: 'none',
+                                  fontSize: '0.75rem',
+                                  whiteSpace: 'nowrap',
+                                  padding: '4px 16px',
+                                  '&:hover': {
+                                    backgroundColor: 'rgba(211, 47, 47, 0.08)',
+                                    borderColor: '#d32f2f',
+                                  },
+                                }}
+                              >
+                                Unassign
                               </Button>
                             )}
                           </Box>

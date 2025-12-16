@@ -81,8 +81,18 @@ export const ticketsApi = {
     return response.data;
   },
 
+  getTicketsAssignedToMe: async (): Promise<TicketListResponse> => {
+    const response = await apiClient.get<TicketListResponse>('/tickets/operator/assigned-to-me');
+    return response.data;
+  },
+
   assignTicket: async (ticketId: string, data?: AssignTicketRequest): Promise<Ticket> => {
     const response = await apiClient.put<Ticket>(`/tickets/${ticketId}/assign`, data || {});
+    return response.data;
+  },
+
+  unassignTicket: async (ticketId: string): Promise<Ticket> => {
+    const response = await apiClient.put<Ticket>(`/tickets/${ticketId}/unassign`, {});
     return response.data;
   },
 

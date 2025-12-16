@@ -102,6 +102,14 @@ export class TicketsController {
     return this.ticketsService.getAllTickets();
   }
 
+  @Get('operator/assigned-to-me')
+  @RequireRoles(UserType.operator)
+  @ApiOperation({ summary: 'Get tickets assigned to current operator (operator only)' })
+  @ApiResponse({ status: 200, description: 'List of tickets assigned to me', type: TicketListResponse })
+  async getTicketsAssignedToMe(): Promise<TicketListResponse> {
+    return this.ticketsService.getTicketsAssignedToMe();
+  }
+
   @Put(':id/assign')
   @RequireRoles(UserType.operator)
   @ApiParam({ name: 'id', type: String })
@@ -114,6 +122,22 @@ export class TicketsController {
     const ticket = await this.ticketsService.assignTicket(ticketId, assignDto);
     
     // Emit WebSocket event to notify all connected clients about the assignment
+    this.ticketsGateway.emitTicketUpdate(ticketId, ticket);
+    
+    return ticket;
+  }
+
+  @Put(':id/unassign')
+  @RequireRoles(UserType.operator)
+  @ApiParam({ name: 'id', type: String })
+  @ApiOperation({ summary: 'Unassign ticket from operator (operator only)' })
+  @ApiResponse({ status: 200, description: 'Ticket unassigned successfully', type: TicketResponse })
+  async unassignTicket(
+    @Param('id') ticketId: string,
+  ): Promise<TicketResponse> {
+    const ticket = await this.ticketsService.unassignTicket(ticketId);
+    
+    // Emit WebSocket event to notify all connected clients about the unassignment
     this.ticketsGateway.emitTicketUpdate(ticketId, ticket);
     
     return ticket;

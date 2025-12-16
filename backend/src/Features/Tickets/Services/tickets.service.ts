@@ -224,6 +224,28 @@ export class TicketsService {
     };
   }
 
+  async getTicketsAssignedToMe(): Promise<TicketListResponse> {
+    const userContext = this.getUserContext();
+    const operatorId = userContext.userId;
+    
+    if (!operatorId) {
+      throw new ForbiddenException('User ID not found in context');
+    }
+
+    const tickets = await this.ticketModel
+      .find({ handlerId: new mongoose.Types.ObjectId(operatorId) })
+      .setOptions({ disableUserScope: true })
+      .sort({ lastMessageAt: -1 })
+      .populate('user_id', 'fullName email')
+      .populate('handlerId', 'fullName email')
+      .exec();
+
+    return {
+      tickets: tickets.map(t => this.mapToTicketResponse(t)),
+      total: tickets.length,
+    };
+  }
+
   async assignTicket(ticketId: string, assignDto: AssignTicketDto): Promise<TicketResponse> {
     const userContext = this.getUserContext();
     const operatorId = userContext.userId;
@@ -232,6 +254,7 @@ export class TicketsService {
       throw new ForbiddenException('User ID not found in context');
     }
 
+    // Verify ticket exists first
     const ticket = await this.ticketModel
       .findOne({ _id: new mongoose.Types.ObjectId(ticketId) })
       .setOptions({ disableUserScope: true })
@@ -245,16 +268,67 @@ export class TicketsService {
       ? new mongoose.Types.ObjectId(assignDto.operatorId) 
       : new mongoose.Types.ObjectId(operatorId);
     
-    ticket.handlerId = handlerId;
-    ticket.status = TicketStatus.IN_PROGRESS;
-    await ticket.save();
+    // Use updateOne instead of save() to prevent UserScopePlugin from modifying user_id
+    // when HTTP context is missing/wrong (e.g., during WebSocket events)
+    await this.ticketModel.updateOne(
+      { _id: new mongoose.Types.ObjectId(ticketId) },
+      {
+        $set: {
+          handlerId: handlerId,
+          status: TicketStatus.IN_PROGRESS,
+        },
+      },
+      { disableUserScope: true },
+    ).exec();
 
     const populatedTicket = await this.ticketModel
-      .findById(ticket._id)
+      .findById(ticketId)
       .setOptions({ disableUserScope: true })
       .populate('handlerId', 'fullName email')
       .populate('user_id', 'fullName email')
       .exec();
+
+    if (!populatedTicket) {
+      throw new NotFoundException('Ticket not found after update');
+    }
+
+    return this.mapToTicketResponse(populatedTicket);
+  }
+
+  async unassignTicket(ticketId: string): Promise<TicketResponse> {
+    // Verify ticket exists first
+    const ticket = await this.ticketModel
+      .findOne({ _id: new mongoose.Types.ObjectId(ticketId) })
+      .setOptions({ disableUserScope: true })
+      .exec();
+
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+
+    // Use updateOne instead of save() to prevent UserScopePlugin from modifying user_id
+    // when HTTP context is missing/wrong (e.g., during WebSocket events)
+    // Only update handlerId to null, keep status unchanged
+    await this.ticketModel.updateOne(
+      { _id: new mongoose.Types.ObjectId(ticketId) },
+      {
+        $set: {
+          handlerId: null,
+        },
+      },
+      { disableUserScope: true },
+    ).exec();
+
+    const populatedTicket = await this.ticketModel
+      .findById(ticketId)
+      .setOptions({ disableUserScope: true })
+      .populate('handlerId', 'fullName email')
+      .populate('user_id', 'fullName email')
+      .exec();
+
+    if (!populatedTicket) {
+      throw new NotFoundException('Ticket not found after update');
+    }
 
     return this.mapToTicketResponse(populatedTicket);
   }
