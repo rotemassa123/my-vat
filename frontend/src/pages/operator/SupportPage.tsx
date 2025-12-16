@@ -8,13 +8,12 @@ import {
   ListItem,
   ListItemButton,
   Chip,
-  CircularProgress,
   Tabs,
   Tab,
   Button,
 } from '@mui/material';
 import { Support as SupportIcon } from '@mui/icons-material';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { ticketsApi, type Ticket } from '../../services/tickets.service';
 import { useAuthStore } from '../../store/authStore';
 import { useTicketStore } from '../../store/ticketStore';
@@ -23,7 +22,6 @@ import { format } from 'date-fns';
 import styles from './SupportPage.module.scss';
 
 const SupportPage: React.FC = () => {
-  const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const tickets = useTicketStore((state) => state.tickets);
   const setTickets = useTicketStore((state) => state.setTickets);
@@ -31,53 +29,27 @@ const SupportPage: React.FC = () => {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
 
-  // Get all tickets (for operators, getUserTickets returns all tickets)
-  const { data: allTicketsData, isLoading: isLoadingAll, error } = useQuery({
-    queryKey: ['user-tickets'],
-    queryFn: () => ticketsApi.getUserTickets(),
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
-
-  // Get tickets assigned to me
-  const { data: assignedToMeData, isLoading: isLoadingAssigned } = useQuery({
-    queryKey: ['tickets-assigned-to-me'],
-    queryFn: () => ticketsApi.getTicketsAssignedToMe(),
-    staleTime: Infinity,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-  });
-
   const assignMutation = useMutation({
     mutationFn: (ticketId: string) => ticketsApi.assignTicket(ticketId),
     onSuccess: (updatedTicket) => {
-      queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['tickets-assigned-to-me'] });
-      queryClient.invalidateQueries({ queryKey: ['ticket', selectedTicketId] });
       // Update ticket in Zustand store
-      const updatedTickets = tickets.map((t) => 
+      const currentTickets = useTicketStore.getState().tickets;
+      const updatedTickets = currentTickets.map((t) => 
         t.id === updatedTicket.id ? updatedTicket : t
       );
       setTickets(updatedTickets);
-      // Update individual ticket cache
-      queryClient.setQueryData(['ticket', updatedTicket.id], updatedTicket);
     },
   });
 
   const unassignMutation = useMutation({
     mutationFn: (ticketId: string) => ticketsApi.unassignTicket(ticketId),
     onSuccess: (updatedTicket) => {
-      queryClient.invalidateQueries({ queryKey: ['user-tickets'] });
-      queryClient.invalidateQueries({ queryKey: ['tickets-assigned-to-me'] });
-      queryClient.invalidateQueries({ queryKey: ['ticket', selectedTicketId] });
       // Update ticket in Zustand store
-      const updatedTickets = tickets.map((t) => 
+      const currentTickets = useTicketStore.getState().tickets;
+      const updatedTickets = currentTickets.map((t) => 
         t.id === updatedTicket.id ? updatedTicket : t
       );
       setTickets(updatedTickets);
-      // Update individual ticket cache
-      queryClient.setQueryData(['ticket', updatedTicket.id], updatedTicket);
     },
   });
 
@@ -116,37 +88,10 @@ const SupportPage: React.FC = () => {
     }
   };
 
-  if (isLoadingAll || isLoadingAssigned) {
-    return (
-      <Box className={styles.container}>
-        <Card>
-          <CardContent>
-            <Box display="flex" justifyContent="center" alignItems="center" minHeight={200}>
-              <CircularProgress />
-            </Box>
-          </CardContent>
-        </Card>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box className={styles.container}>
-        <Card>
-          <CardContent>
-            <Typography color="error">
-              Failed to load tickets. Please try again.
-            </Typography>
-          </CardContent>
-        </Card>
-      </Box>
-    );
-  }
-
-  const allTickets = allTicketsData?.tickets || [];
-  const assignedToMeTickets = assignedToMeData?.tickets || [];
-  const unassignedTickets = allTickets.filter((ticket) => !ticket.handlerId);
+  // Filter tickets from Zustand store based on current tab
+  const allTickets = tickets;
+  const assignedToMeTickets = tickets.filter((ticket) => ticket.handlerId === user?._id);
+  const unassignedTickets = tickets.filter((ticket) => !ticket.handlerId);
   
   const getDisplayedTickets = () => {
     switch (tabValue) {
@@ -232,6 +177,19 @@ const SupportPage: React.FC = () => {
                               color={getStatusColor(ticket.status) as any}
                               className={styles.statusChip}
                             />
+                            {isAssignedToMe && (
+                              <Chip
+                                label="Assigned to Me"
+                                size="small"
+                                color="primary"
+                                sx={{
+                                  borderRadius: '16px',
+                                  fontSize: '0.75rem',
+                                  height: '24px',
+                                  ml: 0.5,
+                                }}
+                              />
+                            )}
                             {canAssign && (
                               <Button
                                 size="small"
@@ -245,6 +203,7 @@ const SupportPage: React.FC = () => {
                                   fontSize: '0.75rem',
                                   whiteSpace: 'nowrap',
                                   padding: '4px 16px',
+                                  ml: 0.5,
                                   '&:hover': {
                                     backgroundColor: 'rgba(25, 118, 210, 0.08)',
                                     borderColor: '#1976d2',
@@ -268,6 +227,7 @@ const SupportPage: React.FC = () => {
                                   fontSize: '0.75rem',
                                   whiteSpace: 'nowrap',
                                   padding: '4px 16px',
+                                  ml: 0.5,
                                   '&:hover': {
                                     backgroundColor: 'rgba(211, 47, 47, 0.08)',
                                     borderColor: '#d32f2f',

@@ -365,6 +365,24 @@ export class TicketsService {
       ? handler.fullName 
       : undefined;
 
+    // Extract handlerId - handle both populated user object and ObjectId
+    let handlerId: string | undefined;
+    if (ticket.handlerId) {
+      if (typeof ticket.handlerId === 'object' && '_id' in ticket.handlerId) {
+        // Populated object - extract _id
+        const handlerObj = ticket.handlerId as any;
+        if (handlerObj._id) {
+          handlerId = handlerObj._id.toString();
+        } else if (handlerObj.id) {
+          handlerId = handlerObj.id.toString();
+        }
+      } else {
+        // ObjectId - convert to string
+        const handlerIdObj = ticket.handlerId as mongoose.Types.ObjectId;
+        handlerId = handlerIdObj.toString();
+      }
+    }
+
     // Extract userId - handle both populated user object and ObjectId
     let userId: string;
     if (!ticket.user_id) {
@@ -406,7 +424,7 @@ export class TicketsService {
       id: ticket._id.toString(),
       title: ticket.title,
       userId,
-      handlerId: ticket.handlerId?.toString(),
+      handlerId,
       handlerName,
       status: ticket.status,
       messages: messages.map(msg => ({
