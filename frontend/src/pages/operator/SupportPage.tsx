@@ -98,13 +98,13 @@ const SupportPage: React.FC = () => {
   const getDisplayedTickets = () => {
     switch (tabValue) {
       case 0:
-        return allTickets;
-      case 1:
         return assignedToMeTickets;
-      case 2:
+      case 1:
         return unassignedTickets;
-      default:
+      case 2:
         return allTickets;
+      default:
+        return assignedToMeTickets;
     }
   };
   
@@ -113,13 +113,13 @@ const SupportPage: React.FC = () => {
   const getEmptyStateMessage = () => {
     switch (tabValue) {
       case 0:
-        return 'No tickets';
-      case 1:
         return 'No tickets assigned to you';
-      case 2:
+      case 1:
         return 'No unassigned tickets';
-      default:
+      case 2:
         return 'No tickets';
+      default:
+        return 'No tickets assigned to you';
     }
   };
 
@@ -137,9 +137,9 @@ const SupportPage: React.FC = () => {
       <Card>
         <CardContent>
           <Tabs value={tabValue} onChange={(_, newValue) => setTabValue(newValue)} className={styles.tabs}>
-            <Tab label={`All Tickets (${allTickets.length})`} />
             <Tab label={`Assigned to Me (${assignedToMeTickets.length})`} />
             <Tab label={`Unassigned (${unassignedTickets.length})`} />
+            <Tab label={`All Tickets (${allTickets.length})`} />
           </Tabs>
 
           {displayedTickets.length === 0 ? (
