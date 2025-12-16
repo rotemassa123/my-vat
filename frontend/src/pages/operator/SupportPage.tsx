@@ -65,11 +65,13 @@ const SupportPage: React.FC = () => {
 
   const handleAssignToSelf = async (ticketId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     await assignMutation.mutateAsync(ticketId);
   };
 
   const handleUnassign = async (ticketId: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    e.preventDefault();
     await unassignMutation.mutateAsync(ticketId);
   };
 
@@ -194,7 +196,14 @@ const SupportPage: React.FC = () => {
                               <Button
                                 size="small"
                                 variant="outlined"
-                                onClick={(e) => handleAssignToSelf(ticket.id, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  handleAssignToSelf(ticket.id, e);
+                                }}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                }}
                                 disabled={assignMutation.isPending || unassignMutation.isPending}
                                 className={styles.assignButton}
                                 sx={{
@@ -218,7 +227,14 @@ const SupportPage: React.FC = () => {
                                 size="small"
                                 variant="outlined"
                                 color="secondary"
-                                onClick={(e) => handleUnassign(ticket.id, e)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  handleUnassign(ticket.id, e);
+                                }}
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                }}
                                 disabled={assignMutation.isPending || unassignMutation.isPending}
                                 className={styles.assignButton}
                                 sx={{
