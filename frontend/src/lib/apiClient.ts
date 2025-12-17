@@ -1,5 +1,6 @@
 import axios, { type AxiosInstance } from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { useOperatorAccountContextStore } from '../store/operatorAccountContextStore';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
@@ -15,6 +16,13 @@ apiClient.interceptors.request.use(
   (config) => {
     // Session is handled by an HTTP-only cookie, so no explicit
     // Authorization header is needed on the client.
+    
+    // If operator has selected an account, add x-account-id header
+    const selectedAccountId = useOperatorAccountContextStore.getState().selectedAccountId;
+    if (selectedAccountId) {
+      config.headers['x-account-id'] = selectedAccountId;
+    }
+    
     return config;
   },
   (error) => {

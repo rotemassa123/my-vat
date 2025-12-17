@@ -11,6 +11,7 @@ import {
   PlayArrow as PlayArrowIcon,
   PersonAdd as PersonAddIcon,
   Support as SupportIcon,
+  AdminPanelSettings as AdminPanelSettingsIcon,
 } from '@mui/icons-material';
 import { UserType } from './userType';
 
@@ -42,6 +43,11 @@ export const OPERATOR_NAVIGATION: NavigationItem[] = [
     path: '/support',
     label: 'Support',
     icon: SupportIcon,
+  },
+  {
+    path: '/manage-client',
+    label: 'Manage Client',
+    icon: AdminPanelSettingsIcon,
   },
 ];
 

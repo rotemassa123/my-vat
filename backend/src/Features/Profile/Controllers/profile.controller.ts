@@ -47,18 +47,14 @@ export class ProfileController {
 
       const userType = userContext.userType;
 
-      // Operator: No additional data to return
-      if (userType === UserType.operator) {
-        return {};
-      }
-
       const account = await this.profileService.findAccountById(userContext.accountId);
       if (!account) {
         throw new NotFoundException('Account not found');
       }
 
       // Admin: Account + all entities + all users in account + statistics for all entities
-      if (userType === UserType.admin) {
+      // Operator: Same as admin when x-account-id header is provided
+      if (userType === UserType.admin || userType === UserType.operator) {
         const entities = await this.profileService.getEntitiesForAccount();
         const users = await this.profileService.getUsersForAccount();
         const statistics = await this.profileService.getStatistics(userContext.accountId);

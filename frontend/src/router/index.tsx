@@ -28,6 +28,7 @@ const TriggerJobsPage = lazy(() => import("../pages/operator/TriggerJobsPage"));
 const CreateAccountsPage = lazy(() => import("../pages/operator/CreateAccountsPage"));
 const SupportPage = lazy(() => import("../pages/operator/SupportPage"));
 const OperatorTicketsPage = lazy(() => import("../pages/operator/OperatorTicketsPage"));
+const ManageClientPage = lazy(() => import("../pages/operator/ManageClientPage"));
 
 function Router() {
   const router = createBrowserRouter(
@@ -58,6 +59,7 @@ function Router() {
           <Route path="/create-accounts" element={<CreateAccountsPage />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/operator/tickets" element={<OperatorTicketsPage />} />
+          <Route path="/manage-client" element={<ManageClientPage />} />
         </Route>
       </Route>
     )

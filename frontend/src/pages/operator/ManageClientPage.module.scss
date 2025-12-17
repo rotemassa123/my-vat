@@ -1,0 +1,70 @@
+.container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  gap: 24px;
+}
+
+.title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.accountPickerSection {
+  min-width: 300px;
+  max-width: 400px;
+  flex-shrink: 0;
+}
+
+.tabPickerSection {
+  min-width: 200px;
+  max-width: 250px;
+  flex-shrink: 0;
+}
+
+.contentCard {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+}
+
+.tabContent {
+  min-height: 400px;
+  padding: 0;
+  overflow: visible;
+}
+
+.emptyTab {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.emptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
