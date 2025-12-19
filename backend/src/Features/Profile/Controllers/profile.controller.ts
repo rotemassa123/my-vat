@@ -47,6 +47,16 @@ export class ProfileController {
 
       const userType = userContext.userType;
 
+      // Operator without account selected: Return empty profile (operators don't have their own account)
+      if (userType === UserType.operator && !userContext.accountId) {
+        return {
+          account: undefined,
+          entities: [],
+          users: [],
+          statistics: [],
+        };
+      }
+
       const account = await this.profileService.findAccountById(userContext.accountId);
       if (!account) {
         throw new NotFoundException('Account not found');
@@ -55,7 +65,7 @@ export class ProfileController {
       // Admin: Account + all entities + all users in account + statistics for all entities
       // Operator: Same as admin when x-account-id header is provided
       if (userType === UserType.admin || userType === UserType.operator) {
-        const entities = await this.profileService.getEntitiesForAccount();
+        const entities = await this.profileService.getEntitiesForAccount();        
         const users = await this.profileService.getUsersForAccount();
         const statistics = await this.profileService.getStatistics(userContext.accountId);
 
