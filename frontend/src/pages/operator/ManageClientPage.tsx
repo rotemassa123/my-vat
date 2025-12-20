@@ -46,7 +46,7 @@ const ManageClientPage: React.FC = () => {
     }
   }, [selectedAccountId, setContextAccountId, clearSelectedAccount]);
 
-  const handleAccountChange = (event: SyntheticEvent, account: Account | null) => {
+  const handleAccountChange = (_event: SyntheticEvent, account: Account | null) => {
     const newAccountId = account?._id || '';
     // Set context store FIRST, before state update, so requests get the header
     if (newAccountId) {
@@ -59,17 +59,19 @@ const ManageClientPage: React.FC = () => {
     setSelectedTab('invoices');
   };
 
-  const handleTabChange = (event: SyntheticEvent, value: typeof tabOptions[0] | null) => {
+  const handleTabChange = (_event: SyntheticEvent, value: TabOption | null) => {
     if (value) {
       setSelectedTab(value.value);
     }
   };
 
-  const tabOptions = [
-    { value: 'invoices' as const, label: 'Invoices' },
-    { value: 'entities' as const, label: 'Entities' },
-    { value: 'users' as const, label: 'Users' },
-  ] as const;
+  type TabOption = { value: 'invoices' | 'entities' | 'users'; label: string };
+
+  const tabOptions: TabOption[] = [
+    { value: 'invoices', label: 'Invoices' },
+    { value: 'entities', label: 'Entities' },
+    { value: 'users', label: 'Users' },
+  ];
 
   const selectedTabOption = tabOptions.find(opt => opt.value === selectedTab) || tabOptions[0];
 
@@ -94,7 +96,7 @@ const ManageClientPage: React.FC = () => {
             />
           </Box>
           <Box className={styles.tabPickerSection}>
-            <Autocomplete<typeof tabOptions[0]>
+            <Autocomplete<TabOption, false, true>
               options={tabOptions}
               value={selectedTabOption}
               onChange={handleTabChange}
@@ -116,32 +118,28 @@ const ManageClientPage: React.FC = () => {
 
       {/* Content Section */}
       {selectedAccount && (
-        <Card className={styles.contentCard}>
-          <CardContent>
-            <Box className={styles.tabContent}>
-              {isLoading ? (
-                <Box className={styles.loadingContainer}>
-                  <CircularProgress />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                    Loading account data...
-                  </Typography>
-                </Box>
-              ) : isLoaded ? (
-                <>
-                  {selectedTab === 'invoices' && <ReportingPage />}
-                  {selectedTab === 'entities' && <EntitiesPage />}
-                  {selectedTab === 'users' && <ManagePage />}
-                </>
-              ) : (
-                <Box className={styles.emptyTab}>
-                  <Typography variant="body1" color="text.secondary">
-                    Failed to load account data
-                  </Typography>
-                </Box>
-              )}
+        <Box className={styles.tabContent}>
+          {isLoading ? (
+            <Box className={styles.loadingContainer}>
+              <CircularProgress />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                Loading account data...
+              </Typography>
             </Box>
-          </CardContent>
-        </Card>
+          ) : isLoaded ? (
+            <>
+              {selectedTab === 'invoices' && <ReportingPage />}
+              {selectedTab === 'entities' && <EntitiesPage />}
+              {selectedTab === 'users' && <ManagePage />}
+            </>
+          ) : (
+            <Box className={styles.emptyTab}>
+              <Typography variant="body1" color="text.secondary">
+                Failed to load account data
+              </Typography>
+            </Box>
+          )}
+        </Box>
       )}
 
       {!selectedAccount && (
