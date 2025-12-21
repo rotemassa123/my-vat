@@ -2,29 +2,11 @@ import { type User } from './user';
 
 export interface Account {
   _id: string;
-  email: string;
   account_type: 'individual' | 'business';
   status: 'active' | 'inactive' | 'suspended';
   company_name?: string;
-  tax_id?: string;
-  vat_number?: string;
-  registration_number?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-  phone?: string;
+  description?: string;
   website?: string;
-  vat_settings: {
-    default_currency: string;
-    vat_rate: number;
-    reclaim_threshold: number;
-    auto_process: boolean;
-  };
-  last_login?: Date;
   created_at?: Date;
   updated_at?: Date;
 }

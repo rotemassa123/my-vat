@@ -3,80 +3,28 @@ import { UserType } from "src/Common/consts/userType";
 // ==================== ACCOUNT TYPES ====================
 export interface AccountData {
   _id: string;
-  email: string;
   account_type: 'individual' | 'business';
   status: 'active' | 'inactive' | 'suspended';
   company_name?: string;
-  tax_id?: string;
-  vat_number?: string;
-  registration_number?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-  phone?: string;
+  description?: string;
   website?: string;
-  vat_settings: {
-    default_currency: string;
-    vat_rate: number;
-    reclaim_threshold: number;
-    auto_process: boolean;
-  };
-  last_login?: Date;
   created_at?: Date;
   updated_at?: Date;
 }
 
 export interface CreateAccountData {
-  email: string;
   account_type?: 'individual' | 'business';
   company_name?: string;
-  tax_id?: string;
-  vat_number?: string;
-  registration_number?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-  phone?: string;
+  description?: string;
   website?: string;
-  vat_settings: {
-    default_currency: string;
-    vat_rate: number;
-    reclaim_threshold: number;
-    auto_process: boolean;
-  };
 }
 
 export interface UpdateAccountData {
   account_type?: 'individual' | 'business';
   status?: 'active' | 'inactive' | 'suspended';
   company_name?: string;
-  tax_id?: string;
-  vat_number?: string;
-  registration_number?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-  phone?: string;
+  description?: string;
   website?: string;
-  vat_settings?: {
-    default_currency?: string;
-    vat_rate?: number;
-    reclaim_threshold?: number;
-    auto_process?: boolean;
-  };
-  last_login?: Date;
 }
 
 // ==================== USER TYPES ====================
@@ -205,7 +153,6 @@ export interface UpdateEntityData {
 export abstract class IProfileRepository {
   // Account methods
   abstract findAccountById(accountId: string): Promise<AccountData | null>;
-  abstract findAccountByEmail(email: string): Promise<AccountData | null>;
   abstract getAllAccounts(): Promise<AccountData[]>;
   abstract createAccount(accountData: CreateAccountData): Promise<AccountData>;
   abstract updateAccount(accountId: string, updateData: UpdateAccountData): Promise<boolean>;

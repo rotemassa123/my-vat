@@ -123,7 +123,7 @@ const createPlaceholderUsers = (
 
     return {
       _id: `${account._id}-${config.suffix}`,
-      fullName: `${account.company_name || account.email} ${config.display}`,
+      fullName: `${account.company_name || 'Unnamed Account'} ${config.display}`,
       email: `${config.suffix}@${sanitizeNameForEmail(account.company_name)}.com`,
       userType: config.userType,
       accountId: account._id,
@@ -284,7 +284,7 @@ const MagicLinkPage: React.FC = () => {
       openMagicLinkModal({
         link: impersonationUrl,
         expiresAt: result.expiresAt,
-        accountName: account.company_name || account.email,
+        accountName: account.company_name || 'Unnamed Account',
         userName: selectedUser.fullName,
         userEmail: selectedUser.email,
         entityName,

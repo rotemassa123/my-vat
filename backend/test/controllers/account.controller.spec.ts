@@ -11,7 +11,7 @@ describe('AccountController (Integration)', () => {
   const mockProfileRepository = {
     // Account methods
     findAccountById: jest.fn(),
-    findAccountByEmail: jest.fn(),
+    getAllAccounts: jest.fn(),
     createAccount: jest.fn(),
     updateAccount: jest.fn(),
     deleteAccount: jest.fn(),
@@ -56,15 +56,9 @@ describe('AccountController (Integration)', () => {
     it('should get account by id', async () => {
       const mockAccount = {
         _id: '507f1f77bcf86cd799439011',
-        email: 'test@example.com',
         account_type: 'individual',
         status: 'active',
-        vat_settings: {
-          default_currency: 'USD',
-          vat_rate: 21,
-          reclaim_threshold: 1000,
-          auto_process: true,
-        },
+        company_name: 'Test Company',
       };
 
       mockProfileRepository.findAccountById.mockResolvedValue(mockAccount);
@@ -75,30 +69,6 @@ describe('AccountController (Integration)', () => {
 
       expect(response.body).toEqual([mockAccount]);
       expect(mockProfileRepository.findAccountById).toHaveBeenCalledWith('507f1f77bcf86cd799439011');
-    });
-
-    it('should get account by email', async () => {
-      const mockAccount = {
-        _id: '507f1f77bcf86cd799439011',
-        email: 'test@example.com',
-        account_type: 'individual',
-        status: 'active',
-        vat_settings: {
-          default_currency: 'USD',
-          vat_rate: 21,
-          reclaim_threshold: 1000,
-          auto_process: true,
-        },
-      };
-
-      mockProfileRepository.findAccountByEmail.mockResolvedValue(mockAccount);
-
-      const response = await request(app.getHttpServer())
-        .get('/accounts?email=test@example.com')
-        .expect(200);
-
-      expect(response.body).toEqual([mockAccount]);
-      expect(mockProfileRepository.findAccountByEmail).toHaveBeenCalledWith('test@example.com');
     });
 
     it('should return 400 when no query params provided', async () => {
@@ -120,15 +90,9 @@ describe('AccountController (Integration)', () => {
     it('should get account by id', async () => {
       const mockAccount = {
         _id: '507f1f77bcf86cd799439011',
-        email: 'test@example.com',
         account_type: 'individual',
         status: 'active',
-        vat_settings: {
-          default_currency: 'USD',
-          vat_rate: 21,
-          reclaim_threshold: 1000,
-          auto_process: true,
-        },
+        company_name: 'Test Company',
       };
 
       mockProfileRepository.findAccountById.mockResolvedValue(mockAccount);
@@ -152,15 +116,9 @@ describe('AccountController (Integration)', () => {
   describe('POST /accounts', () => {
     it('should create a new account', async () => {
       const createAccountData = {
-        email: 'new@example.com',
         account_type: 'business',
         company_name: 'Test Company',
-        vat_settings: {
-          default_currency: 'EUR',
-          vat_rate: 20,
-          reclaim_threshold: 500,
-          auto_process: false,
-        },
+        website: 'https://example.com',
       };
 
       const createdAccount = {
@@ -169,7 +127,6 @@ describe('AccountController (Integration)', () => {
         status: 'active',
       };
 
-      mockProfileRepository.findAccountByEmail.mockResolvedValue(null); // No existing account
       mockProfileRepository.createAccount.mockResolvedValue(createdAccount);
 
       const response = await request(app.getHttpServer())
@@ -179,25 +136,6 @@ describe('AccountController (Integration)', () => {
 
       expect(response.body).toEqual({ _id: '507f1f77bcf86cd799439012' });
       expect(mockProfileRepository.createAccount).toHaveBeenCalledWith(createAccountData);
-    });
-
-    it('should return 400 when account with email already exists', async () => {
-      const createAccountData = {
-        email: 'existing@example.com',
-        vat_settings: {
-          default_currency: 'USD',
-          vat_rate: 21,
-          reclaim_threshold: 1000,
-          auto_process: true,
-        },
-      };
-
-      mockProfileRepository.findAccountByEmail.mockResolvedValue({ _id: 'existing-id' });
-
-      await request(app.getHttpServer())
-        .post('/accounts')
-        .send(createAccountData)
-        .expect(400);
     });
   });
 
@@ -211,9 +149,9 @@ describe('AccountController (Integration)', () => {
 
       const existingAccount = {
         _id: accountId,
-        email: 'test@example.com',
         account_type: 'business',
         status: 'active',
+        company_name: 'Test Company',
       };
 
       const updatedAccount = {
@@ -247,7 +185,7 @@ describe('AccountController (Integration)', () => {
   describe('DELETE /accounts/:id', () => {
     it('should delete an account', async () => {
       const accountId = '507f1f77bcf86cd799439011';
-      const existingAccount = { _id: accountId, email: 'test@example.com' };
+      const existingAccount = { _id: accountId, account_type: 'individual', status: 'active' };
 
       mockProfileRepository.findAccountById.mockResolvedValue(existingAccount);
       mockProfileRepository.deleteAccount.mockResolvedValue(true);

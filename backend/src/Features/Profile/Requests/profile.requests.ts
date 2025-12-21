@@ -4,10 +4,6 @@ import { UserType } from "src/Common/consts/userType";
 
 // Account Requests
 export class CreateAccountRequest {
-  @ApiProperty({ example: 'user@example.com' })
-  @IsEmail()
-  email: string;
-
   @ApiProperty({ enum: ['individual', 'business'], required: false, example: 'individual' })
   @IsOptional()
   @IsEnum(['individual', 'business'])
@@ -18,66 +14,15 @@ export class CreateAccountRequest {
   @IsString()
   company_name?: string;
 
-  @ApiProperty({ required: false, example: '123456789' })
+  @ApiProperty({ required: false, example: 'Company description' })
   @IsOptional()
   @IsString()
-  tax_id?: string;
-
-  @ApiProperty({ required: false, example: 'VAT123456' })
-  @IsOptional()
-  @IsString()
-  vat_number?: string;
-
-  @ApiProperty({ required: false, example: 'REG123456' })
-  @IsOptional()
-  @IsString()
-  registration_number?: string;
-
-  @ApiProperty({ 
-    required: false,
-    example: {
-      street: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      postal_code: '10001',
-      country: 'USA'
-    }
-  })
-  @IsOptional()
-  @IsObject()
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-
-  @ApiProperty({ required: false, example: '+1234567890' })
-  @IsOptional()
-  @IsString()
-  phone?: string;
+  description?: string;
 
   @ApiProperty({ required: false, example: 'https://example.com' })
   @IsOptional()
   @IsString()
   website?: string;
-
-  @ApiProperty({
-    example: {
-      default_currency: 'USD',
-      vat_rate: 20,
-      reclaim_threshold: 100,
-      auto_process: false
-    }
-  })
-  @IsObject()
-  vat_settings: {
-    default_currency: string;
-    vat_rate: number;
-    reclaim_threshold: number;
-    auto_process: boolean;
-  };
 }
 
 export class UpdateAccountRequest {
@@ -99,48 +44,12 @@ export class UpdateAccountRequest {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  tax_id?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  vat_number?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  registration_number?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsObject()
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  phone?: string;
+  description?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   website?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsObject()
-  vat_settings?: {
-    default_currency?: string;
-    vat_rate?: number;
-    reclaim_threshold?: number;
-    auto_process?: boolean;
-  };
 }
 
 // Entity Requests

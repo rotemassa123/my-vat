@@ -371,7 +371,7 @@ export class InvitationController {
         },
         account: {
           _id: account._id!,
-          company_name: account.company_name || account.email,
+          company_name: account.company_name || 'Unnamed Account',
           account_type: account.account_type
         },
         entity: entity ? {

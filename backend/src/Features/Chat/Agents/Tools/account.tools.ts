@@ -10,7 +10,7 @@ import { IProfileRepository } from '../../../../Common/ApplicationCore/Services/
 export function createAccountTools(profileRepository: IProfileRepository) {
   const getAccountInfoTool = tool({
     name: 'get_account_info',
-    description: 'Get account information including company details, VAT settings, and contact information. Returns the account details for the current context.',
+    description: 'Get account information including company details and contact information. Returns the account details for the current context.',
     parameters: z.object({}),
     async execute() {
       try {
@@ -33,18 +33,10 @@ export function createAccountTools(profileRepository: IProfileRepository) {
 
         return {
           id: account._id,
-          email: account.email,
           account_type: account.account_type,
           status: account.status,
           company_name: account.company_name,
-          vat_number: account.vat_number,
-          tax_id: account.tax_id,
-          registration_number: account.registration_number,
-          address: account.address,
-          phone: account.phone,
           website: account.website,
-          vat_settings: account.vat_settings,
-          last_login: account.last_login,
         };
       } catch (error) {
         return {

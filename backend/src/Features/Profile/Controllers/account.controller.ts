@@ -28,10 +28,8 @@ export class AccountController {
 
   @Get()
   @ApiQuery({ name: "id", required: false, type: String })
-  @ApiQuery({ name: "email", required: false, type: String })
   async getAccounts(
-    @Query("id") id?: string,
-    @Query("email") email?: string
+    @Query("id") id?: string
   ): Promise<AccountResponse[]> {
     try {
       if (id) {
@@ -42,17 +40,9 @@ export class AccountController {
         return [account as AccountResponse];
       }
 
-      if (email) {
-        const account = await this.accountService.findAccountByEmail(email);
-        if (!account) {
-          throw new NotFoundException(`Account with email ${email} not found`);
-        }
-        return [account as AccountResponse];
-      }
-
-      throw new BadRequestException("Either 'id' or 'email' query parameter is required");
+      throw new BadRequestException("'id' query parameter is required");
     } catch (error) {
-      logger.error("Error fetching accounts", AccountController.name, { error: error.message, id, email });
+      logger.error("Error fetching accounts", AccountController.name, { error: error.message, id });
       throw error;
     }
   }
@@ -111,12 +101,6 @@ export class AccountController {
   @Post()
   async createAccount(@Body() createAccountRequest: CreateAccountRequest): Promise<CreateAccountResponse> {
     try {
-      // Check if account already exists
-      const existingAccount = await this.accountService.findAccountByEmail(createAccountRequest.email);
-      if (existingAccount) {
-        throw new BadRequestException(`Account with email ${createAccountRequest.email} already exists`);
-      }
-
       const account = await this.accountService.createAccount(createAccountRequest);
       if (!account._id) {
         throw new BadRequestException('Failed to create account - no ID returned');
@@ -124,8 +108,7 @@ export class AccountController {
       return { _id: account._id };
     } catch (error) {
       logger.error("Error creating account", AccountController.name, { 
-        error: error.message, 
-        email: createAccountRequest.email 
+        error: error.message
       });
       throw error;
     }

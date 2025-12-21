@@ -33,15 +33,17 @@ const MagicLinkAccountSelect: React.FC<MagicLinkAccountSelectProps> = ({
       value={selectedAccount}
       onChange={onChange}
       isOptionEqualToValue={(option, value) => option._id === value._id}
-      getOptionLabel={(option) => option.company_name || option.email || 'Unnamed account'}
+      getOptionLabel={(option) => option.company_name || 'Unnamed account'}
       noOptionsText={noOptionsText}
       renderOption={(props, option) => (
         <li {...props} key={option._id}>
           <Stack direction="column" spacing={0.5} sx={{ width: '100%' }}>
-            <Typography variant="body1">{option.company_name || option.email}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {option.email}
-            </Typography>
+            <Typography variant="body1">{option.company_name || 'Unnamed account'}</Typography>
+            {option.website && (
+              <Typography variant="body2" color="text.secondary">
+                {option.website}
+              </Typography>
+            )}
           </Stack>
         </li>
       )}

@@ -3,29 +3,11 @@ import { UserType } from "src/Common/consts/userType";
 // Account Responses
 export interface AccountResponse {
   _id: string;
-  email: string;
   account_type: string;
   status: string;
   company_name?: string;
-  tax_id?: string;
-  vat_number?: string;
-  registration_number?: string;
-  address?: {
-    street?: string;
-    city?: string;
-    state?: string;
-    postal_code?: string;
-    country?: string;
-  };
-  phone?: string;
+  description?: string;
   website?: string;
-  vat_settings: {
-    default_currency: string;
-    vat_rate: number;
-    reclaim_threshold: number;
-    auto_process: boolean;
-  };
-  last_login?: Date;
   created_at?: Date;
   updated_at?: Date;
 }

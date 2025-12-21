@@ -8,7 +8,7 @@ const AccountInfo: React.FC<AccountInfoProps> = ({ account, entityCount }) => {
   return (
     <Box className={styles.selectionInfo}>
       <Typography variant="body2" color="text.secondary">
-        <strong>Account:</strong> {account.company_name || account.email}
+        <strong>Account:</strong> {account.company_name || 'Unnamed Account'}
       </Typography>
       {entityCount > 0 && (
         <Typography variant="body2" color="text.secondary">

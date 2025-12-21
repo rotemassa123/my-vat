@@ -35,23 +35,32 @@ export class ProfileMongoService implements IProfileRepository {
     private readonly statisticsModel: Model<StatisticsDocument>
   ) {}
 
+  /**
+   * Converts camelCase API fields to snake_case MongoDB fields for user updates
+   */
+  private convertUserUpdateFields(updateData: any): any {
+    const mongoData: any = { ...updateData };
+    if (mongoData.entityId !== undefined) {
+      mongoData.entity_id = mongoData.entityId;
+      delete mongoData.entityId;
+    }
+    if (mongoData.accountId !== undefined) {
+      mongoData.account_id = mongoData.accountId;
+      delete mongoData.accountId;
+    }
+    return mongoData;
+  }
+
   // ==================== ACCOUNT METHODS ====================
 
   private mapDocumentToAccountData(doc: AccountDocument): AccountData {
     return {
       _id: doc._id.toString(),
-      email: doc.email,
       account_type: doc.account_type as 'individual' | 'business',
       status: doc.status as 'active' | 'inactive' | 'suspended',
       company_name: doc.company_name,
-      tax_id: doc.tax_id,
-      vat_number: doc.vat_number,
-      registration_number: doc.registration_number,
-      address: doc.address,
-      phone: doc.phone,
+      description: doc.description,
       website: doc.website,
-      vat_settings: doc.vat_settings,
-      last_login: doc.last_login,
       created_at: doc['created_at'],
       updated_at: doc['updated_at'],
     };
@@ -59,11 +68,6 @@ export class ProfileMongoService implements IProfileRepository {
 
   async findAccountById(accountId: string): Promise<AccountData | null> {
     const doc = await this.accountModel.findById(accountId).exec();
-    return doc ? this.mapDocumentToAccountData(doc) : null;
-  }
-
-  async findAccountByEmail(email: string): Promise<AccountData | null> {
-    const doc = await this.accountModel.findOne({ email }).exec();
     return doc ? this.mapDocumentToAccountData(doc) : null;
   }
 
@@ -163,12 +167,26 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async updateUser(userId: string, updateData: UpdateUserData): Promise<boolean> {
+    // Use findByIdAndUpdate which properly handles ObjectId conversion
+    // and allows us to use the actual MongoDB field names
     const mongoUpdateData: any = { ...updateData };
     
+    // Convert camelCase API fields to snake_case MongoDB fields  
+    if (mongoUpdateData.entityId !== undefined) {
+      mongoUpdateData.entity_id = mongoUpdateData.entityId;
+      delete mongoUpdateData.entityId;
+    }
+    
+    if (mongoUpdateData.accountId !== undefined) {
+      mongoUpdateData.account_id = mongoUpdateData.accountId;
+      delete mongoUpdateData.accountId;
+    }
+    
     const result = await this.userModel
-      .updateOne({ _id: userId }, mongoUpdateData)
+      .findByIdAndUpdate(userId, { $set: mongoUpdateData }, { new: false })
       .exec();
-    return result.modifiedCount > 0;
+    
+    return !!result;
   }
 
   async deleteUser(userId: string): Promise<boolean> {

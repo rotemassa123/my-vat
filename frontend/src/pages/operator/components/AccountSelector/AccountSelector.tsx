@@ -46,7 +46,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
           }
           const account = accounts.find((acc) => acc._id === value);
           return account
-            ? account.company_name || account.email
+            ? account.company_name || 'Unnamed Account'
             : TEXT_CONSTANTS.UNKNOWN_ACCOUNT;
         }}
       >
@@ -70,7 +70,7 @@ const AccountSelector: React.FC<AccountSelectorProps> = ({
               >
                 <Box className={styles.menuItemContent}>
                   <Typography variant="body2">
-                    {account.company_name || account.email}
+                    {account.company_name || 'Unnamed Account'}
                   </Typography>
                   {!hasNoEntities && (
                     <Typography variant="caption" className={styles.entityCount}>
