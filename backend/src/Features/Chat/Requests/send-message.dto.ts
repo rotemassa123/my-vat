@@ -7,6 +7,11 @@ export class SendMessageDto {
   @IsNotEmpty()
   message: string;
 
+  @ApiProperty({ description: 'Optional conversation ID to continue existing conversation', required: false })
+  @IsString()
+  @IsOptional()
+  conversationId?: string;
+
   @ApiProperty({ description: 'Optional message metadata', required: false })
   @IsOptional()
   metadata?: any;

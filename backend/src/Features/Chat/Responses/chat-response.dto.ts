@@ -1,20 +1,26 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ChatResponseDto {
-  @ApiProperty({ description: 'Unique message ID' })
-  messageId: string;
+export class ChatMessageResponseDto {
+  @ApiProperty({ description: 'Message ID' })
+  message_id: string;
 
-  @ApiProperty({ description: 'Stream URL for real-time response' })
-  streamUrl: string;
-}
-
-export class StreamResponseDto {
-  @ApiProperty({ description: 'Message content chunk' })
+  @ApiProperty({ description: 'Message content' })
   content: string;
 
-  @ApiProperty({ description: 'Whether streaming is complete' })
-  isComplete: boolean;
+  @ApiProperty({ description: 'Message role' })
+  role: string;
 
-  @ApiProperty({ description: 'Message ID' })
-  messageId: string;
+  @ApiProperty({ description: 'Sender type' })
+  sender_type?: string;
+
+  @ApiProperty({ description: 'Created timestamp' })
+  created_at?: Date;
+}
+
+export class ChatResponseDto {
+  @ApiProperty({ description: 'The AI assistant message' })
+  message: ChatMessageResponseDto;
+
+  @ApiProperty({ description: 'Conversation ID' })
+  conversationId: string;
 }

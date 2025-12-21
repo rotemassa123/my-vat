@@ -2,11 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ChatController } from './Controllers/chat.controller';
 import { ChatService } from './Services/chat.service';
-import { MCPQueryProcessor } from './Services/mcp-query-processor.service';
-import { OpenAIService } from './Services/openai-assistant.service';
-import { ThreadCacheService } from './Services/thread-cache.service';
-import { UserProfileService } from './Services/user-profile.service';
-import { ChatGateway } from './Gateways/chat.gateway';
+import { MessageRepository } from './Repositories/message.repository';
+import { AgentGateway } from './Agents/agent.gateway';
 import { InvoiceInfraModule } from '../Invoice/invoiceInfra.module';
 import { InfraModule } from '../../Common/Infrastructure/infra.module';
 
@@ -14,17 +11,14 @@ import { InfraModule } from '../../Common/Infrastructure/infra.module';
   imports: [
     ConfigModule,
     InvoiceInfraModule, // Provides IInvoiceRepository
-    InfraModule, // Provides IProfileRepository
+    InfraModule, // Provides IProfileRepository and MongooseModule (for Conversation, Message models)
   ],
   controllers: [ChatController],
   providers: [
     ChatService,
-    MCPQueryProcessor,
-    OpenAIService,
-    ThreadCacheService,
-    UserProfileService,
-    ChatGateway,
+    MessageRepository,
+    AgentGateway,
   ],
-  exports: [ChatService, ThreadCacheService],
+  exports: [ChatService],
 })
 export class ChatModule {}

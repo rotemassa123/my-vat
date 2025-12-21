@@ -15,11 +15,18 @@ export class Message {
   conversation_id: mongoose.Types.ObjectId;
 
   @Prop({
-    enum: ['user', 'ai', 'support_agent'],
-    required: true,
+    enum: ['user', 'assistant', 'system', 'tool'],
+    required: false,
     index: true,
   })
-  sender_type: string;
+  sender_type?: string;
+
+  @Prop({
+    enum: ['system', 'user', 'assistant', 'tool'],
+    required: false,
+    index: true,
+  })
+  role?: string;
 
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
@@ -39,6 +46,12 @@ export class Message {
 
   @Prop({ type: Object })
   metadata?: Record<string, any>;
+
+  @Prop({ required: false })
+  name?: string;
+
+  @Prop({ required: false })
+  tool_call_id?: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

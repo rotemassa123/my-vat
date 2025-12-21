@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Box, IconButton, TextField, InputAdornment, Typography, Paper, List, ListItem, ListItemButton, ListItemText, Tooltip, Menu, MenuItem } from '@mui/material';
-import { Close as CloseIcon, AutoAwesome, Help as SupportIcon, Add as AddIcon, Search as SearchIcon, History as HistoryIcon, MoreVert as MoreVertIcon } from '@mui/icons-material';
+import { Close as CloseIcon, AutoAwesome, Help as SupportIcon, Add as AddIcon, Search as SearchIcon, History as HistoryIcon, MoreVert as MoreVertIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import ChatInterface from './ChatInterface';
 import styles from './ChatPanel.module.scss';
 import { chatApi } from '../../services/chat.service';
@@ -188,6 +188,15 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose, width, onWidthCh
           <Box className={styles.headerLeft}>
             {showHistory ? (
               <>
+                <Tooltip title="Back to chat" arrow>
+                  <IconButton
+                    onClick={() => setShowHistory(false)}
+                    size="small"
+                    sx={{ mr: 1 }}
+                  >
+                    <ArrowBackIcon />
+                  </IconButton>
+                </Tooltip>
                 <HistoryIcon className={styles.icon} />
                 <Box className={styles.title}>Conversations</Box>
               </>
@@ -209,14 +218,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose, width, onWidthCh
                 </IconButton>
               </Tooltip>
             )}
-            <Tooltip title={showHistory ? "Back to chat" : "Conversation history"} arrow>
-              <IconButton
-                onClick={() => setShowHistory(!showHistory)}
-                size="small"
-              >
-                {showHistory ? <CloseIcon /> : <HistoryIcon />}
-              </IconButton>
-            </Tooltip>
+            {!showHistory && (
+              <Tooltip title="Conversation history" arrow>
+                <IconButton
+                  onClick={() => setShowHistory(true)}
+                  size="small"
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </Tooltip>
+            )}
             <Tooltip title="Close" arrow>
               <IconButton
                 onClick={onClose}
