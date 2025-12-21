@@ -7,7 +7,7 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { Send as SendIcon } from '@mui/icons-material';
-import { useChatWebSocket } from '../../hooks/chat/useChatWebSocket';
+import { useChat } from '../../hooks/chat/useChat';
 import { useAuthStore } from '../../store/authStore';
 
 export type ChatMode = 'ai' | 'support';
@@ -22,33 +22,17 @@ interface ChatMessage {
 
 interface ChatInterfaceProps {
   mode?: ChatMode;
+  conversationId?: string;
+  onMessageSent?: () => void;
+  onConversationCreated?: (conversationId: string) => void;
 }
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode = 'ai' }) => {
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode = 'ai', conversationId, onMessageSent, onConversationCreated }) => {
   const { user } = useAuthStore();
   const isSupportMode = mode === 'support';
-  // Use different conversation IDs for AI vs Support
-  const conversationId = isSupportMode ? `support-${user?._id || 'demo-user'}` : `ai-${user?._id || 'demo-user'}`;
-  const { messages, sendMessage, isConnected, isLoading } = useChatWebSocket(conversationId);
+  const { messages, sendMessage, isConnected, isLoading, conversationId: currentConversationId } = useChat(conversationId);
   const [inputMessage, setInputMessage] = useState('');
-  const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Add initial AI greeting only for AI mode and only if no messages exist (first time user)
-  useEffect(() => {
-    if (!isSupportMode && messages.length === 0 && localMessages.length === 0 && isConnected) {
-      const greetingMessage: ChatMessage = {
-        id: 'greeting',
-        content: `Good morning ${user?.fullName || 'there'}! I am your MyVAT personal assistant. I can help with your invoices and data, or general VAT rules. How can I help?`,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setLocalMessages([greetingMessage]);
-    }
-  }, [isConnected, user?.fullName, messages.length, isSupportMode]);
-
-  // Combine local messages with WebSocket messages (localMessages is just for greeting)
-  const allMessages = [...messages, ...localMessages];
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,12 +40,22 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode = 'ai' }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [allMessages]);
+  }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (inputMessage.trim() && !isLoading) {
-      sendMessage(inputMessage);
+      await sendMessage(inputMessage);
       setInputMessage('');
+      
+      // Notify parent if a new conversation was created
+      if (currentConversationId && !conversationId && onConversationCreated) {
+        onConversationCreated(currentConversationId);
+      }
+      
+      // Notify parent to refresh conversations
+      if (onMessageSent) {
+        onMessageSent();
+      }
     }
   };
 
@@ -101,7 +95,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode = 'ai' }) => {
             gap: 1,
           }}
         >
-          {allMessages.length === 0 ? (
+          {messages.length === 0 ? (
             <Box
               sx={{
                 display: 'flex',
@@ -122,7 +116,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ mode = 'ai' }) => {
               </Typography>
             </Box>
           ) : (
-            allMessages.map((message: ChatMessage) => (
+            messages.map((message: ChatMessage) => (
               <Box
                 key={message.id}
                 sx={{
