@@ -160,7 +160,16 @@ export const profileApi = {
     };
   }): Promise<UpdateEntityResponse> => {
     try {
-      const response = await apiClient.put<UpdateEntityResponse>(`/entities/${entityId}`, updateData);
+      // Map frontend field names to backend field names
+      const requestData: any = {
+        entity_type: updateData.entity_type,
+        address: updateData.address
+      };
+      // Map 'name' to 'entity_name' if name is provided
+      if (updateData.name !== undefined) {
+        requestData.entity_name = updateData.name;
+      }
+      const response = await apiClient.put<UpdateEntityResponse>(`/entities/${entityId}`, requestData);
       return response.data;
     } catch (error: any) {
       if (error.response?.status === 403) {
@@ -189,7 +198,14 @@ export const profileApi = {
     };
   }): Promise<CreateEntityResponse> => {
     try {
-      const response = await apiClient.post<CreateEntityResponse>('/entities', entityData);
+      // Map frontend field names to backend field names
+      const requestData = {
+        accountId: entityData.accountId,
+        entity_name: entityData.name, // Map 'name' to 'entity_name'
+        entity_type: entityData.entity_type,
+        address: entityData.address
+      };
+      const response = await apiClient.post<CreateEntityResponse>('/entities', requestData);
       return response.data;
     } catch (error: any) {
       console.error('Create entity error:', error.response?.data);

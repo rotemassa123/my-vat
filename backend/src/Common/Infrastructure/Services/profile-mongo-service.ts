@@ -13,7 +13,8 @@ import {
   UpdateUserData,
   EntityData,
   CreateEntityData,
-  UpdateEntityData
+  UpdateEntityData,
+  EntityType
 } from "src/Common/ApplicationCore/Services/IProfileRepository";
 
 // MongoDB schemas
@@ -106,16 +107,15 @@ export class ProfileMongoService implements IProfileRepository {
   private mapDocumentToUserData(doc: UserDocument): UserData {
     return {
       _id: doc._id.toString(),
-      fullName: doc.fullName,
+      full_name: doc.full_name,
       email: doc.email,
-      hashedPassword: doc.hashedPassword,
-      userType: doc.userType,
+      hashed_password: doc.hashed_password,
+      role: doc.role,
       accountId: doc.get('account_id') ? doc.get('account_id').toString() : undefined,
       entityId: doc.get('entity_id') ? doc.get('entity_id').toString() : undefined,
       status: doc.status,
-      last_login: doc.last_login,
+      last_login_at: doc.last_login_at,
       profile_image_url: doc.profile_image_url,
-      phone: doc.phone,
       created_at: doc['created_at'],
       updated_at: doc['updated_at'],
     };
@@ -132,13 +132,25 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async createUser(userData: CreateUserData): Promise<UserData> {
-    const mongoUserData: any = {
-      ...userData,
-      status: 'pending',
-    };
+    // Convert camelCase API fields to snake_case MongoDB fields
+    const mongoUserData: any = { ...userData };
     
-    delete mongoUserData.accountId;
-    delete mongoUserData.entityId;
+    // Convert accountId to account_id (AccountScopePlugin will also set it, but we set it explicitly for public endpoints)
+    if (mongoUserData.accountId !== undefined) {
+      mongoUserData.account_id = new Types.ObjectId(mongoUserData.accountId);
+      delete mongoUserData.accountId;
+    }
+    
+    // Convert entityId to entity_id
+    if (mongoUserData.entityId !== undefined) {
+      mongoUserData.entity_id = new Types.ObjectId(mongoUserData.entityId);
+      delete mongoUserData.entityId;
+    }
+    
+    // Set default status if not provided
+    if (!mongoUserData.status) {
+      mongoUserData.status = 'pending';
+    }
     
     const user = new this.userModel(mongoUserData);
     const savedDoc = await user.save();
@@ -151,13 +163,25 @@ export class ProfileMongoService implements IProfileRepository {
     }
 
     const mongoUsersData = usersData.map(userData => {
-      const mongoUserData: any = {
-        ...userData,
-        status: (userData as any).status || 'pending',
-      };
+      // Convert camelCase API fields to snake_case MongoDB fields
+      const mongoUserData: any = { ...userData };
       
-      delete mongoUserData.accountId;
-      delete mongoUserData.entityId;
+      // Convert accountId to account_id
+      if (mongoUserData.accountId !== undefined) {
+        mongoUserData.account_id = new Types.ObjectId(mongoUserData.accountId);
+        delete mongoUserData.accountId;
+      }
+      
+      // Convert entityId to entity_id
+      if (mongoUserData.entityId !== undefined) {
+        mongoUserData.entity_id = new Types.ObjectId(mongoUserData.entityId);
+        delete mongoUserData.entityId;
+      }
+      
+      // Set default status if not provided
+      if (!mongoUserData.status) {
+        mongoUserData.status = 'pending';
+      }
       
       return mongoUserData;
     });
@@ -210,7 +234,7 @@ export class ProfileMongoService implements IProfileRepository {
     return {
       _id: doc._id.toString(),
       accountId: doc.get('account_id').toString(),
-      entity_type: doc.entity_type as 'individual' | 'business',
+      entity_type: doc.entity_type as EntityType,
       status: doc.status as 'active' | 'inactive',
       entity_name: doc.entity_name,
       description: doc.description,
@@ -239,8 +263,15 @@ export class ProfileMongoService implements IProfileRepository {
   }
 
   async createEntity(entityData: CreateEntityData): Promise<EntityData> {
+    // Convert camelCase API fields to snake_case MongoDB fields
+    const mongoEntityData: any = { ...entityData };
+    if (mongoEntityData.accountId !== undefined) {
+      mongoEntityData.account_id = new Types.ObjectId(mongoEntityData.accountId);
+      delete mongoEntityData.accountId;
+    }
+    
     const entity = new this.entityModel({
-      ...entityData,
+      ...mongoEntityData,
       status: 'active',
     });
     const savedDoc = await entity.save();

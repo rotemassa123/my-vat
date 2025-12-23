@@ -290,7 +290,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
                   }
                   // Find the entity by ID and return its name
                   const selectedEntityData = entities.find(entity => entity._id === value);
-                  return selectedEntityData ? selectedEntityData.name : "Select entity...";
+                  return selectedEntityData ? (selectedEntityData.entity_name || 'Unnamed Entity') : "Select entity...";
                 }}
               >
                 {entities.map((entity) => (

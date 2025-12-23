@@ -26,6 +26,7 @@ import { CurrentUserId } from "src/Common/decorators/current-user-id.decorator";
 import * as path from "path";
 import * as httpContext from 'express-http-context';
 import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
+import { mapUserDataToResponse } from "src/Common/utils/user-mapper";
 
 @ApiTags("profile")
 @Controller("profile")
@@ -72,7 +73,7 @@ export class ProfileController {
         return {
           account: account,
           entities: entities,
-          users: users,
+          users: users.map(mapUserDataToResponse),
           statistics: Array.isArray(statistics) ? statistics : [],
         };
       }

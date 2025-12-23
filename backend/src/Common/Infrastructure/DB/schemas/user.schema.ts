@@ -1,8 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-import { UserType } from 'src/Common/consts/userType';
 import { AccountScopePlugin } from '../../../../Common/plugins/account-scope.plugin';
 import mongoose, { Types } from 'mongoose';
+import { UserRole } from 'src/Common/consts/userRole';
 
 export type UserDocument = HydratedDocument<User>;
 
@@ -20,28 +20,25 @@ export class User {
   entity_id?: mongoose.Types.ObjectId;
 
   @Prop({ required: true })
-  fullName: string;
-
-  @Prop({ required: true })
   email: string;
 
   @Prop({ required: false })
-  hashedPassword?: string;
+  full_name?: string;
 
-  @Prop({ required: true, enum: UserType })
-  userType: UserType;
+  @Prop({ required: false }) // Optional for pending users (invitations) - will be set when user completes signup
+  hashed_password?: string;
+
+  @Prop({ enum: UserRole, type: String, default: UserRole.MEMBER })
+  role: UserRole;
 
   @Prop({ enum: ['active', 'inactive', 'pending', 'failed to send request'], default: 'pending' })
   status: string;
 
   @Prop()
-  last_login?: Date;
+  last_login_at?: Date;
 
   @Prop()
   profile_image_url?: string;
-
-  @Prop()
-  phone?: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

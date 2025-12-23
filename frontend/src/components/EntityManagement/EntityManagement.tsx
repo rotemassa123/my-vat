@@ -87,6 +87,7 @@ const EntityManagement: React.FC = () => {
       id: entity._id,
       name: entity.entity_name || 'Unnamed Entity',
       type: formatEntityType(entity.entity_type),
+      registration: entity._id, // Display entity ID as registration number
       status: formatEntityStatus(entity.status),
       location: getLocationString(entity.address),
       email: entity.email || 'N/A',

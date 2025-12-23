@@ -1,9 +1,11 @@
 import { Controller, Post, Body, Logger } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { InvitationService } from '../Services/invitation.service';
-import { SendInvitationRequest, SendInvitationResponse, ValidateInvitationRequest, ValidateInvitationTokenRequest, ValidateInvitationResponse, CompleteSignupRequest, CompleteSignupResponse } from '../Requests/invitation.requests';
+import { SendInvitationRequest, SendInvitationResponse, InvitationResult, ValidateInvitationRequest, ValidateInvitationTokenRequest, ValidateInvitationResponse, CompleteSignupRequest, CompleteSignupResponse } from '../Requests/invitation.requests';
 import { RequireRoles } from 'src/Common/Infrastructure/decorators/require-roles.decorator';
 import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
+import { numericStringToRole, roleToUserType } from 'src/Common/utils/role-converter';
 import { IProfileRepository, CreateUserData } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import { PublicEndpointGuard } from 'src/Common/Infrastructure/decorators/publicEndpoint.decorator';
 import { PasswordService } from 'src/Common/ApplicationCore/Features/password.service';
@@ -61,17 +63,37 @@ export class InvitationController {
       };
     }
 
-    // Create deduplicated request with only new emails
-    const deduplicatedRequest = { ...request, emails: newEmails };
-
-    // Send invitations using the service
-    const invitationResponse = await this.invitationService.sendInvitations(deduplicatedRequest);
-
-    // Create user records based on invitation results
+    // Create user records FIRST (before sending emails)
     const role = request.role || 'member';
-    await this.createUserRecordsFromInvitations(invitationResponse, accountId, request.entityId, role);
+    const userCreationResults = await this.createUserRecordsBeforeInvitations(newEmails, accountId, request.entityId, role);
 
-    // Combine results: existing duplicates (failed) + new invitations (success/failed)
+    // Filter to only emails where user was successfully created
+    const successfullyCreatedEmails = userCreationResults
+      .filter(result => result.success)
+      .map(result => result.email);
+
+    // Only send invitations for successfully created users
+    let invitationResponse: SendInvitationResponse = {
+      totalProcessed: 0,
+      successful: 0,
+      failed: 0,
+      results: []
+    };
+
+    if (successfullyCreatedEmails.length > 0) {
+      const invitationRequest = { ...request, emails: successfullyCreatedEmails };
+      invitationResponse = await this.invitationService.sendInvitations(invitationRequest);
+      
+      // Update user status based on invitation send results
+      await this.updateUserStatusFromInvitations(invitationResponse.results);
+    }
+
+    // Create a map of invitation results by email for quick lookup
+    const invitationResultsMap = new Map(
+      invitationResponse.results.map(r => [r.email, r])
+    );
+
+    // Combine results: existing duplicates (failed) + user creation results merged with invitation results
     const allResults = [
       // Add failed results for duplicate emails
       ...duplicateEmails.map(email => ({
@@ -80,13 +102,38 @@ export class InvitationController {
         message: 'User already exists in this account',
         errorCode: 'user_already_exists'
       })),
-      // Add results from new invitations
-      ...invitationResponse.results
+      // Add user creation results merged with invitation results
+      ...userCreationResults.map(result => {
+        if (!result.success) {
+          // User creation failed - return failure
+          return {
+            email: result.email,
+            success: false,
+            message: result.message || 'Failed to create user',
+            errorCode: 'user_creation_failed'
+          };
+        }
+
+        // User created successfully - check if invitation was sent
+        const invitationResult = invitationResultsMap.get(result.email);
+        if (invitationResult) {
+          // Invitation was sent - use invitation result
+          return invitationResult;
+        } else {
+          // User created but invitation wasn't sent (shouldn't happen, but handle it)
+          return {
+            email: result.email,
+            success: false,
+            message: 'User created but invitation failed to send',
+            errorCode: 'invitation_send_failed'
+          };
+        }
+      })
     ];
 
     // Calculate total statistics
-    const totalSuccessful = invitationResponse.successful;
-    const totalFailed = duplicateEmails.length + invitationResponse.failed;
+    const totalSuccessful = allResults.filter(r => r.success).length;
+    const totalFailed = allResults.filter(r => !r.success).length;
 
     // Return response with all results
     return {
@@ -150,7 +197,7 @@ export class InvitationController {
       }
 
       // Additional security: Check if user already has a password
-      if (user.hashedPassword) {
+      if (user.hashed_password) {
         this.logger.warn('Pending user already has password set', { 
           email: tokenPayload.email 
         });
@@ -161,17 +208,10 @@ export class InvitationController {
       }
 
       // Validate that the token parameters match the user record
-      const roleMap: { [key: string]: number } = {
-        '0': UserType.operator,
-        '1': UserType.admin,
-        '2': UserType.member,
-        '3': UserType.viewer
-      };
-      
-      const expectedUserType = roleMap[tokenPayload.role];
-      if (user.userType !== expectedUserType) {
+      const expectedRole = numericStringToRole(tokenPayload.role);
+      if (user.role !== expectedRole) {
         this.logger.warn('Role mismatch during token validation', { 
-          userRole: user.userType, 
+          userRole: user.role, 
           tokenRole: tokenPayload.role,
           email: tokenPayload.email 
         });
@@ -203,9 +243,9 @@ export class InvitationController {
         isValid: true,
         user: {
           _id: user._id,
-          fullName: user.fullName,
+          fullName: user.full_name,
           email: user.email,
-          userType: user.userType,
+          userType: roleToUserType(user.role),
           status: user.status
         },
         account: {
@@ -218,7 +258,7 @@ export class InvitationController {
           name: entity.entity_name
         } : undefined,
         inviter: inviter ? {
-          fullName: inviter.fullName
+          fullName: inviter.full_name
         } : undefined
       };
 
@@ -285,7 +325,7 @@ export class InvitationController {
       }
 
       // Additional security: Check if user already has a password (shouldn't happen for pending users)
-      if (user.hashedPassword) {
+      if (user.hashed_password) {
         this.logger.warn('Pending user already has password set', InvitationController.name, { 
           email: normalizedEmail 
         });
@@ -296,17 +336,10 @@ export class InvitationController {
       }
 
       // Validate that the invitation parameters match the user record
-      const roleMap: { [key: string]: number } = {
-        '0': UserType.operator,
-        '1': UserType.admin,
-        '2': UserType.member,
-        '3': UserType.viewer
-      };
-      
-      const expectedUserType = roleMap[request.role];
-      if (user.userType !== expectedUserType) {
+      const expectedRole = numericStringToRole(request.role);
+      if (user.role !== expectedRole) {
         this.logger.warn('Role mismatch during validation', InvitationController.name, { 
-          userRole: user.userType, 
+          userRole: user.role, 
           requestRole: request.role,
           email: normalizedEmail 
         });
@@ -329,7 +362,7 @@ export class InvitationController {
       }
 
       // For member/guest roles, validate entity ID
-      if ((user.userType === UserType.member || user.userType === UserType.viewer) && user.entityId !== request.entityId) {
+      if ((user.role === UserRole.MEMBER || user.role === UserRole.VIEWER) && user.entityId !== request.entityId) {
         this.logger.warn('Entity ID mismatch during validation', InvitationController.name, { 
           userEntityId: user.entityId, 
           requestEntityId: request.entityId,
@@ -358,15 +391,15 @@ export class InvitationController {
 
       // Get inviter information (find an admin user in the same account)
       const accountUsers = await this.profileRepository.getUsersForAccount();
-      const inviter = accountUsers.find(u => u.userType === UserType.admin && u.status === 'active');
+      const inviter = accountUsers.find(u => u.role === UserRole.ADMIN && u.status === 'active');
 
       return {
         isValid: true,
         user: {
           _id: user._id!,
-          fullName: user.fullName,
+          fullName: user.full_name,
           email: user.email,
-          userType: user.userType,
+          userType: roleToUserType(user.role),
           status: user.status
         },
         account: {
@@ -379,7 +412,7 @@ export class InvitationController {
           name: entity.entity_name
         } : undefined,
         inviter: inviter ? {
-          fullName: inviter.fullName
+          fullName: inviter.full_name
         } : undefined
       };
 
@@ -431,7 +464,7 @@ export class InvitationController {
       }
 
       // Additional security: Check if user already has a password set
-      if (user.hashedPassword) {
+      if (user.hashed_password) {
         this.logger.warn('Signup attempt for user who already has password', InvitationController.name, { 
           email: request.email 
         });
@@ -439,16 +472,15 @@ export class InvitationController {
       }
 
       // Hash the password
-      const hashedPassword = await this.passwordService.hashPassword(request.password);
+      const hashed_password = await this.passwordService.hashPassword(request.password);
 
       // Update user with new information and activate
       const updateSuccess = await this.profileRepository.updateUser(user._id!, {
-        fullName: request.fullName,
-        hashedPassword,
-        phone: request.phone,
+        full_name: request.fullName,
+        hashed_password,
         profile_image_url: request.profile_image_url || user.profile_image_url,
         status: 'active',
-        last_login: new Date()
+        last_login_at: new Date()
       });
 
       if (!updateSuccess) {
@@ -467,9 +499,9 @@ export class InvitationController {
         success: true,
         user: {
           _id: updatedUser._id!,
-          fullName: updatedUser.fullName,
+          fullName: updatedUser.full_name,
           email: updatedUser.email,
-          userType: updatedUser.userType,
+          userType: roleToUserType(updatedUser.role),
           accountId: updatedUser.accountId!,
           entityId: updatedUser.entityId,
           status: updatedUser.status
@@ -483,6 +515,125 @@ export class InvitationController {
     }
   }
 
+  private async createUserRecordsBeforeInvitations(
+    emails: string[],
+    accountId: string,
+    entityId: string | undefined,
+    role: string = 'member'
+  ): Promise<Array<{ email: string; success: boolean; message?: string }>> {
+    try {
+      // Convert role string to UserRole enum
+      const roleMap: Record<string, UserRole> = {
+        'operator': UserRole.OPERATOR,
+        'admin': UserRole.ADMIN,
+        'member': UserRole.MEMBER,
+        'viewer': UserRole.VIEWER,
+      };
+      const userRole = roleMap[role] || UserRole.MEMBER;
+      
+      // Prepare user data for batch creation (all with 'pending' status initially)
+      const usersData: CreateUserData[] = emails.map((email) => ({
+        full_name: email.split('@')[0],
+        email: email.toLowerCase().trim(),
+        hashed_password: undefined, // No password for pending users
+        role: userRole,
+        accountId,
+        entityId: entityId || undefined, // Handle undefined entityId for admin users
+        status: 'pending', // Will be updated after invitation is sent
+        profile_image_url: 'https://via.placeholder.com/150x150/cccccc/ffffff?text=User' // Placeholder profile picture
+      }));
+
+      // Create users in batch
+      const createdUsers = await this.profileRepository.createUsersBatch(usersData);
+      
+      this.logger.log(`Batch created ${createdUsers.length} user records before sending invitations`);
+      
+      // Return results for each email
+      return emails.map((email, index) => {
+        const created = createdUsers[index];
+        return {
+          email,
+          success: !!created,
+          message: created ? 'User created successfully' : 'Failed to create user record'
+        };
+      });
+
+    } catch (error) {
+      this.logger.error('Failed to create user records before invitations', error);
+      
+      // Fallback to individual creation if batch fails
+      this.logger.log('Falling back to individual user creation...');
+      return await this.createUserRecordsIndividuallyBeforeInvitations(emails, accountId, entityId, role);
+    }
+  }
+
+  private async createUserRecordsIndividuallyBeforeInvitations(
+    emails: string[],
+    accountId: string,
+    entityId: string | undefined,
+    role: string = 'member'
+  ): Promise<Array<{ email: string; success: boolean; message?: string }>> {
+    // Convert role string to UserRole enum
+    const roleMap: Record<string, UserRole> = {
+      'operator': UserRole.OPERATOR,
+      'admin': UserRole.ADMIN,
+      'member': UserRole.MEMBER,
+      'viewer': UserRole.VIEWER,
+    };
+    const userRole = roleMap[role] || UserRole.MEMBER;
+    
+    const userCreationPromises = emails.map(async (email) => {
+      const userData: CreateUserData = {
+        full_name: email.split('@')[0],
+        email: email.toLowerCase().trim(),
+        hashed_password: undefined, // No password for pending users
+        role: userRole,
+        accountId,
+        entityId: entityId || undefined, // Handle undefined entityId for admin users
+        status: 'pending', // Will be updated after invitation is sent
+        profile_image_url: 'https://via.placeholder.com/150x150/cccccc/ffffff?text=User' // Placeholder profile picture
+      };
+      
+      try {
+        await this.profileRepository.createUser(userData);
+        this.logger.log(`User record created for ${email} with status: pending`);
+        return { email, success: true, message: 'User created successfully' };
+      } catch (error) {
+        this.logger.error(`Failed to create user record for ${email}`, error);
+        return { 
+          email, 
+          success: false, 
+          message: error instanceof Error ? error.message : 'Failed to create user record' 
+        };
+      }
+    });
+
+    return await Promise.all(userCreationPromises);
+  }
+
+  private async updateUserStatusFromInvitations(
+    invitationResults: InvitationResult[]
+  ): Promise<void> {
+    // Update user status based on invitation send results
+    const updatePromises = invitationResults.map(async (result) => {
+      try {
+        const user = await this.profileRepository.findUserByEmail(result.email);
+        if (!user) {
+          this.logger.warn(`User not found for email: ${result.email}`);
+          return;
+        }
+
+        const newStatus = result.success ? 'pending' : 'failed to send request';
+        await this.profileRepository.updateUser(user._id, { status: newStatus });
+        this.logger.log(`Updated user status for ${result.email} to: ${newStatus}`);
+      } catch (error) {
+        this.logger.error(`Failed to update user status for ${result.email}`, error);
+      }
+    });
+
+    await Promise.all(updatePromises);
+  }
+
   private async createUserRecordsFromInvitations(
     invitationResponse: SendInvitationResponse,
     accountId: string,
@@ -490,23 +641,24 @@ export class InvitationController {
     role: string = 'member'
   ): Promise<void> {
     try {
-      // Map role string to UserType enum
-      const roleMap: { [key: string]: number } = {
-        'admin': UserType.admin,
-        'member': UserType.member,
-        'viewer': UserType.viewer
+      // Convert role string to UserRole enum
+      const roleMap: Record<string, UserRole> = {
+        'operator': UserRole.OPERATOR,
+        'admin': UserRole.ADMIN,
+        'member': UserRole.MEMBER,
+        'viewer': UserRole.VIEWER,
       };
-      
-      const userType = roleMap[role] || UserType.member;
+      const userRole = roleMap[role] || UserRole.MEMBER;
       
       // Prepare user data for batch creation
       const usersData: CreateUserData[] = invitationResponse.results.map((result) => {
         const status = result.success ? 'pending' : 'failed to send request';
         
         return {
-          fullName: result.email.split('@')[0],
+          full_name: result.email.split('@')[0],
           email: result.email,
-          userType,
+          hashed_password: '', // Will be set when user completes signup
+          role: userRole,
           accountId,
           entityId: entityId || undefined, // Handle undefined entityId for admin users
           status,
@@ -541,20 +693,21 @@ export class InvitationController {
     entityId: string | undefined,
     role: string = 'member'
   ): Promise<void> {
-    // Map role string to UserType enum
-    const roleMap: { [key: string]: number } = {
-      'admin': UserType.admin,
-      'member': UserType.member,
-      'viewer': UserType.viewer
+    // Convert role string to UserRole enum
+    const roleMap: Record<string, UserRole> = {
+      'operator': UserRole.OPERATOR,
+      'admin': UserRole.ADMIN,
+      'member': UserRole.MEMBER,
+      'viewer': UserRole.VIEWER,
     };
-    
-    const userType = roleMap[role] || UserType.member;
+    const userRole = roleMap[role] || UserRole.MEMBER;
     
     const userCreationPromises = invitationResponse.results.map(async (result) => {
       const userData: CreateUserData = {
-        fullName: result.email.split('@')[0],
+        full_name: result.email.split('@')[0],
         email: result.email,
-        userType,
+        hashed_password: '', // Will be set when user completes signup
+        role: userRole,
         accountId,
         entityId: entityId || undefined, // Handle undefined entityId for admin users
         profile_image_url: 'https://via.placeholder.com/150x150/cccccc/ffffff?text=User' // Placeholder profile picture

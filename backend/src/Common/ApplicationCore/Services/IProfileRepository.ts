@@ -1,4 +1,5 @@
 import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 
 // ==================== ACCOUNT TYPES ====================
 export interface AccountData {
@@ -30,50 +31,49 @@ export interface UpdateAccountData {
 // ==================== USER TYPES ====================
 export interface UserData {
   _id: string;
-  fullName: string;
+  full_name?: string;
   email: string;
-  hashedPassword?: string;
-  userType: UserType;
+  hashed_password: string;
+  role: UserRole;
   accountId?: string;
   entityId?: string;
   status: string;
-  last_login?: Date;
+  last_login_at?: Date;
   profile_image_url?: string;
-  phone?: string;
   created_at?: Date;
   updated_at?: Date;
 }
 
 export interface CreateUserData {
-  fullName: string;
+  full_name?: string;
   email: string;
-  hashedPassword?: string;
-  userType: UserType;
+  hashed_password: string;
+  role: UserRole;
   accountId?: string;
   entityId?: string;
-  phone?: string;
   profile_image_url?: string;
   status?: 'active' | 'inactive' | 'pending' | 'failed to send request';
 }
 
 export interface UpdateUserData {
-  fullName?: string;
+  full_name?: string;
   email?: string;
-  hashedPassword?: string;
-  userType?: UserType;
+  hashed_password?: string;
+  role?: UserRole;
   accountId?: string;
   entityId?: string;
   status?: string;
-  last_login?: Date;
+  last_login_at?: Date;
   profile_image_url?: string;
-  phone?: string;
 }
 
 // ==================== ENTITY TYPES ====================
+export type EntityType = 'individual' | 'business' | 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
+
 export interface EntityData {
   _id: string;
   accountId: string;
-  entity_type: 'individual' | 'business';
+  entity_type: EntityType;
   status: 'active' | 'inactive';
   entity_name?: string;
   description?: string;
@@ -93,7 +93,7 @@ export interface EntityData {
 
 export interface CreateEntityData {
   accountId: string;
-  entity_type?: 'individual' | 'business';
+  entity_type?: EntityType;
   entity_name?: string;
   description?: string;
   website?: string;
@@ -109,7 +109,7 @@ export interface CreateEntityData {
 }
 
 export interface UpdateEntityData {
-  entity_type?: 'individual' | 'business';
+  entity_type?: EntityType;
   status?: 'active' | 'inactive';
   entity_name?: string;
   description?: string;

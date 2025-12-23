@@ -59,10 +59,10 @@ export class CreateEntityRequest {
   @IsMongoId()
   accountId: string;
 
-  @ApiProperty({ enum: ['individual', 'business'], required: false, example: 'individual' })
+  @ApiProperty({ enum: ['individual', 'business', 'company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], required: false, example: 'individual' })
   @IsOptional()
-  @IsEnum(['individual', 'business'])
-  entity_type?: 'individual' | 'business';
+  @IsEnum(['individual', 'business', 'company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'])
+  entity_type?: 'individual' | 'business' | 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
 
   @ApiProperty({ required: false, example: 'Test Entity LLC' })
   @IsOptional()
@@ -113,10 +113,10 @@ export class CreateEntityRequest {
 export class CreateEntityBodyDto extends OmitType(CreateEntityRequest, ['accountId'] as const) {}
 
 export class UpdateEntityRequest {
-  @ApiProperty({ enum: ['individual', 'business'], required: false })
+  @ApiProperty({ enum: ['individual', 'business', 'company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], required: false })
   @IsOptional()
-  @IsEnum(['individual', 'business'])
-  entity_type?: 'individual' | 'business';
+  @IsEnum(['individual', 'business', 'company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'])
+  entity_type?: 'individual' | 'business' | 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
 
   @ApiProperty({ enum: ['active', 'inactive'], required: false })
   @IsOptional()

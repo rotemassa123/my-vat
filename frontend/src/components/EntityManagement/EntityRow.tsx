@@ -16,6 +16,7 @@ interface Entity {
   id: string;
   name: string;
   type: string;
+  registration: string;
   status: string;
   location: string;
   email: string;
@@ -69,6 +70,20 @@ const EntityRow: React.FC<EntityRowProps> = ({
       <Box className={styles.roleCell} style={{ width: '15%' }}>
         <Typography variant="body2" className={styles.typeText}>
           {entity.type}
+        </Typography>
+      </Box>
+      <Box className={styles.roleCell} style={{ width: '15%' }}>
+        <Typography 
+          variant="body2" 
+          className={styles.typeText}
+          sx={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '100%'
+          }}
+        >
+          {entity.registration}
         </Typography>
       </Box>
       <Box className={styles.statusCell} style={{ width: '12%' }}>

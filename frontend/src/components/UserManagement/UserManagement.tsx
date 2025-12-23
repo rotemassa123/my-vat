@@ -34,7 +34,8 @@ import UserRow from './UserRow';
 import styles from './UserManagement.module.scss';
 
 // Helper function to create avatar initials
-const createAvatarInitials = (fullName: string): string => {
+const createAvatarInitials = (fullName: string | undefined): string => {
+  if (!fullName) return 'U'; // Default to 'U' for User if no name
   const names = fullName.split(' ');
   if (names.length >= 2) {
     return `${names[0][0]}${names[1][0]}`.toUpperCase();
@@ -116,7 +117,7 @@ const UserManagement: React.FC = () => {
       const entity = entities.find(e => e._id === user.entityId);
       return {
         id: user._id,
-        name: user.fullName,
+        name: user.fullName || user.email.split('@')[0], // Fallback to email prefix if no fullName
         email: user.email,
         role: mapUserTypeToRole(user.userType),
         status: formatUserStatus(user.status),
@@ -159,7 +160,7 @@ const UserManagement: React.FC = () => {
       const user = profileUsers.find(u => u._id === selectedUser);
       if (user) {
         setEditingUserId(selectedUser);
-        setEditingUserName(user.fullName);
+        setEditingUserName(user.fullName || '');
       }
     }
     handleCloseMenu();
@@ -174,7 +175,7 @@ const UserManagement: React.FC = () => {
       return;
     }
 
-    if (editingUserName.trim() === originalUser.fullName) {
+    if (editingUserName.trim() === (originalUser.fullName || '')) {
       setEditingUserId(null);
       setEditingUserName('');
       return;

@@ -76,10 +76,16 @@ export function AccountScopePlugin(schema: Schema, options?: { is_required?: boo
   schema.pre('aggregate', applyAccountFilterToAggregate);
 
   // Use pre('validate') to set fields BEFORE validation runs
+  // Only set account_id if it's not already set and accountId exists in context
   schema.pre('validate', function (next) {
     try {
       const accountId = getAccountId();
-      this.set('account_id', new Types.ObjectId(accountId));
+      // Only set account_id if:
+      // 1. accountId exists in context
+      // 2. account_id is not already set (allows explicit setting from request body)
+      if (accountId && !this.get('account_id')) {
+        this.set('account_id', new Types.ObjectId(accountId));
+      }
       next();
     } catch (error) {
       next(error as Error);

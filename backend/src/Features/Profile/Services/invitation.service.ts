@@ -103,9 +103,9 @@ export class InvitationService {
       const batchEmails: BatchEmailOptions[] = request.emails.map((email, index) => {
         const emailData: InvitationEmailData = {
           email,
-          inviterName: inviter.fullName,
+          inviterName: inviter.full_name || inviter.email.split('@')[0], // Use full_name from UserData
           accountName: account.company_name,
-          entityName: entity?.name,
+          entityName: entity?.entity_name,
           personalMessage: request.personalMessage,
           inviteUrl: this.generateInviteUrl(email, account._id, inviter._id, entity?._id, role)
         };

@@ -282,6 +282,7 @@ const EntityModal: React.FC<EntityModalProps> = ({
         // Refresh data and show success
         await onSuccess();
         onShowSuccess?.('Entity created successfully');
+        handleClose(); // Close modal after successful creation
       } else {
         // Update entity
         if (!entity?._id) {
@@ -298,6 +299,7 @@ const EntityModal: React.FC<EntityModalProps> = ({
         // Refresh data and show success
         await onSuccess();
         onShowSuccess?.('Entity updated successfully');
+        handleClose(); // Close modal after successful update
       }
     } catch (error) {
       console.error(`Failed to ${mode} entity:`, error);

@@ -1,6 +1,7 @@
 import { tool } from '@openai/agents';
 import { z } from 'zod';
 import { IProfileRepository } from '../../../../Common/ApplicationCore/Services/IProfileRepository';
+import { roleToUserType } from '../../../../Common/utils/role-converter';
 
 /**
  * Tool factory that creates user tools with injected repository
@@ -17,14 +18,13 @@ export function createUserTools(profileRepository: IProfileRepository) {
         return {
           users: users.map(user => ({
             id: user._id,
-            full_name: user.fullName,
+            full_name: user.full_name,
             email: user.email,
-            user_type: user.userType,
+            user_type: roleToUserType(user.role),
             status: user.status,
             entity_id: user.entityId,
             profile_image_url: user.profile_image_url,
-            phone: user.phone,
-            last_login: user.last_login,
+            last_login_at: user.last_login_at,
           })),
           count: users.length,
         };
@@ -56,15 +56,14 @@ export function createUserTools(profileRepository: IProfileRepository) {
 
         return {
           id: user._id,
-          full_name: user.fullName,
+          full_name: user.full_name,
           email: user.email,
-          user_type: user.userType,
+          user_type: roleToUserType(user.role),
           status: user.status,
           account_id: user.accountId,
           entity_id: user.entityId,
           profile_image_url: user.profile_image_url,
-          phone: user.phone,
-          last_login: user.last_login,
+          last_login_at: user.last_login_at,
         };
       } catch (error) {
         return {

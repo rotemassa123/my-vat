@@ -18,7 +18,10 @@ import { PasswordService } from "src/Common/ApplicationCore/Features/password.se
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
+import { userTypeToRole } from "src/Common/utils/role-converter";
+import { mapUserDataToResponse } from "src/Common/utils/user-mapper";
 
 @ApiTags("users")
 @Controller("users")
@@ -41,7 +44,7 @@ export class UserController {
           throw new NotFoundException(`User with ID ${userId} not found`);
         }
         
-        return [user as UserResponse];      
+        return [mapUserDataToResponse(user)];      
     } catch (error) {
       logger.error("Error fetching users", UserController.name, { error: error.message, userId });
       throw error;
@@ -56,7 +59,7 @@ export class UserController {
       if (!user) {
         throw new NotFoundException(`User with ID ${id} not found`);
       }
-      return user as UserResponse;
+      return mapUserDataToResponse(user);
     } catch (error) {
       logger.error("Error fetching user by ID", UserController.name, { error: error.message, id });
       throw error;
@@ -117,16 +120,15 @@ export class UserController {
       }
 
       // Hash password
-      const hashedPassword = await this.passwordService.hashPassword(createUserRequest.password);
+      const hashed_password = await this.passwordService.hashPassword(createUserRequest.password);
 
       const userData: CreateUserData = {
-        fullName: createUserRequest.fullName,
+        full_name: createUserRequest.fullName,
         email: createUserRequest.email,
-        hashedPassword: hashedPassword,
-        userType: createUserRequest.userType,
+        hashed_password: hashed_password,
+        role: userTypeToRole(createUserRequest.userType),
         accountId: createUserRequest.accountId,
         entityId: createUserRequest.entityId,
-        phone: createUserRequest.phone,
         profile_image_url: createUserRequest.profile_image_url,
       };
 
@@ -163,13 +165,12 @@ export class UserController {
       }
 
       const updateData: UpdateUserData = {
-        fullName: updateUserRequest.fullName,
+        full_name: updateUserRequest.fullName,
         email: updateUserRequest.email,
-        userType: updateUserRequest.userType,
+        role: updateUserRequest.userType !== undefined ? userTypeToRole(updateUserRequest.userType) : undefined,
         accountId: updateUserRequest.accountId,
         entityId: updateUserRequest.entityId,
         status: updateUserRequest.status,
-        phone: updateUserRequest.phone,
         profile_image_url: updateUserRequest.profile_image_url,
       };
 
@@ -182,7 +183,7 @@ export class UserController {
         
         // If user is being set to member/guest after being admin, ensure they have an entity
         if ((updateUserRequest.userType === UserType.member || updateUserRequest.userType === UserType.viewer) &&
-            existingUser.userType === UserType.admin) {
+            existingUser.role === UserRole.ADMIN) {
           if (!updateUserRequest.entityId) {
             throw new BadRequestException("Member/Guest users must have an entity_id");
           }
@@ -213,7 +214,7 @@ export class UserController {
 
       // Hash password if provided
       if (updateUserRequest.password) {
-        updateData.hashedPassword = await this.passwordService.hashPassword(updateUserRequest.password);
+        updateData.hashed_password = await this.passwordService.hashPassword(updateUserRequest.password);
       }
 
       const updated = await this.userService.updateUser(id, updateData);
@@ -222,7 +223,10 @@ export class UserController {
       }
 
       const updatedUser = await this.userService.findUserById(id);
-      return updatedUser as UserResponse;
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${id} not found after update`);
+      }
+      return mapUserDataToResponse(updatedUser);
     } catch (error) {
       logger.error("Error updating user", UserController.name, { error: error.message, id });
       throw error;
@@ -249,7 +253,7 @@ export class UserController {
       }
 
       const updateData: UpdateUserData = {
-        userType: updateRoleRequest.userType,
+        role: userTypeToRole(updateRoleRequest.userType),
       };
 
       // Handle user type changes with entity logic
@@ -277,9 +281,12 @@ export class UserController {
       }
 
       const updatedUser = await this.userService.findUserById(id);
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${id} not found after update`);
+      }
       return { 
         success: true, 
-        user: updatedUser as UserResponse 
+        user: mapUserDataToResponse(updatedUser)
       };
     } catch (error) {
       logger.error("Error updating user role", UserController.name, { error: error.message, id });
@@ -302,7 +309,7 @@ export class UserController {
       }
 
       // Don't allow entity changes for admin users
-      if (existingUser.userType === UserType.admin) {
+      if (existingUser.role === UserRole.ADMIN) {
         throw new BadRequestException("Admin users cannot have entities assigned");
       }
 
@@ -322,9 +329,12 @@ export class UserController {
       }
 
       const updatedUser = await this.userService.findUserById(id);
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${id} not found after update`);
+      }
       return { 
         success: true, 
-        user: updatedUser as UserResponse 
+        user: mapUserDataToResponse(updatedUser)
       };
     } catch (error) {
       logger.error("Error updating user entity", UserController.name, { error: error.message, id });

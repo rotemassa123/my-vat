@@ -18,7 +18,7 @@ export class Entity {
   // This property is defined for TypeScript type safety; the actual schema field is created by AccountScopePlugin.
   account_id: mongoose.Types.ObjectId;
 
-  @Prop({ enum: ['individual', 'business'], default: 'individual' })
+  @Prop({ enum: ['individual', 'business', 'company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], default: 'individual' })
   entity_type: string;
 
   @Prop({ enum: ['active', 'inactive'], default: 'active' })

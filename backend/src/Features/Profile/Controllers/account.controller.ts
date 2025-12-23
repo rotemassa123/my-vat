@@ -20,6 +20,7 @@ import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles
 import { UserType } from "src/Common/consts/userType";
 import { UseGuards } from "@nestjs/common";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
+import { mapUserDataToResponse } from "src/Common/utils/user-mapper";
 
 @ApiTags("accounts")
 @Controller("accounts")
@@ -74,7 +75,7 @@ export class AccountController {
       }
 
       const users = await this.accountService.getUsersForAccountId(id);
-      return users as UserResponse[];
+      return users.map(mapUserDataToResponse);
     } catch (error) {
       logger.error("Error fetching account users", AccountController.name, { error: error.message, id });
       throw error;

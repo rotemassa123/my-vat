@@ -10,6 +10,7 @@ import { TicketsService } from '../Services/tickets.service';
 import { SendTicketMessageDto } from '../Requests/ticket.requests';
 import { TicketMessageEvent, TicketResponse } from '../Responses/ticket.responses';
 import { UserType } from 'src/Common/consts/userType';
+import { roleToUserType } from 'src/Common/utils/role-converter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from 'src/Common/Infrastructure/DB/schemas/user.schema';
@@ -47,7 +48,7 @@ export class TicketsGateway implements OnGatewayConnection, OnGatewayDisconnect 
 
     try {
       const user = await this.userModel.findById(userId).exec();
-      const userType = user?.userType || UserType.member;
+      const userType = user?.role ? roleToUserType(user.role) : UserType.member;
 
       // Set httpContext for service methods
       const userContext: UserContext = {

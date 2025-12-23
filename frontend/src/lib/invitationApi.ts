@@ -41,7 +41,7 @@ export interface ValidateInvitationResponse {
   isValid: boolean;
   user?: {
     _id: string;
-    fullName: string;
+    fullName?: string; // Changed to optional to match backend
     email: string;
     userType: number;
     status: string;
@@ -53,19 +53,19 @@ export interface ValidateInvitationResponse {
   };
   entity?: {
     _id: string;
-    name: string;
+    entity_name?: string; // Changed from 'name' to 'entity_name' to match backend
   };
   inviter?: {
-    fullName: string;
+    fullName?: string; // Changed to optional to match backend
   };
   error?: string;
 }
 
 export interface CompleteSignupRequest {
   email: string;
-  fullName: string;
+  fullName: string; // Backend expects fullName (camelCase) in request
   password: string;
-  phone?: string;
+  phone?: string; // Note: phone field removed from backend schema, but keeping for backward compatibility
   profile_image_url?: string;
 }
 
@@ -73,7 +73,7 @@ export interface CompleteSignupResponse {
   success: boolean;
   user: {
     _id: string;
-    fullName: string;
+    fullName?: string; // Changed to optional to match backend
     email: string;
     userType: number;
     accountId: string;

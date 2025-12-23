@@ -21,6 +21,7 @@ import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfile
 import { IGoogleOAuthService } from "src/Common/ApplicationCore/Services/IGoogleOAuthService";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { UserType } from "src/Common/consts/userType";
+import { roleToUserType } from "src/Common/utils/role-converter";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 import * as httpContext from 'express-http-context';
 import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
@@ -32,7 +33,7 @@ import {
 
 interface UserResponse {
   _id: string;
-  fullName: string;
+  fullName?: string;
   email: string;
   userType: UserType;
   accountId: string;
@@ -93,7 +94,7 @@ export class AuthenticationController {
     }
 
     // Additional security: Ensure user has a password set
-    if (!user.hashedPassword) {
+    if (!user.hashed_password) {
       logger.warn("Login attempt for user without password", AuthenticationController.name, { 
         email: normalizedEmail 
       });
@@ -102,7 +103,7 @@ export class AuthenticationController {
 
     const isCorrectPassword = await this.passwordService.comparePassword(
       request.password,
-      user.hashedPassword
+      user.hashed_password
     );
 
     if (!isCorrectPassword) {
@@ -113,15 +114,15 @@ export class AuthenticationController {
     }
 
     await this.userService.updateUser(user._id, {
-      last_login: new Date(),
+      last_login_at: new Date(),
     });
 
     // Create JWT payload (without password)
     const payload = {
       userId: user._id,
-      fullName: user.fullName,
+      fullName: user.full_name,
       email: user.email,
-      userType: user.userType,
+      userType: roleToUserType(user.role),
       accountId: user.accountId,
       entityId: user.entityId,
       profile_image_url: user.profile_image_url,
@@ -140,9 +141,9 @@ export class AuthenticationController {
 
     return {
       _id: user._id!,
-      fullName: user.fullName,
+      fullName: user.full_name,
       email: user.email,
-      userType: user.userType,
+      userType: roleToUserType(user.role),
       accountId: user.accountId,
       entityId: user.entityId,
       profile_image_url: user.profile_image_url,
@@ -206,10 +207,10 @@ export class AuthenticationController {
     }
 
     return {
-      fullName: user.fullName,
+      fullName: user.full_name,
       email: user.email,
       _id: user._id!,
-      userType: user.userType,
+      userType: roleToUserType(user.role),
       accountId: user.accountId,
       entityId: user.entityId,
       profile_image_url: user.profile_image_url,
@@ -249,13 +250,13 @@ export class AuthenticationController {
         throw new UnauthorizedException("User not found");
       }
 
-      await this.userService.updateUser(targetUser._id, { last_login: new Date() });
+      await this.userService.updateUser(targetUser._id, { last_login_at: new Date() });
 
       const sessionPayload = {
         userId: targetUser._id,
-        fullName: targetUser.fullName,
+        fullName: targetUser.full_name,
         email: targetUser.email,
-        userType: targetUser.userType,
+        userType: roleToUserType(targetUser.role),
         accountId: targetUser.accountId,
         entityId: targetUser.entityId,
         profile_image_url: targetUser.profile_image_url,
@@ -344,14 +345,14 @@ export class AuthenticationController {
       }
 
       // Update last login time
-      await this.userService.updateUser(user._id, { last_login: new Date() });
+      await this.userService.updateUser(user._id, { last_login_at: new Date() });
 
       // Create JWT payload
       const payload = {
         userId: user._id,
-        fullName: user.fullName,
+        fullName: user.full_name,
         email: user.email,
-        userType: user.userType,
+        userType: roleToUserType(user.role),
         accountId: user.accountId,
         entityId: user.entityId,
         profile_image_url: user.profile_image_url,

@@ -278,14 +278,14 @@ const MagicLinkPage: React.FC = () => {
         result.impersonationUrl ?? `${apiBaseUrl}/auth/magic-link/${result.token}`;
 
       const entityName = selectedUser.entityId
-        ? entityMap[selectedUser.entityId]?.name || selectedUser.entityId
+        ? (entityMap[selectedUser.entityId]?.entity_name || selectedUser.entityId)
         : undefined;
 
       openMagicLinkModal({
         link: impersonationUrl,
         expiresAt: result.expiresAt,
         accountName: account.company_name || 'Unnamed Account',
-        userName: selectedUser.fullName,
+        userName: selectedUser.fullName || selectedUser.email.split('@')[0],
         userEmail: selectedUser.email,
         entityName,
       });

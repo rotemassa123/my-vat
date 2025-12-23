@@ -53,7 +53,7 @@ const TriggerJobsPage: React.FC = () => {
 
       const jobConfig = getJobConfig(jobType);
       const entity = storeEntities.find((e) => e._id === entityId);
-      setSuccessMessage(result.message || `${jobConfig.name} job triggered successfully for ${entity?.name || 'entity'}`);
+      setSuccessMessage(result.message || `${jobConfig.name} job triggered successfully for ${entity?.entity_name || 'entity'}`);
     } catch (err: any) {
       setError(err.message || `Failed to trigger ${getJobConfig(jobType).name} job`);
       console.error(`Error triggering ${jobType}:`, err);

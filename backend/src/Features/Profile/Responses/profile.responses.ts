@@ -1,4 +1,5 @@
 import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 
 // Account Responses
 export interface AccountResponse {
@@ -45,7 +46,7 @@ export interface CreateEntityResponse {
 // User Responses
 export interface UserResponse {
   _id: string;
-  fullName: string;
+  fullName?: string;
   email: string;
   userType: UserType;
   accountId?: string;
@@ -53,7 +54,6 @@ export interface UserResponse {
   status: string;
   last_login?: Date;
   profile_image_url?: string;
-  phone?: string;
   created_at?: Date;
   updated_at?: Date;
 }
