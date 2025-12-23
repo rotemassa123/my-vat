@@ -59,28 +59,30 @@ export class CreateEntityRequest {
   @IsMongoId()
   accountId: string;
 
-  @ApiProperty({ example: 'Test Entity LLC' })
-  @IsString()
-  name: string;
-
-  @ApiProperty({ 
-    enum: ['company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], 
-    required: false,
-    example: 'company'
-  })
+  @ApiProperty({ enum: ['individual', 'business'], required: false, example: 'individual' })
   @IsOptional()
-  @IsEnum(['company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'])
-  entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
+  @IsEnum(['individual', 'business'])
+  entity_type?: 'individual' | 'business';
 
-  @ApiProperty({ required: false, example: 'COMP123456' })
+  @ApiProperty({ required: false, example: 'Test Entity LLC' })
   @IsOptional()
   @IsString()
-  registration_number?: string;
+  entity_name?: string;
 
-  @ApiProperty({ required: false, example: '2020-01-15T00:00:00.000Z' })
+  @ApiProperty({ required: false, example: 'Sample business entity for testing' })
   @IsOptional()
-  @IsDateString()
-  incorporation_date?: Date;
+  @IsString()
+  description?: string;
+
+  @ApiProperty({ required: false, example: 'https://example.com' })
+  @IsOptional()
+  @IsString()
+  website?: string;
+
+  @ApiProperty({ required: false, example: 'entity@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 
   @ApiProperty({ 
     required: false,
@@ -106,60 +108,40 @@ export class CreateEntityRequest {
   @IsOptional()
   @IsString()
   phone?: string;
-
-  @ApiProperty({ required: false, example: 'entity@example.com' })
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiProperty({ 
-    required: false,
-    example: {
-      vat_number: 'VAT789012',
-      tax_id: 'TAX789012',
-      vat_rate: 21,
-      currency: 'USD',
-      filing_frequency: 'quarterly'
-    }
-  })
-  @IsOptional()
-  @IsObject()
-  vat_settings?: {
-    vat_number?: string;
-    tax_id?: string;
-    vat_rate?: number;
-    currency?: string;
-    filing_frequency?: 'monthly' | 'quarterly' | 'annually';
-  };
-
-  @ApiProperty({ required: false, example: 'Sample business entity for testing' })
-  @IsOptional()
-  @IsString()
-  description?: string;
 }
 
 export class CreateEntityBodyDto extends OmitType(CreateEntityRequest, ['accountId'] as const) {}
 
 export class UpdateEntityRequest {
+  @ApiProperty({ enum: ['individual', 'business'], required: false })
+  @IsOptional()
+  @IsEnum(['individual', 'business'])
+  entity_type?: 'individual' | 'business';
+
+  @ApiProperty({ enum: ['active', 'inactive'], required: false })
+  @IsOptional()
+  @IsEnum(['active', 'inactive'])
+  status?: 'active' | 'inactive';
+
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  name?: string;
-
-  @ApiProperty({ enum: ['company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'], required: false })
-  @IsOptional()
-  @IsEnum(['company', 'subsidiary', 'branch', 'partnership', 'sole_proprietorship'])
-  entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
+  entity_name?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  registration_number?: string;
+  description?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsDateString()
-  incorporation_date?: Date;
+  @IsString()
+  website?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -176,32 +158,6 @@ export class UpdateEntityRequest {
   @IsOptional()
   @IsString()
   phone?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsObject()
-  vat_settings?: {
-    vat_number?: string;
-    tax_id?: string;
-    vat_rate?: number;
-    currency?: string;
-    filing_frequency?: 'monthly' | 'quarterly' | 'annually';
-  };
-
-  @ApiProperty({ enum: ['active', 'inactive', 'dissolved'], required: false })
-  @IsOptional()
-  @IsEnum(['active', 'inactive', 'dissolved'])
-  status?: 'active' | 'inactive' | 'dissolved';
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  description?: string;
 }
 
 // User Requests

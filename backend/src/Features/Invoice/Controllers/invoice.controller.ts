@@ -5,7 +5,9 @@ import {
   Query,
   NotFoundException,
   UseGuards,
+  Res,
 } from "@nestjs/common";
+import { Response } from "express";
 import { ApiTags, ApiParam, ApiQuery, ApiOperation } from "@nestjs/swagger";
 import { InvoiceFilterRequest, InvoicePaginationRequest, CombinedInvoiceFilterRequest } from "../Requests/invoice.requests";
 import { InvoiceResponse, InvoiceListResponse, CombinedInvoiceListResponse } from "../Responses/invoice.responses";
@@ -159,6 +161,106 @@ export class InvoiceController {
       });
       throw error;
     }
+  }
+
+  @Get("export")
+  @ApiOperation({ 
+    summary: 'Export invoices to CSV', 
+    description: 'Export filtered invoices to CSV format' 
+  })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Maximum items to export (default: 10000)', example: 10000 })
+  @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip', example: 0 })
+  async exportInvoices(
+    @Query() request: CombinedInvoiceFilterRequest,
+    @Res() res: Response
+  ): Promise<void> {
+    try {
+      logger.info("Exporting invoices to CSV", InvoiceController.name, { 
+        limit: request.limit,
+        skip: request.skip
+      });
+
+      // Don't pass limit/skip - get all invoices with filters applied
+      const result = await this.invoiceService.findCombinedInvoices(
+        request
+      );
+
+      const csv = this.convertToCSV(result.data);
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="invoices_${new Date().toISOString().split('T')[0]}.csv"`);
+      
+      res.send(csv);
+
+      logger.info("Successfully exported invoices to CSV", InvoiceController.name, { 
+        count: result.data.length
+      });
+    } catch (error) {
+      logger.error("Error exporting invoices to CSV", InvoiceController.name, { 
+        error: error.message
+      });
+      throw error;
+    }
+  }
+
+  private convertToCSV(data: any[]): string {
+    if (!data || data.length === 0) {
+      return 'No data available\n';
+    }
+
+    const headers = [
+      'ID',
+      'File Name',
+      'Invoice Number',
+      'Invoice Date',
+      'Supplier',
+      'Country',
+      'Currency',
+      'Net Amount',
+      'VAT Amount',
+      'VAT Rate',
+      'Total Amount',
+      'Status',
+      'Claim Amount',
+      'Created At',
+      'Status Updated At'
+    ];
+
+    const rows = data.map(invoice => {
+      return [
+        invoice._id || '',
+        invoice.name || '',
+        invoice.invoice_number || '',
+        invoice.invoice_date || '',
+        invoice.supplier || invoice.vendor_name || '',
+        invoice.country || '',
+        invoice.currency || '',
+        invoice.net_amount || '',
+        invoice.vat_amount || '',
+        invoice.vat_rate || '',
+        invoice.total_amount || '',
+        invoice.status || '',
+        invoice.claim_amount || '',
+        invoice.created_at ? new Date(invoice.created_at).toISOString() : '',
+        invoice.status_updated_at ? new Date(invoice.status_updated_at).toISOString() : ''
+      ];
+    });
+
+    const escapeCSV = (value: any): string => {
+      if (value === null || value === undefined) return '';
+      const str = String(value);
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const csvLines = [
+      headers.map(escapeCSV).join(','),
+      ...rows.map(row => row.map(escapeCSV).join(','))
+    ];
+
+    return csvLines.join('\n');
   }
 
   @Get(":id")

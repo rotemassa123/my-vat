@@ -20,10 +20,12 @@ export interface CreateAccountResponse {
 export interface EntityResponse {
   _id: string;
   accountId: string;
-  name: string;
-  entity_type?: string;
-  registration_number?: string;
-  incorporation_date?: Date;
+  entity_type: string;
+  status: string;
+  entity_name?: string;
+  description?: string;
+  website?: string;
+  email?: string;
   address?: {
     street?: string;
     city?: string;
@@ -32,16 +34,6 @@ export interface EntityResponse {
     country?: string;
   };
   phone?: string;
-  email?: string;
-  vat_settings?: {
-    vat_number?: string;
-    tax_id?: string;
-    vat_rate?: number;
-    currency?: string;
-    filing_frequency?: string;
-  };
-  status: string;
-  description?: string;
   created_at?: Date;
   updated_at?: Date;
 }

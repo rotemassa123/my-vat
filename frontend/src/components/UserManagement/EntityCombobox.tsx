@@ -147,11 +147,11 @@ const EntityCombobox: React.FC<EntityComboboxProps> = ({
         {entities.map((entity) => (
           <MenuItem 
             key={entity._id}
-            onClick={() => handleEntitySelect(entity._id, entity.name)}
-            disabled={entity.name === selectedEntity}
+            onClick={() => handleEntitySelect(entity._id, entity.entity_name || 'Unnamed Entity')}
+            disabled={(entity.entity_name || 'Unnamed Entity') === selectedEntity}
           >
             <Typography variant="body2">
-              {entity.name}
+              {entity.entity_name || 'Unnamed Entity'}
             </Typography>
           </MenuItem>
         ))}

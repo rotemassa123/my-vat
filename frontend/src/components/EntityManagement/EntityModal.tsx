@@ -74,7 +74,7 @@ const EntityModal: React.FC<EntityModalProps> = ({
     if (open) {
       if (mode === 'edit' && entity) {
         // Edit mode - populate with existing data
-        setEntityName(entity.name || '');
+        setEntityName(entity.entity_name || '');
         setEntityType(entity.entity_type || '');
         
         // Format existing address
@@ -112,7 +112,7 @@ const EntityModal: React.FC<EntityModalProps> = ({
       // Edit mode - check if there are changes
       if (!entity) return false;
       
-      const originalName = entity.name || '';
+      const originalName = entity.entity_name || '';
       const originalType = entity.entity_type || '';
       const originalAddress = entity.address ? 
         [entity.address.street, entity.address.city, entity.address.state, entity.address.postal_code, entity.address.country]

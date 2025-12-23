@@ -1,6 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
-import { Model, FilterQuery } from "mongoose";
+import { Model, FilterQuery, Types } from "mongoose";
+import mongoose from "mongoose";
+import * as httpContext from 'express-http-context';
+import { UserContext } from "../types/user-context.type";
+import { logger } from "../Config/Logger";
 
 // Repository interface
 import { 
@@ -246,15 +250,45 @@ export class InvoiceMongoService implements IInvoiceRepository {
 
   async findCombinedInvoices(
     filters: CombinedInvoiceFilters, 
-    limit = 50, 
-    skip = 0
+    limit?: number, 
+    skip?: number
   ): Promise<PaginatedCombinedResult> {
+    // Get account_id from httpContext (AccountScopePlugin should handle this, but we'll ensure it)
+    const userContext = httpContext.get('user_context') as UserContext | undefined;
+    const accountId = userContext?.accountId || filters.account_id;
+    
+    if (!accountId) {
+      logger.warn("No account_id found in context or filters", InvoiceMongoService.name);
+      return {
+        data: [],
+        total: 0,
+        limit: limit || 0,
+        skip: skip || 0,
+        count: 0
+      };
+    }
+    
+    logger.info("Finding combined invoices", InvoiceMongoService.name, { 
+      accountId, 
+      limit, 
+      skip,
+      hasFilters: !!filters.account_id
+    });
+    
+    // Explicitly add account_id match at the start (AccountScopePlugin should do this, but ensure it)
     const pipeline: any[] = [
+      {
+        $match: {
+          account_id: new mongoose.Types.ObjectId(accountId)
+        }
+      },
+      // Convert _id to string for lookup (file_id in summaries is stored as string)
       { 
         $addFields: { 
           _id_str: { $toString: "$_id" } 
         } 
       },
+      // Lookup summaries by file_id
       {
         $lookup: {
           from: 'summaries',
@@ -263,7 +297,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
           as: 'summaries'
         }
       },
-      { $unwind: '$summaries' },
+      // Only include invoices that have summaries (preserveNullAndEmptyArrays: false)
+      { $unwind: { path: '$summaries', preserveNullAndEmptyArrays: false } },
       {
         $replaceRoot: {
           newRoot: {
@@ -277,6 +312,7 @@ export class InvoiceMongoService implements IInvoiceRepository {
                 last_executed_step: '$last_executed_step',
                 source: '$source',
                 account_id: '$account_id',
+                entity_id: '$entity_id',
                 content_type: '$content_type',
                 status: '$status',
                 reason: '$reason',
@@ -285,7 +321,11 @@ export class InvoiceMongoService implements IInvoiceRepository {
                 claim_result_received_at: '$claim_result_received_at',
                 status_updated_at: '$status_updated_at',
                 created_at: '$created_at',
-                is_invoice: '$summaries.is_invoice'
+                is_invoice: '$summaries.is_invoice',
+                processing_time_seconds: '$summaries.processing_time_seconds',
+                success: '$summaries.success',
+                error_message: '$summaries.error_message',
+                confidence_score: '$summaries.confidence_score'
               }
             ]
           }
@@ -293,6 +333,7 @@ export class InvoiceMongoService implements IInvoiceRepository {
       }
     ];
     
+    // Count total (without limit/skip)
     const countPipeline = [
       ...pipeline,
       { $count: "total" }
@@ -303,12 +344,19 @@ export class InvoiceMongoService implements IInvoiceRepository {
     }).exec();
     const total = countResult.length > 0 ? countResult[0].total : 0;
     
+    // Data pipeline - apply sorting and optional pagination
     const dataPipeline = [
       ...pipeline,
-      { $sort: { created_at: -1 } },
-      { $skip: skip },
-      { $limit: limit }
+      { $sort: { created_at: -1 } }
     ];
+    
+    // Only add skip/limit if provided
+    if (skip !== undefined && skip > 0) {
+      dataPipeline.push({ $skip: skip });
+    }
+    if (limit !== undefined && limit > 0) {
+      dataPipeline.push({ $limit: limit });
+    }
     
     const docs = await this.invoiceModel.aggregate(dataPipeline, { 
       maxTimeMS: 60000, 
@@ -320,8 +368,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
     return {
       data,
       total,
-      limit,
-      skip,
+      limit: limit || total,
+      skip: skip || 0,
       count: data.length
     };
   }

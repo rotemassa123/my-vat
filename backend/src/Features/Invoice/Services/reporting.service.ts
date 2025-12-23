@@ -117,7 +117,7 @@ export class ReportingService {
         invoice_id: invoice._id,
         entity_id: invoice.entity_id,
         entity_found: !!entity,
-        entity_name: entity?.name || 'Not found',
+        entity_name: entity?.entity_name || 'Not found',
         summary_found: !!summary,
         country: summary?.summary_content?.country || 'Not found'
       });
@@ -125,7 +125,7 @@ export class ReportingService {
       const baseInvoice = {
         ...invoice,
         total_amount: this.calculateTotalAmount(invoice),
-        entity_name: entity?.name || (invoice.supplier ? `${invoice.supplier} (Entity)` : 'Unknown Entity'),
+        entity_name: entity?.entity_name || (invoice.supplier ? `${invoice.supplier} (Entity)` : 'Unknown Entity'),
         vendor_name: invoice.supplier || 'Unknown',
         // Map reason field to error_message for consistency
         error_message: invoice.reason || invoice.error_message || null,

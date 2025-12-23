@@ -26,7 +26,7 @@ const JobsTable: React.FC<JobsTableProps> = ({
           </Box>
           {entities.map((entity) => (
             <Box key={entity._id} className={styles.headerCellEntity}>
-              {entity.name}
+              {entity.entity_name || 'Unnamed Entity'}
             </Box>
           ))}
         </Box>

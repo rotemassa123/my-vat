@@ -215,7 +215,7 @@ export class InvitationController {
         },
         entity: entity ? {
           _id: entity._id,
-          name: entity.name
+          name: entity.entity_name
         } : undefined,
         inviter: inviter ? {
           fullName: inviter.fullName
@@ -376,7 +376,7 @@ export class InvitationController {
         },
         entity: entity ? {
           _id: entity._id!,
-          name: entity.name
+          name: entity.entity_name
         } : undefined,
         inviter: inviter ? {
           fullName: inviter.fullName

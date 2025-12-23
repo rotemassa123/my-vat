@@ -85,9 +85,8 @@ const EntityManagement: React.FC = () => {
     
     return entities.map(entity => ({
       id: entity._id,
-      name: entity.name,
+      name: entity.entity_name || 'Unnamed Entity',
       type: formatEntityType(entity.entity_type),
-      registrationNumber: entity.registration_number || 'N/A',
       status: formatEntityStatus(entity.status),
       location: getLocationString(entity.address),
       email: entity.email || 'N/A',
@@ -274,8 +273,7 @@ const EntityManagement: React.FC = () => {
   };
 
   const filteredEntities = displayEntities.filter(entity => {
-    const matchesSearch = entity.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          entity.registrationNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (entity.entity_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                           entity.location.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesType = typeFilter === '' || entity.type === typeFilter;
     const matchesStatus = statusFilter === '' || entity.status === statusFilter;

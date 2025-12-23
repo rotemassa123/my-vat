@@ -153,7 +153,7 @@ export const FilterPopover: React.FC<FilterPopoverProps> = ({ open, anchorEl, on
                 return (
                   <Chip
                     key={entity._id}
-                    label={entity.name}
+                    label={entity.entity_name || 'Unnamed Entity'}
                     onClick={() => handleEntityToggle(entity._id)}
                     className={`${styles.filterChip} ${isSelected ? styles.selected : ''}`}
                   />

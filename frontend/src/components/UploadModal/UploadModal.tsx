@@ -173,7 +173,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ open, onClose }) => {
                 >
                   {entities.map((entity) => (
                     <MenuItem key={entity._id} value={entity._id}>
-                      {entity.name}
+                      {entity.entity_name || 'Unnamed Entity'}
                     </MenuItem>
                   ))}
                 </Select>

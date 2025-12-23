@@ -121,7 +121,7 @@ const UserManagement: React.FC = () => {
         role: mapUserTypeToRole(user.userType),
         status: formatUserStatus(user.status),
         avatar: createAvatarInitials(user.fullName),
-        entity: entity?.name || 'Unknown Entity',
+        entity: entity?.entity_name || 'Unknown Entity',
         lastLogin: formatDateTime(undefined), // Not available in current data
         createdAt: formatDate(user.created_at)
       };

@@ -73,10 +73,12 @@ export interface UpdateUserData {
 export interface EntityData {
   _id: string;
   accountId: string;
-  name: string;
-  entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
-  registration_number?: string;
-  incorporation_date?: Date;
+  entity_type: 'individual' | 'business';
+  status: 'active' | 'inactive';
+  entity_name?: string;
+  description?: string;
+  website?: string;
+  email?: string;
   address?: {
     street?: string;
     city?: string;
@@ -85,26 +87,17 @@ export interface EntityData {
     country?: string;
   };
   phone?: string;
-  email?: string;
-  vat_settings?: {
-    vat_number?: string;
-    tax_id?: string;
-    vat_rate?: number;
-    currency?: string;
-    filing_frequency?: 'monthly' | 'quarterly' | 'annually';
-  };
-  status: 'active' | 'inactive' | 'dissolved';
-  description?: string;
   created_at?: Date;
   updated_at?: Date;
 }
 
 export interface CreateEntityData {
   accountId: string;
-  name: string;
-  entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
-  registration_number?: string;
-  incorporation_date?: Date;
+  entity_type?: 'individual' | 'business';
+  entity_name?: string;
+  description?: string;
+  website?: string;
+  email?: string;
   address?: {
     street?: string;
     city?: string;
@@ -113,22 +106,15 @@ export interface CreateEntityData {
     country?: string;
   };
   phone?: string;
-  email?: string;
-  vat_settings?: {
-    vat_number?: string;
-    tax_id?: string;
-    vat_rate?: number;
-    currency?: string;
-    filing_frequency?: 'monthly' | 'quarterly' | 'annually';
-  };
-  description?: string;
 }
 
 export interface UpdateEntityData {
-  name?: string;
-  entity_type?: 'company' | 'subsidiary' | 'branch' | 'partnership' | 'sole_proprietorship';
-  registration_number?: string;
-  incorporation_date?: Date;
+  entity_type?: 'individual' | 'business';
+  status?: 'active' | 'inactive';
+  entity_name?: string;
+  description?: string;
+  website?: string;
+  email?: string;
   address?: {
     street?: string;
     city?: string;
@@ -137,16 +123,6 @@ export interface UpdateEntityData {
     country?: string;
   };
   phone?: string;
-  email?: string;
-  vat_settings?: {
-    vat_number?: string;
-    tax_id?: string;
-    vat_rate?: number;
-    currency?: string;
-    filing_frequency?: 'monthly' | 'quarterly' | 'annually';
-  };
-  status?: 'active' | 'inactive' | 'dissolved';
-  description?: string;
 }
 
 // ==================== COMBINED REPOSITORY INTERFACE ====================
