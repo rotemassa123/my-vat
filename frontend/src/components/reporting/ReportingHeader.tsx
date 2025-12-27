@@ -32,7 +32,7 @@ const ReportingHeader: React.FC<ReportingHeaderProps> = ({
   return (
     <Box className={styles.header}>
       <Box className={styles.titleSection}>
-        <Typography className={styles.pageTitle}>
+        <Typography variant="h4" className={styles.pageTitle}>
           Invoices
         </Typography>
         <Typography className={styles.subtitle}>

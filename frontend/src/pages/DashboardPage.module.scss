@@ -8,13 +8,19 @@
   padding-bottom: 1.5vw;
 }
 
-.pageTitle {
-  color: #001441;
-  font-family: 'Poppins', sans-serif;
-  font-weight: 600;
-  font-size: 2rem;
-  margin-bottom: 2vh;
+.header {
   flex-shrink: 0;
+  padding: 24px 24px 4px 24px;
+  background-color: transparent;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pageTitle {
+  margin-bottom: 0;
+  font-weight: 600;
+  color: #001441;
 }
 
 .metricsRow {

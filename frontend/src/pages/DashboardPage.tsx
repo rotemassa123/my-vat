@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Typography } from '@mui/material';
 import MetricCard from '../components/dashboard/MetricCard';
 import MonthlyTrendsChart from '../components/dashboard/MonthlyTrendsChart';
 import ClaimStatusChart from '../components/dashboard/ClaimStatusChart';
@@ -65,7 +66,11 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className={styles.dashboard}>
-      <h1 className={styles.title}>Dashboard</h1>
+      <div className={styles.header}>
+        <Typography variant="h4" className={styles.pageTitle}>
+          Dashboard
+        </Typography>
+      </div>
       <div className={styles.metricsRow}>
         <MetricCard 
           icon="$"

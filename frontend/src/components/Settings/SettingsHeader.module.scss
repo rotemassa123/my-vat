@@ -1,21 +1,16 @@
 .header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background-color: #f3faff;
+  flex-shrink: 0;
+  padding: 24px 24px 4px 24px;
+  background-color: transparent;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 24px 24px 16px;
-  backdrop-filter: blur(10px);
+  justify-content: space-between;
+  align-items: center;
 }
 
 .title {
-  font-size: 2.5rem;
-  font-weight: 700;
+  margin-bottom: 0;
+  font-weight: 600;
   color: #001441;
-  margin: 0 0 0.5rem 0;
-  line-height: 1.2;
 }
 
 .subtitle {

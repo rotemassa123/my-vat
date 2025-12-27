@@ -1,23 +1,25 @@
 .header {
+  flex-shrink: 0;
+  padding: 24px 24px 4px 24px;
+  background-color: transparent;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
+  align-items: center;
+  margin-bottom: 0;
   gap: 24px;
 }
 
 .titleSection {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: flex-end;
+  gap: 12px;
 }
 
 .pageTitle {
-  font-size: 32px;
+  margin-bottom: 0;
   font-weight: 600;
-  color: #1a1a1a;
-  line-height: 1.2;
-  font-family: 'Poppins', sans-serif;
+  color: #001441;
 }
 
 .subtitle {

@@ -18,17 +18,18 @@
 }
 
 .header {
+  flex-shrink: 0;
+  padding: 24px 0 4px 0;
+  background-color: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
-  flex-shrink: 0;
 
   .pageTitle {
-    color: #001441;
-    font-family: 'Poppins', sans-serif;
+    margin-bottom: 0;
     font-weight: 600;
-    font-size: 2rem;
+    color: #001441;
   }
 
   .addButton {

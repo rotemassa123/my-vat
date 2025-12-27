@@ -5,6 +5,9 @@
 }
 
 .header {
+  flex-shrink: 0;
+  padding: 24px 24px 4px 24px;
+  background-color: transparent;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -23,8 +26,9 @@
 }
 
 .title {
-  color: #40578c;
+  margin-bottom: 0;
   font-weight: 600;
+  color: #001441;
 }
 
 .emptyCard {

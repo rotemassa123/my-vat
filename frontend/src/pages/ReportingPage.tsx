@@ -415,19 +415,6 @@ const ReportingPage: React.FC = () => {
         <UploadProgressManager />
       </UploadProvider>
 
-      {/* Export Error Alert */}
-      {exportError && (
-        <Alert 
-          severity="error" 
-          onClose={() => setExportError(null)}
-          sx={{ mb: 2 }}
-        >
-          <Typography variant="body2">
-            <strong>Export Failed:</strong> {exportError}
-          </Typography>
-        </Alert>
-      )}
-
       {/* Filter Popup - Preserved existing functionality */}
       <Popover
         open={isFilterOpen}
@@ -519,34 +506,50 @@ const ReportingPage: React.FC = () => {
         </Box>
       </Popover>
 
-      {/* Reporting Table */}
-      <ReportingTable
-        invoices={allInvoices}
-        isLoading={isLoading}
-        isFetchingNextPage={isFetchingNextPage}
-        hasMore={hasMore}
-        onLoadMore={loadMore}
-        onPrefetchNext={prefetchNext}
-        formatCurrency={formatCurrency}
-        formatDate={formatDate}
-        onDownloadInvoice={async (invoice) => {
-          setDownloadingInvoiceId(invoice._id);
-          try {
-            await downloadFile(invoice._id, invoice.name);
-          } finally {
-            setDownloadingInvoiceId(null);
-          }
-        }}
-        isDownloading={isDownloading}
-        downloadingInvoiceId={downloadingInvoiceId || undefined}
-        sortConfig={sortConfig}
-        onSort={(field) => {
-          setSortConfig(prev => ({
-            field,
-            order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
-          }));
-        }}
-      />
+      {/* Content Area */}
+      <Box className={styles.content}>
+        {/* Export Error Alert */}
+        {exportError && (
+          <Alert 
+            severity="error" 
+            onClose={() => setExportError(null)}
+            sx={{ mb: 2 }}
+          >
+            <Typography variant="body2">
+              <strong>Export Failed:</strong> {exportError}
+            </Typography>
+          </Alert>
+        )}
+
+        {/* Reporting Table */}
+        <ReportingTable
+          invoices={allInvoices}
+          isLoading={isLoading}
+          isFetchingNextPage={isFetchingNextPage}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
+          onPrefetchNext={prefetchNext}
+          formatCurrency={formatCurrency}
+          formatDate={formatDate}
+          onDownloadInvoice={async (invoice) => {
+            setDownloadingInvoiceId(invoice._id);
+            try {
+              await downloadFile(invoice._id, invoice.name);
+            } finally {
+              setDownloadingInvoiceId(null);
+            }
+          }}
+          isDownloading={isDownloading}
+          downloadingInvoiceId={downloadingInvoiceId || undefined}
+          sortConfig={sortConfig}
+          onSort={(field) => {
+            setSortConfig(prev => ({
+              field,
+              order: prev.field === field && prev.order === 'desc' ? 'asc' : 'desc'
+            }));
+          }}
+        />
+      </Box>
 
       {/* Export Success Snackbar */}
       <Snackbar
