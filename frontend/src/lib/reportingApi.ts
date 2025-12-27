@@ -6,7 +6,7 @@ export class ReportingApiService {
     try {
       const response = await apiClient.get('/reporting/invoices', {
         params,
-        timeout: 10000, // 10 second timeout
+        // Timeout inherited from apiClient (60 seconds)
       });
       
       return response.data;

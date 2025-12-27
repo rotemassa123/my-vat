@@ -1,10 +1,9 @@
 import axios, { type AxiosInstance } from 'axios';
-import { useAuthStore } from '../store/authStore';
 import { useOperatorAccountContextStore } from '../store/operatorAccountContextStore';
 
 const apiClient: AxiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-  timeout: 10000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
   },
