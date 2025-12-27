@@ -1,11 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, IconButton, TextField, InputAdornment, Typography, Paper, List, ListItem, ListItemButton, ListItemText, Tooltip, Menu, MenuItem } from '@mui/material';
+import { Box, IconButton, TextField, InputAdornment, Typography, List, ListItem, ListItemButton, ListItemText, Tooltip, Menu, MenuItem } from '@mui/material';
 import { Close as CloseIcon, AutoAwesome, Help as SupportIcon, Add as AddIcon, Search as SearchIcon, History as HistoryIcon, MoreVert as MoreVertIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import ChatInterface from './ChatInterface';
 import styles from './ChatPanel.module.scss';
 import { chatApi } from '../../services/chat.service';
-import type { Conversation } from '../../services/chat.service';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export type ChatMode = 'ai' | 'support';
 
@@ -82,6 +81,14 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ isOpen, onClose, width, onWidthCh
     const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : new Date(b.createdAt).getTime();
     return dateB - dateA;
   });
+
+  // Auto-select latest conversation when panel opens (if no conversation is selected)
+  useEffect(() => {
+    if (isOpen && !conversationsLoading && sortedConversations.length > 0 && !selectedConversationId) {
+      // sortedConversations is already sorted by most recent first, so first item is the latest
+      setSelectedConversationId(sortedConversations[0].id);
+    }
+  }, [isOpen, conversationsLoading, sortedConversations, selectedConversationId]);
 
   // Limit visible conversations and show overflow menu
   const MAX_VISIBLE_CONVERSATIONS = 8;
