@@ -8,8 +8,8 @@ interface ReportingInvoiceDetailedItemsProps {
 }
 
 const ReportingInvoiceDetailedItems: React.FC<ReportingInvoiceDetailedItemsProps> = ({ invoice }) => {
-  // Extract detailed items from summary_content
-  const detailedItems = invoice.summary_content?.detailed_items || [];
+  // Extract detailed items directly from invoice
+  const detailedItems = invoice.detailed_items || [];
   
   if (!detailedItems || detailedItems.length === 0) {
     return (

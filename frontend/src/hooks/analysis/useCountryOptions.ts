@@ -1,39 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '../../lib/apiClient';
-
-interface SummaryResponse {
-  summary_content?: {
-    country?: string;
-  };
-}
-
-interface SummaryListResponse {
-  data: SummaryResponse[];
-  metadata: {
-    total: number;
-  };
-}
+import { reportingApi } from '../../lib/reportingApi';
+import type { ReportingResponse } from '../../types/reporting';
 
 /**
- * Hook to fetch unique countries from summaries
+ * Hook to fetch unique countries from invoices
  * Caches results to avoid unnecessary refetches
  */
 export const useCountryOptions = () => {
   const { data, isLoading, error } = useQuery<string[], Error>({
     queryKey: ['country-options'],
     queryFn: async () => {
-      // Fetch summaries with a reasonable limit to get unique countries
-      const response = await apiClient.get<SummaryListResponse>('/summaries', {
-        params: {
-          limit: 1000, // Get enough summaries to find unique countries
-          skip: 0,
-        },
-      });
+      // Fetch invoices with a reasonable limit to get unique countries
+      const response = await reportingApi.getReportingData({
+        limit: 1000, // Get enough invoices to find unique countries
+        skip: 0,
+      }) as ReportingResponse;
 
-      // Extract unique countries from summaries
+      // Extract unique countries from invoices
       const countries = new Set<string>();
-      response.data.data.forEach((summary) => {
-        const country = summary.summary_content?.country;
+      response.data.forEach((invoice) => {
+        const country = invoice.country;
         if (country && country.trim().length > 0) {
           countries.add(country.trim());
         }

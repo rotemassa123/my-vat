@@ -5,7 +5,6 @@ import { Model } from 'mongoose';
 import { Account } from '../DB/schemas/account.schema';
 import { Entity } from '../DB/schemas/entity.schema';
 import { Invoice } from '../DB/schemas/invoice.schema';
-import { Summary } from '../DB/schemas/summary.schema';
 import { User } from '../DB/schemas/user.schema';
 import { logger } from '../Config/Logger';
 
@@ -16,7 +15,6 @@ export class DatabaseInitializationService implements OnModuleInit {
     @InjectModel(Account.name) private readonly accountModel: Model<Account>,
     @InjectModel(Entity.name) private readonly entityModel: Model<Entity>,
     @InjectModel(Invoice.name) private readonly invoiceModel: Model<Invoice>,
-    @InjectModel(Summary.name) private readonly summaryModel: Model<Summary>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
   ) {}
 
@@ -52,7 +50,6 @@ export class DatabaseInitializationService implements OnModuleInit {
       await this.safeCreateIndexes(this.accountModel, 'Account');
       await this.safeCreateIndexes(this.entityModel, 'Entity');
       await this.safeCreateIndexes(this.invoiceModel, 'Invoice');
-      await this.safeCreateIndexes(this.summaryModel, 'Summary');
       await this.safeCreateIndexes(this.userModel, 'User');
       
       logger.info('Database initialization complete.', 'DatabaseInitializationService');

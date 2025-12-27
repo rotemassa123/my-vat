@@ -31,10 +31,11 @@ describe('InvoiceController', () => {
       findInvoices: jest.fn(),
       findInvoiceById: jest.fn(),
       countInvoices: jest.fn(),
-      findSummaries: jest.fn(),
-      findSummaryById: jest.fn(),
-      findSummaryByFileId: jest.fn(),
-      countSummaries: jest.fn(),
+      findInvoicesWithExtraction: jest.fn(),
+      findInvoiceExtractionById: jest.fn(),
+      findInvoiceExtractionByFileId: jest.fn(),
+      countInvoicesWithExtraction: jest.fn(),
+      findCombinedInvoices: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

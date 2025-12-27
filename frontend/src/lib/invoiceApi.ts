@@ -4,7 +4,7 @@ import apiClient from './apiClient';
 
 export class InvoiceApiService {
   /**
-   * Fetch combined invoices with summary data (for bulk loading)
+   * Fetch combined invoices with extracted data (for bulk loading)
    */
   static async getCombinedInvoices(params: { 
     account_id: string;
@@ -170,17 +170,6 @@ export const invoiceApi = {
   // Delete invoice
   deleteInvoice: async (id: string): Promise<void> => {
     await apiClient.delete(`/invoices/${id}`);
-  },
-
-  // Get invoice summary/analytics
-  getSummary: async (filters?: InvoiceQueryParams): Promise<{
-    totalAmount: number;
-    totalVat: number;
-    count: number;
-    avgAmount: number;
-  }> => {
-    const response = await apiClient.get('/invoices/summary', { params: filters });
-    return response.data;
   },
 
   // Download invoice file

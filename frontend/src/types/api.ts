@@ -29,12 +29,13 @@ export type InvoiceStatus =
 export interface Invoice {
   // Core invoice fields
   _id: string;
-  account_id: number;
+  account_id: string;
   name: string;
   source_id: string;
   size: number;
   last_executed_step: number;
   source: string;
+  content_type: string;
   status: InvoiceStatus;
   reason?: string | null;
   claim_amount?: number | null;
@@ -43,14 +44,14 @@ export interface Invoice {
   status_updated_at: string;
   created_at: string;
   
-  // Summary metadata fields
+  // Extracted data metadata fields
   is_invoice?: boolean;
   processing_time_seconds?: number;
   success?: boolean;
   error_message?: string | null;
   confidence_score?: number;
   
-  // Flattened summary content fields (extracted data)
+  // Flattened extracted content fields
   country?: string;
   supplier?: string;
   invoice_date?: string;
@@ -60,6 +61,11 @@ export interface Invoice {
   vat_amount?: string;
   vat_rate?: string;
   currency?: string;
+  detailed_items?: Array<{
+    description: string;
+    amount: number;
+    vat_rate: number;
+  }>;
   
   // Computed fields
   vendor_name?: string;
@@ -85,16 +91,6 @@ export interface InvoiceQueryParams extends InvoiceFilters {
   sort_order?: 'asc' | 'desc';
 }
 
-// Summary types
-export interface Summary {
-  id: string;
-  invoice_id: string;
-  content: string;
-  confidence_score: number;
-  extracted_fields: Record<string, unknown>;
-  created_at: string;
-  updated_at: string;
-}
 
 // Account types
 export interface Account {

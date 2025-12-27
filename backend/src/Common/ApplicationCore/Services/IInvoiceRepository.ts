@@ -36,16 +36,29 @@ export interface InvoiceFilters {
   name_contains?: string;
 }
 
-// ==================== SUMMARY TYPES ====================
-import { SummaryContent } from "../../Infrastructure/DB/schemas/summary.schema";
+// ==================== EXTRACTED DATA TYPES ====================
 
-export interface SummaryData {
+export interface ExtractedContent {
+  country?: string;
+  supplier?: string;
+  date?: string;
+  invoice_id?: string;
+  id?: string;
+  description?: string;
+  net_amount?: string;
+  vat_amount?: string;
+  vat_rate?: string;
+  currency?: string;
+  detailed_items?: any[];
+}
+
+export interface InvoiceExtractedData {
   _id?: string;
   account_id: string;
   file_id: string;
   file_name: string;
   is_invoice: boolean;
-  summary_content: SummaryContent;
+  extracted_content: ExtractedContent;
   processing_time_seconds?: number;
   success: boolean;
   error_message?: string | null;
@@ -62,7 +75,7 @@ export interface SummaryData {
   invoice_number?: string;
 }
 
-export interface SummaryFilters {
+export interface InvoiceExtractedDataFilters {
   account_id?: string;
   file_id?: string;
   is_invoice?: boolean;
@@ -91,6 +104,7 @@ export interface CombinedInvoiceData {
   size: number;
   last_executed_step: number;
   source: string;
+  content_type: string;
   status: string;
   reason?: string | null;
   claim_amount?: number | null;
@@ -99,14 +113,14 @@ export interface CombinedInvoiceData {
   status_updated_at: Date;
   created_at: Date;
   
-  // Summary metadata fields
+  // Extracted data metadata fields
   is_invoice?: boolean;
   processing_time_seconds?: number;
   success?: boolean;
   error_message?: string | null;
   confidence_score?: number;
   
-  // Flattened summary content fields (extracted data)
+  // Flattened extracted content fields
   country?: string;
   supplier?: string;
   invoice_date?: string;
@@ -116,6 +130,7 @@ export interface CombinedInvoiceData {
   vat_amount?: string;
   vat_rate?: string;
   currency?: string;
+  detailed_items?: any[];
   
   // Computed fields
   vendor_name?: string;
@@ -142,11 +157,11 @@ export abstract class IInvoiceRepository {
   abstract findInvoiceById(id: string): Promise<InvoiceData | null>;
   abstract countInvoices(filters: InvoiceFilters): Promise<number>;
 
-  // Summary methods  
-  abstract findSummaries(filters: SummaryFilters, limit?: number, skip?: number): Promise<SummaryData[]>;
-  abstract findSummaryById(id: string): Promise<SummaryData | null>;
-  abstract findSummaryByFileId(fileId: string): Promise<SummaryData | null>;
-  abstract countSummaries(filters: SummaryFilters): Promise<number>;
+  // Extracted data methods  
+  abstract findInvoicesWithExtraction(filters: InvoiceExtractedDataFilters, limit?: number, skip?: number): Promise<InvoiceExtractedData[]>;
+  abstract findInvoiceExtractionById(id: string): Promise<InvoiceExtractedData | null>;
+  abstract findInvoiceExtractionByFileId(fileId: string): Promise<InvoiceExtractedData | null>;
+  abstract countInvoicesWithExtraction(filters: InvoiceExtractedDataFilters): Promise<number>;
 
   // Combined methods
   abstract findCombinedInvoices(filters: CombinedInvoiceFilters, limit?: number, skip?: number): Promise<PaginatedCombinedResult>;

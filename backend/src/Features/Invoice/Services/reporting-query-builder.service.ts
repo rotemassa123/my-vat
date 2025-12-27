@@ -84,6 +84,7 @@ export class ReportingQueryBuilderService {
       claim_submitted_at: 1,
       claim_result_received_at: 1,
       reason: 1, // error reason field
+      detailed_items: 1, // Detailed line items from extracted data
     };
   }
 } 

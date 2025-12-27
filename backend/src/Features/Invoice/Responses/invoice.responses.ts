@@ -1,5 +1,4 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { SummaryContent } from "../../../Common/Infrastructure/DB/schemas/summary.schema";
 
 // ==================== INVOICE RESPONSES ====================
 
@@ -63,83 +62,6 @@ export class InvoiceListResponse {
   };
 }
 
-// ==================== SUMMARY RESPONSES ====================
-
-export class SummaryResponse {
-  @ApiProperty({ description: 'Unique summary ID', example: '635f8e5d1e2e3f2c9f8b4a5f' })
-  _id: string;
-
-  @ApiProperty({ description: 'Account ID that owns this summary', example: '635f8e5d1e2e3f2c9f8b4a5e' })
-  account_id: string;
-
-  @ApiProperty({ description: 'Reference to the original file ID' })
-  file_id: string;
-
-  @ApiProperty({ description: 'Original file name' })
-  file_name: string;
-
-  @ApiProperty({ description: 'Whether the file was classified as an invoice' })
-  is_invoice: boolean;
-
-  @ApiProperty({ description: 'Structured summary content from AI processing' })
-  summary_content: SummaryContent;
-
-  @ApiProperty({ description: 'Time taken to process in seconds', nullable: true })
-  processing_time_seconds?: number;
-
-  @ApiProperty({ description: 'Whether processing was successful' })
-  success: boolean;
-
-  @ApiProperty({ description: 'Error message if processing failed', nullable: true })
-  error_message?: string | null;
-
-  @ApiProperty({ description: 'Summary creation timestamp' })
-  created_at: Date;
-
-  @ApiProperty({ description: 'Raw analysis result from AI processing', nullable: true })
-  analysis_result?: any;
-
-  @ApiProperty({ description: 'Structured extracted data', nullable: true })
-  extracted_data?: any;
-
-  @ApiProperty({ description: 'AI confidence score (0-1)', nullable: true })
-  confidence_score?: number;
-
-  @ApiProperty({ description: 'Processing status', nullable: true })
-  processing_status?: string;
-
-  @ApiProperty({ description: 'Extracted VAT amount', nullable: true })
-  vat_amount?: number;
-
-  @ApiProperty({ description: 'Total invoice amount', nullable: true })
-  total_amount?: number;
-
-  @ApiProperty({ description: 'Currency code', nullable: true })
-  currency?: string;
-
-  @ApiProperty({ description: 'Vendor/supplier name', nullable: true })
-  vendor_name?: string;
-
-  @ApiProperty({ description: 'Invoice date from document', nullable: true })
-  invoice_date?: Date;
-
-  @ApiProperty({ description: 'Invoice number from document', nullable: true })
-  invoice_number?: string;
-}
-
-export class SummaryListResponse {
-  @ApiProperty({ description: 'List of summaries matching the filters', type: [SummaryResponse] })
-  data: SummaryResponse[];
-
-  @ApiProperty({ description: 'Pagination and filter metadata' })
-  metadata: {
-    total: number;
-    limit: number;
-    skip: number;
-    count: number;
-  };
-}
-
 export class CombinedInvoiceResponse {
   // Core invoice fields
   @ApiProperty({ description: 'Unique invoice ID', example: '635f8e5d1e2e3f2c9f8b4a5d' })
@@ -163,6 +85,9 @@ export class CombinedInvoiceResponse {
   @ApiProperty({ description: 'Source type (e.g., google_drive)' })
   source: string;
 
+  @ApiProperty({ description: 'MIME content type' })
+  content_type: string;
+
   @ApiProperty({ description: 'Current processing status' })
   status: string;
 
@@ -184,7 +109,7 @@ export class CombinedInvoiceResponse {
   @ApiProperty({ description: 'Invoice creation timestamp' })
   created_at: Date;
 
-  // Summary metadata fields
+  // Extracted data metadata fields
   @ApiProperty({ description: 'Whether the file was classified as an invoice', nullable: true })
   is_invoice?: boolean;
 
@@ -200,7 +125,7 @@ export class CombinedInvoiceResponse {
   @ApiProperty({ description: 'AI confidence score (0-1)', nullable: true })
   confidence_score?: number;
 
-  // Flattened summary content fields (extracted data)
+  // Flattened extracted content fields
   @ApiProperty({ description: 'Country from invoice', nullable: true })
   country?: string;
 
@@ -228,6 +153,9 @@ export class CombinedInvoiceResponse {
   @ApiProperty({ description: 'Currency code', nullable: true })
   currency?: string;
 
+  @ApiProperty({ description: 'Detailed line items from invoice', nullable: true, type: [Object] })
+  detailed_items?: any[];
+
   // Computed fields
   @ApiProperty({ description: 'Vendor/supplier name (computed)', nullable: true })
   vendor_name?: string;
@@ -237,7 +165,7 @@ export class CombinedInvoiceResponse {
 }
 
 export class CombinedInvoiceListResponse {
-  @ApiProperty({ description: 'List of combined invoices with summary data', type: [CombinedInvoiceResponse] })
+  @ApiProperty({ description: 'List of combined invoices with extracted data', type: [CombinedInvoiceResponse] })
   data: CombinedInvoiceResponse[];
 
   @ApiProperty({ description: 'Pagination metadata' })

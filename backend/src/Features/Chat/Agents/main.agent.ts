@@ -5,7 +5,7 @@ import { createInvoiceTools } from './Tools/invoice.tools';
 import { createEntityTools } from './Tools/entity.tools';
 import { createUserTools } from './Tools/user.tools';
 import { createAccountTools } from './Tools/account.tools';
-import { createSummaryTools } from './Tools/summary.tools';
+import { createExtractionTools } from './Tools/extraction.tools';
 
 // Initialize API key
 const apiKey = process.env.OPENAI_API_KEY;
@@ -27,8 +27,8 @@ Your role is to help users understand and manage their VAT-related data, includi
 - Account statistics and analytics
 
 You have access to the following tools:
-- Invoice tools: Query invoices, get invoice details, count invoices, get invoice statistics, get invoice summaries (with extracted data like supplier, amounts, VAT details, etc.)
-- Summary tools: Query document summaries (extracted data from processed files), get summary by ID or file ID, count summaries
+- Invoice tools: Query invoices, get invoice details, count invoices, get invoice statistics, get invoices with extracted data (like supplier, amounts, VAT details, etc.)
+- Extraction tools: Query invoices with extracted data (from processed files), get extraction by ID or file ID, count extractions
 - Entity tools: Get entities, get entity details
 - User tools: Get users, get user details
 - Account tools: Get account info, get account statistics
@@ -66,7 +66,7 @@ export function createMainAgent(
   const entityTools = createEntityTools(profileRepository);
   const userTools = createUserTools(profileRepository);
   const accountTools = createAccountTools(profileRepository);
-  const summaryTools = createSummaryTools(invoiceRepository);
+  const extractionTools = createExtractionTools(invoiceRepository);
 
   // Create agent with all tools
   const agent = new Agent({
@@ -79,10 +79,10 @@ export function createMainAgent(
       invoiceTools.countInvoicesTool,
       invoiceTools.getInvoiceStatisticsTool,
       invoiceTools.getInvoiceSummariesTool,
-      summaryTools.getSummariesTool,
-      summaryTools.getSummaryByIdTool,
-      summaryTools.getSummaryByFileIdTool,
-      summaryTools.countSummariesTool,
+      extractionTools.getExtractedDataTool,
+      extractionTools.getExtractionByIdTool,
+      extractionTools.getExtractionByFileIdTool,
+      extractionTools.countExtractionsTool,
       entityTools.getEntitiesTool,
       entityTools.getEntityByIdTool,
       userTools.getUsersTool,

@@ -12,25 +12,24 @@ class InvoiceService {
   }
 
   /**
-   * Load all invoices with embedded summary data using React-friendly recursive batching
+   * Load all invoices with embedded extracted data using React-friendly recursive batching
    */
   private async fetchAllInvoices(): Promise<ReportingInvoice[]> {
     const batchSize = 500;
     
-    console.log('🔄 Starting to fetch all invoices with summaries...');
+      console.log('🔄 Starting to fetch all invoices with extracted data...');
 
     const fetchBatch = async (skip: number, totalCount?: number): Promise<ReportingInvoice[]> => {
       // Yield to event loop to keep UI responsive
       await new Promise(resolve => setTimeout(resolve, 0));
       
       try {
-        // This will call the new backend endpoint that includes summary_content in each invoice
+        // Invoice already has all extracted fields embedded
         const response = await reportingApi.getReportingData({
           skip,
           limit: batchSize,
           sort_by: 'created_at',
           sort_order: 'desc',
-          include_summary: true, // New parameter to include embedded summaries
         });
 
         // Update progress
@@ -79,10 +78,10 @@ class InvoiceService {
 
       console.log('🚀 Starting invoice data load...');
 
-      // Fetch all invoices (with embedded summaries)
+      // Fetch all invoices (with embedded extracted fields)
       const invoices = await this.fetchAllInvoices();
 
-      console.log(`✅ Successfully loaded ${invoices.length} invoices with summaries`);
+      console.log(`✅ Successfully loaded ${invoices.length} invoices`);
 
       // Store the data
       store.setInvoices(invoices);

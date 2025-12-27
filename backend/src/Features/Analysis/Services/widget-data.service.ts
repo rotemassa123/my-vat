@@ -4,7 +4,6 @@ import { Model, Types } from 'mongoose';
 import { WidgetDocument } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
 import { WidgetDataConfig } from 'src/Common/Infrastructure/DB/schemas/widget.schema';
 import { Invoice, InvoiceDocument } from 'src/Common/Infrastructure/DB/schemas/invoice.schema';
-import { Summary, SummaryDocument } from 'src/Common/Infrastructure/DB/schemas/summary.schema';
 import { Entity, EntityDocument } from 'src/Common/Infrastructure/DB/schemas/entity.schema';
 import { logger } from 'src/Common/Infrastructure/Config/Logger';
 
@@ -26,7 +25,6 @@ export interface GlobalFilters {
 export class WidgetDataService {
   constructor(
     @InjectModel(Invoice.name) private invoiceModel: Model<InvoiceDocument>,
-    @InjectModel(Summary.name) private summaryModel: Model<SummaryDocument>,
     @InjectModel(Entity.name) private entityModel: Model<EntityDocument>,
   ) {}
 
@@ -51,16 +49,16 @@ export class WidgetDataService {
     }
     
     // Determine if we need data from both collections
-    // Some graphs need invoice fields (status, claim_amount) AND summary fields (country, classification, total_amount)
+    // Some graphs need invoice fields (status, claim_amount) AND extracted fields (country, classification, total_amount)
     const needsInvoiceFields = this.requiresInvoiceFields(mergedConfig);
-    const needsSummaryFields = this.requiresSummaryFields(mergedConfig);
+    const needsExtractedFields = this.requiresExtractedFields(mergedConfig);
     
-    if (needsInvoiceFields && needsSummaryFields) {
-      // Need both: join invoices with summaries
+    if (needsInvoiceFields && needsExtractedFields) {
+      // Need both: join invoices with extracted data
       return this.fetchJoinedData(mergedConfig);
-    } else if (needsSummaryFields) {
-      // Only need summary data
-      return this.fetchSummaryData(mergedConfig);
+    } else if (needsExtractedFields) {
+      // Only need extracted data
+      return this.fetchExtractedData(mergedConfig);
     } else {
       // Default to invoices only
       return this.fetchInvoiceData(mergedConfig);
@@ -110,13 +108,13 @@ export class WidgetDataService {
     );
   }
 
-  private requiresSummaryFields(config: WidgetDataConfig): boolean {
-    const summaryFields = ['country', 'supplier', 'vendor_name', 'currency', 'vat_rate', 'classification', 'category', 'total_amount', 'vat_amount', 'net_amount', 'total'];
+  private requiresExtractedFields(config: WidgetDataConfig): boolean {
+    const extractedFields = ['country', 'supplier', 'vendor_name', 'currency', 'vat_rate', 'classification', 'category', 'total_amount', 'vat_amount', 'net_amount', 'total'];
     const xField = config.xAxisField?.toLowerCase();
     const yField = config.yAxisField?.toLowerCase();
     const filterKeys = Object.keys(config.filters || {});
     
-    return summaryFields.some(field => 
+    return extractedFields.some(field => 
       xField?.includes(field) || 
       yField?.includes(field) ||
       filterKeys.some(key => key.toLowerCase().includes(field))
@@ -259,14 +257,14 @@ export class WidgetDataService {
       'Date': 'created_at',
       'Category': 'source', // or appropriate category field
       'Product': 'name', // or appropriate product field
-      'Region': 'country', // from summary_content if available
+      'Region': 'country', // from extracted content if available
     };
     return mapping[field] || field.toLowerCase();
   }
 
   private mapYAxisFieldToDb(field: string): string {
     const mapping: Record<string, string> = {
-      'Revenue': 'claim_amount', // or total_amount from summary
+      'Revenue': 'claim_amount', // or total_amount from extracted data
       'Value': 'claim_amount',
       'Amount': 'claim_amount',
       'Count': '_id', // Will use $sum: 1 for count
@@ -321,15 +319,15 @@ export class WidgetDataService {
    *   { _id: "inv3", name: "invoice3.pdf", status: "not_claimable", created_at: "2024-01-17" }
    * 
    * Summaries:
-   *   { file_name: "invoice1.pdf", summary_content: { country: "GB", total_amount: "1000.00" } }
-   *   { file_name: "invoice2.pdf", summary_content: { country: "GB", total_amount: "2000.00" } }
-   *   { file_name: "invoice3.pdf", summary_content: { country: "FR", total_amount: "1500.00" } }
+   *   { file_name: "invoice1.pdf", extracted_content: { country: "GB", total_amount: "1000.00" } }
+   *   { file_name: "invoice2.pdf", extracted_content: { country: "GB", total_amount: "2000.00" } }
+   *   { file_name: "invoice3.pdf", extracted_content: { country: "FR", total_amount: "1500.00" } }
    * 
    * Pipeline steps:
    * 1. $match: { status: "claimable" } -> filters to inv1, inv2
    * 2. $lookup: joins summaries -> inv1+sum1, inv2+sum2
-   * 3. $unwind: flattens summary -> inv1+sum1, inv2+sum2
-   * 4. $group: { _id: "$summary.summary_content.country", value: sum(total_amount) }
+   * 3. $unwind: flattens extracted data -> inv1+ext1, inv2+ext2
+   * 4. $group: { _id: "$country", value: sum(total_amount) }
    *    -> { _id: "GB", value: 3000.00 }
    * 5. $sort: { value: -1 }
    * 
@@ -365,53 +363,40 @@ export class WidgetDataService {
     if (config.filters?.status) {
       matchStage.status = config.filters.status;
     }
+    
+    // Add extracted field filters (now on Invoice directly)
+    if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
+      if (config.filters.country.length === 1) {
+        matchStage.country = { 
+          $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+        };
+      } else {
+        matchStage.$or = (matchStage.$or || []).concat(
+          config.filters.country.map(c => ({
+            country: { $regex: new RegExp(`^${c}$`, 'i') }
+          }))
+        );
+      }
+    }
+    if (config.filters?.classification) {
+      matchStage.classification = config.filters.classification;
+    }
+    if (config.filters?.category) {
+      matchStage.subclassification = config.filters.category;
+    }
+    
+    // Only include invoices that have extracted data
+    matchStage.$or = (matchStage.$or || []).concat([
+      { country: { $exists: true, $ne: null } },
+      { supplier: { $exists: true, $ne: null } },
+      { invoice_date: { $exists: true, $ne: null } }
+    ]);
+    
     if (Object.keys(matchStage).length > 0) {
       pipeline.push({ $match: matchStage });
     }
 
-    // Join with summaries using invoice.name === summary.file_name
-    pipeline.push({
-      $lookup: {
-        from: 'summaries',
-        localField: 'name',
-        foreignField: 'file_name',
-        as: 'summary'
-      }
-    });
-
-    // Unwind summary (should be 0 or 1 match per invoice)
-    pipeline.push({
-      $unwind: {
-        path: '$summary',
-        preserveNullAndEmptyArrays: true // Keep invoices without summaries
-      }
-    });
-
-    // Add summary-based filters
-    const summaryMatchStage: any = {};
-    if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0 && pipeline.length > 0) {
-      // Use case-insensitive regex match for multiple countries
-      if (config.filters.country.length === 1) {
-        summaryMatchStage['summary.summary_content.country'] = { 
-          $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
-        };
-      } else {
-        summaryMatchStage['$or'] = config.filters.country.map(c => ({
-          'summary.summary_content.country': { $regex: new RegExp(`^${c}$`, 'i') }
-        }));
-      }
-    }
-    if (config.filters?.classification && pipeline.length > 0) {
-      summaryMatchStage['summary.summary_content.classification'] = config.filters.classification;
-    }
-    if (config.filters?.category && pipeline.length > 0) {
-      summaryMatchStage['summary.summary_content.category'] = config.filters.category;
-    }
-    if (Object.keys(summaryMatchStage).length > 0) {
-      pipeline.push({ $match: summaryMatchStage });
-    }
-
-    // Map fields to actual DB paths (handling both invoice and summary fields)
+    // Map fields to Invoice paths (no join needed)
     const yAxisDbPath = this.mapYAxisFieldToJoinedPath(config.yAxisField);
 
     // If xAxisField is missing (e.g., for metric widgets), aggregate everything into a single value
@@ -512,42 +497,39 @@ export class WidgetDataService {
   }
 
   private mapXAxisFieldToJoinedPath(field: string): string {
-    const summaryFields: Record<string, string> = {
-      'country': '$summary.summary_content.country',
-      'supplier': '$summary.summary_content.supplier',
-      'classification': '$summary.summary_content.classification',
-      'category': '$summary.summary_content.category',
-      'currency': '$summary.summary_content.currency',
-      'vat_rate': '$summary.summary_content.vat_rate',
-      'date': '$summary.summary_content.date', // Invoice date from summary
-    };
-    
+    // Map to Invoice fields directly (extracted fields are embedded in Invoice)
     const invoiceFields: Record<string, string> = {
-      'created_at': '$created_at', // Invoice creation/upload date
+      'country': '$country',
+      'supplier': '$supplier',
+      'classification': '$classification',
+      'category': '$subclassification',
+      'currency': '$currency',
+      'vat_rate': '$vat_rate',
+      'date': '$invoice_date',
+      'invoice_date': '$invoice_date',
+      'created_at': '$created_at',
       'status': '$status',
       'source': '$source',
       'entity_id': '$entity_id',
     };
 
     const lowerField = field.toLowerCase();
-    return summaryFields[lowerField] || invoiceFields[lowerField] || `$${lowerField}`;
+    return invoiceFields[lowerField] || `$${lowerField}`;
   }
 
   private mapYAxisFieldToJoinedPath(field: string): string {
-    const summaryFields: Record<string, string> = {
-      'total_amount': '$summary.summary_content.total_amount',
-      'vat_amount': '$summary.summary_content.vat_amount',
-      'net_amount': '$summary.summary_content.net_amount',
-      'total': '$summary.summary_content.total_amount', // For metric widgets
-    };
-    
+    // Map to Invoice fields directly (extracted fields are embedded in Invoice)
     const invoiceFields: Record<string, string> = {
+      'total_amount': '$total_amount',
+      'vat_amount': '$vat_amount',
+      'net_amount': '$net_amount',
+      'total': '$total_amount', // For metric widgets
       'claim_amount': '$claim_amount',
       'count': '_id', // Will use $sum: 1
     };
 
     const lowerField = field.toLowerCase();
-    return summaryFields[lowerField] || invoiceFields[lowerField] || `$${lowerField}`;
+    return invoiceFields[lowerField] || `$${lowerField}`;
   }
 
   private getAggregationOperationForJoined(yAxisDbPath: string, yAxisField: string, aggregation?: string): any {
@@ -558,7 +540,10 @@ export class WidgetDataService {
     
     // Use the specified aggregation type, default to sum
     const aggType = aggregation?.toLowerCase() || 'sum';
-    const convertToNumber = yAxisDbPath.includes('summary_content')
+    // Convert to number for numeric fields
+    const convertToNumber = ['total_amount', 'vat_amount', 'net_amount'].some(field => 
+      yAxisDbPath.includes(field)
+    )
       ? { $toDouble: { $ifNull: [yAxisDbPath, '0'] } }
       : { $toDouble: { $ifNull: [yAxisDbPath, 0] } };
     
@@ -576,7 +561,7 @@ export class WidgetDataService {
     }
   }
 
-  private async fetchSummaryData(config: WidgetDataConfig): Promise<ChartDataPoint[]> {
+  private async fetchExtractedData(config: WidgetDataConfig): Promise<ChartDataPoint[]> {
     if (!config.yAxisField) {
       return [];
     }
@@ -584,13 +569,12 @@ export class WidgetDataService {
     const pipeline: any[] = [];
     const hasEntityFilter = config.filters?.entityIds && Array.isArray(config.filters.entityIds) && config.filters.entityIds.length > 0;
     let yAxisDbPath: string;
-    let useInvoiceModel = false; // Track if we're using invoice model (for joined queries)
 
-    // If we have entity filters, start with invoices (which have entity_id) and join summaries
-    // This works around the issue where summaries might not have entity_id set correctly
+    // Always use Invoice model - invoices have all extracted fields embedded
+    const invoiceMatchStage: any = {};
+    
+    // Filter by entity_id if provided
     if (hasEntityFilter) {
-      // Start with invoices filtered by entity_id
-      const invoiceMatchStage: any = {};
       try {
         const objectIds = config.filters.entityIds
           .filter(id => id && Types.ObjectId.isValid(id))
@@ -600,134 +584,64 @@ export class WidgetDataService {
           invoiceMatchStage.entity_id = { $in: objectIds };
         }
       } catch (error) {
-        logger.error('Error processing entity IDs in fetchSummaryData', 'WidgetDataService', { error });
+        logger.error('Error processing entity IDs in fetchExtractedData', 'WidgetDataService', { error });
       }
-      
-      if (config.filters?.dateRange) {
-        invoiceMatchStage.created_at = {
-          $gte: new Date(config.filters.dateRange.start),
-          $lte: new Date(config.filters.dateRange.end),
-        };
-      }
-      
-      if (Object.keys(invoiceMatchStage).length > 0) {
-        pipeline.push({ $match: invoiceMatchStage });
-      }
-      
-      // Join with summaries using invoice.name === summary.file_name
-      pipeline.push({
-        $lookup: {
-          from: 'summaries',
-          localField: 'name',
-          foreignField: 'file_name',
-          as: 'summary'
-        }
-      });
-      
-      // Unwind summary (should be 0 or 1 match per invoice)
-      pipeline.push({
-        $unwind: {
-          path: '$summary',
-          preserveNullAndEmptyArrays: false // Only keep invoices with summaries
-        }
-      });
-      
-      // Now filter summaries
-      const summaryMatchStage: any = {};
-      if (config.filters?.is_invoice === undefined) {
-        summaryMatchStage['summary.is_invoice'] = true;
-      }
-      
-      if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
-        // Use case-insensitive regex match for multiple countries
-        if (config.filters.country.length === 1) {
-          summaryMatchStage['summary.summary_content.country'] = { 
-            $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
-          };
-        } else {
-          summaryMatchStage['$or'] = config.filters.country.map(c => ({
-            'summary.summary_content.country': { $regex: new RegExp(`^${c}$`, 'i') }
-          }));
-        }
-      }
-      if (config.filters?.classification) {
-        summaryMatchStage['summary.summary_content.classification'] = config.filters.classification;
-      }
-      if (config.filters?.category) {
-        summaryMatchStage['summary.summary_content.category'] = config.filters.category;
-      }
-      if (config.filters?.is_invoice !== undefined) {
-        summaryMatchStage['summary.is_invoice'] = config.filters.is_invoice;
-      }
-      
-      if (Object.keys(summaryMatchStage).length > 0) {
-        pipeline.push({ $match: summaryMatchStage });
-      }
-      
-      // Map fields to summary paths (prefixed with 'summary.')
-      yAxisDbPath = this.mapYAxisFieldToSummaryPath(config.yAxisField).replace('$summary_content', '$summary.summary_content');
-      useInvoiceModel = true; // We're using invoice model with join
-    } else {
-      // No entity filter - query summaries directly (entity scope plugin will handle entity filtering)
-      const matchStage: any = {};
-      
-      // Only get successful invoice summaries (if not explicitly overridden)
-      if (config.filters?.is_invoice === undefined) {
-        matchStage.is_invoice = true;
-      }
-    
-      if (config.filters?.dateRange) {
-        // For summary-based widgets, filter by invoice date in summary_content.date if available
-        // Otherwise fall back to created_at (summary creation date)
-        // Note: summary_content.date is a string, so we need to convert it for comparison
-        // For now, use created_at as it's more reliable for filtering
-        matchStage.created_at = {
-          $gte: new Date(config.filters.dateRange.start),
-          $lte: new Date(config.filters.dateRange.end),
-        };
-      }
-      if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
-        // Use case-insensitive regex match for multiple countries
-        if (config.filters.country.length === 1) {
-          matchStage['summary_content.country'] = { 
-            $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
-          };
-        } else {
-          matchStage['$or'] = config.filters.country.map(c => ({
-            'summary_content.country': { $regex: new RegExp(`^${c}$`, 'i') }
-          }));
-        }
-      }
-      if (config.filters?.classification) {
-        matchStage['summary_content.classification'] = config.filters.classification;
-      }
-      if (config.filters?.category) {
-        matchStage['summary_content.category'] = config.filters.category;
-      }
-      if (config.filters?.is_invoice !== undefined) {
-        matchStage.is_invoice = config.filters.is_invoice;
-      }
-      if (Object.keys(matchStage).length > 0) {
-        pipeline.push({ $match: matchStage });
-      }
-
-      // Map fields to actual DB paths
-      yAxisDbPath = this.mapYAxisFieldToSummaryPath(config.yAxisField);
-      useInvoiceModel = false; // We're using summary model directly
     }
+    
+    // Filter by date range (use created_at or invoice_date)
+    if (config.filters?.dateRange) {
+      invoiceMatchStage.created_at = {
+        $gte: new Date(config.filters.dateRange.start),
+        $lte: new Date(config.filters.dateRange.end),
+      };
+    }
+    
+    // Only include invoices that have extracted data
+    invoiceMatchStage.$or = [
+      { country: { $exists: true, $ne: null } },
+      { supplier: { $exists: true, $ne: null } },
+      { invoice_date: { $exists: true, $ne: null } }
+    ];
+    
+    // Filter by country
+    if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
+      if (config.filters.country.length === 1) {
+        invoiceMatchStage.country = { 
+          $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+        };
+      } else {
+        invoiceMatchStage.$or = [
+          ...invoiceMatchStage.$or,
+          ...config.filters.country.map(c => ({
+            country: { $regex: new RegExp(`^${c}$`, 'i') }
+          }))
+        ];
+      }
+    }
+    
+    // Filter by classification
+    if (config.filters?.classification) {
+      invoiceMatchStage.classification = config.filters.classification;
+    }
+    
+    // Filter by category (subclassification)
+    if (config.filters?.category) {
+      invoiceMatchStage.subclassification = config.filters.category;
+    }
+    
+    if (Object.keys(invoiceMatchStage).length > 0) {
+      pipeline.push({ $match: invoiceMatchStage });
+    }
+    
+    // Map fields to Invoice paths (direct fields, no extracted prefix)
+    yAxisDbPath = this.mapYAxisFieldToExtractedPath(config.yAxisField);
 
-    // Now handle grouping - yAxisDbPath is already set in the if/else above
-    // If we joined with invoices, yAxisDbPath already has 'summary.' prefix
-    // If we queried summaries directly, yAxisDbPath is the direct path
-
+    // Now handle grouping - yAxisDbPath is already set
     // If xAxisField is missing (e.g., for metric widgets), aggregate everything into a single value
     // Otherwise, group by xAxisField
     if (config.xAxisField) {
-      // Map xAxis field - if we joined, prefix with 'summary.'
-      const baseXAxisPath = this.mapXAxisFieldToSummaryPath(config.xAxisField);
-      const xAxisDbPath = hasEntityFilter 
-        ? baseXAxisPath.replace('$summary_content', '$summary.summary_content')
-        : baseXAxisPath;
+      // Map xAxis field to Invoice paths
+      const xAxisDbPath = this.mapXAxisFieldToExtractedPath(config.xAxisField);
       const isTextField = this.isTextFieldForGrouping(config.xAxisField);
       
       // Group by X-axis (case-insensitive for text fields), aggregate Y-axis
@@ -737,14 +651,14 @@ export class WidgetDataService {
           $group: {
             _id: { $toLower: xAxisDbPath },
             originalValue: { $first: xAxisDbPath }, // Keep original casing for display
-            value: this.getAggregationOperationForSummary(yAxisDbPath, config.yAxisField, config.aggregation),
+            value: this.getAggregationOperationForExtracted(yAxisDbPath, config.yAxisField, config.aggregation),
           },
         });
       } else {
         pipeline.push({
           $group: {
             _id: xAxisDbPath,
-            value: this.getAggregationOperationForSummary(yAxisDbPath, config.yAxisField, config.aggregation),
+            value: this.getAggregationOperationForExtracted(yAxisDbPath, config.yAxisField, config.aggregation),
           },
         });
       }
@@ -760,30 +674,27 @@ export class WidgetDataService {
       pipeline.push({
         $group: {
           _id: null,
-          value: this.getAggregationOperationForSummary(yAxisDbPath, config.yAxisField, config.aggregation),
+          value: this.getAggregationOperationForExtracted(yAxisDbPath, config.yAxisField, config.aggregation),
         },
       });
     }
 
     try {
       // Disable entity scope plugin when we have entity filters (plugin conflicts with our filter)
-      // Also disable if we're using invoice model (joined query)
-      const options = (hasEntityFilter || useInvoiceModel)
+      const options = hasEntityFilter
         ? { disableEntityScope: true } 
         : {};
       
-      logger.debug('Executing summary aggregation pipeline', 'WidgetDataService', {
+      logger.debug('Executing invoice aggregation pipeline', 'WidgetDataService', {
         pipeline: JSON.stringify(pipeline, null, 2),
         options,
         hasEntityFilter,
-        useInvoiceModel,
       });
       
-      // Use invoice model if we joined, otherwise use summary model
-      const model = useInvoiceModel ? this.invoiceModel : this.summaryModel;
-      const results = await model.aggregate(pipeline, options).exec();
+      // Always use invoice model
+      const results = await this.invoiceModel.aggregate(pipeline, options).exec();
       
-      logger.debug('Summary aggregation results', 'WidgetDataService', {
+      logger.debug('Extracted data aggregation results', 'WidgetDataService', {
         resultCount: results.length,
         sampleResult: results[0],
       });
@@ -833,52 +744,47 @@ export class WidgetDataService {
         value: point.value,
       }));
     } catch (error) {
-      logger.error('Error fetching summary data for widget', 'WidgetDataService', { error, config });
+      logger.error('Error fetching extracted data for widget', 'WidgetDataService', { error, config });
       throw error;
     }
   }
 
-  private mapXAxisFieldToSummaryPath(field: string): string {
-    const summaryContentFields: Record<string, string> = {
-      'country': '$summary_content.country',
-      'supplier': '$summary_content.supplier',
-      'vendor_name': '$summary_content.supplier',
-      'classification': '$summary_content.classification',
-      'category': '$summary_content.category',
-      'currency': '$summary_content.currency',
-      'vat_rate': '$summary_content.vat_rate',
-      'date': '$summary_content.date',
-    };
-    
-    const summaryFields: Record<string, string> = {
+  private mapXAxisFieldToExtractedPath(field: string): string {
+    // Map to Invoice fields directly
+    const invoiceFields: Record<string, string> = {
+      'country': '$country',
+      'supplier': '$supplier',
+      'vendor_name': '$supplier',
+      'classification': '$classification',
+      'category': '$subclassification',
+      'currency': '$currency',
+      'vat_rate': '$vat_rate',
+      'date': '$invoice_date',
+      'invoice_date': '$invoice_date',
       'created_at': '$created_at',
-      'is_invoice': '$is_invoice',
-      'file_name': '$file_name',
+      'file_name': '$name',
       'entity_id': '$entity_id',
     };
 
     const lowerField = field.toLowerCase();
-    return summaryContentFields[lowerField] || summaryFields[lowerField] || `$${lowerField}`;
+    return invoiceFields[lowerField] || `$${lowerField}`;
   }
 
-  private mapYAxisFieldToSummaryPath(field: string): string {
-    const summaryContentFields: Record<string, string> = {
-      'total_amount': '$summary_content.total_amount',
-      'vat_amount': '$summary_content.vat_amount',
-      'net_amount': '$summary_content.net_amount',
-      'total': '$summary_content.total_amount', // For metric widgets
-    };
-    
-    const summaryFields: Record<string, string> = {
+  private mapYAxisFieldToExtractedPath(field: string): string {
+    // Map to Invoice fields directly
+    const invoiceFields: Record<string, string> = {
+      'total_amount': '$total_amount',
+      'vat_amount': '$vat_amount',
+      'net_amount': '$net_amount',
+      'total': '$total_amount', // For metric widgets
       'count': '_id',
-      'processing_time': '$processing_time_seconds',
     };
 
     const lowerField = field.toLowerCase();
-    return summaryContentFields[lowerField] || summaryFields[lowerField] || `$${lowerField}`;
+    return invoiceFields[lowerField] || `$${lowerField}`;
   }
 
-  private getAggregationOperationForSummary(yAxisDbPath: string, yAxisField: string, aggregation?: string): any {
+  private getAggregationOperationForExtracted(yAxisDbPath: string, yAxisField: string, aggregation?: string): any {
     const lowerYAxisField = yAxisField?.toLowerCase();
     if (lowerYAxisField === 'count' || lowerYAxisField === 'percentage' || aggregation?.toLowerCase() === 'count') {
       return { $sum: 1 };
@@ -886,7 +792,10 @@ export class WidgetDataService {
     
     // Use the specified aggregation type, default to sum
     const aggType = aggregation?.toLowerCase() || 'sum';
-    const convertToNumber = yAxisDbPath.includes('summary_content')
+    // Convert to number for numeric fields (total_amount, vat_amount, net_amount)
+    const convertToNumber = ['total_amount', 'vat_amount', 'net_amount'].some(field => 
+      yAxisDbPath.includes(field)
+    )
       ? { $toDouble: { $ifNull: [yAxisDbPath, '0'] } }
       : { $toDouble: { $ifNull: [yAxisDbPath, 0] } };
     

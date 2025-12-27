@@ -53,6 +53,56 @@ export class Invoice {
   @Prop({ required: true })
   status_updated_at: Date;
 
+  // Invoice extracted data (populated from OpenAI processing)
+  @Prop({ default: null, index: true })
+  country?: string | null;
+
+  @Prop({ default: null, index: true })
+  supplier?: string | null;
+
+  @Prop({ default: null, index: true })
+  invoice_date?: string | null;
+
+  @Prop({ default: null })
+  invoice_id?: string | null;
+
+  @Prop({ default: null })
+  description?: string | null;
+
+  @Prop({ default: null })
+  total_amount?: number | null;
+
+  @Prop({ default: null })
+  classification?: string | null;
+
+  @Prop({ default: null })
+  subclassification?: string | null;
+
+  @Prop({ default: null })
+  net_amount?: number | null;
+
+  @Prop({ default: null })
+  vat_amount?: number | null;
+
+  @Prop({ default: null })
+  vat_rate?: number | null;
+
+  @Prop({ default: null })
+  currency?: string | null;
+
+  @Prop({ type: mongoose.Schema.Types.Mixed, default: null })
+  detailed_items?: any[] | null;
+
+  // Claimability assessment results
+  @Prop({ default: null })
+  is_claimable?: boolean | null;
+
+  @Prop({ default: null })
+  claimable_amount?: number | null;
+
+  @Prop({ default: null })
+  rejected_reason?: string | null;
+
   @Prop({ index: true })
   created_at: Date;
 }

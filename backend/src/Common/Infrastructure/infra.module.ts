@@ -18,7 +18,6 @@ import { User, UserSchema } from "./DB/schemas/user.schema";
 import { TenantContextInterceptor } from "../interceptors/context.interceptor";
 import { APP_INTERCEPTOR } from "@nestjs/core";
 import { DatabaseInitializationService } from "./Services/database-initialization.service";
-import { Summary, SummarySchema } from "./DB/schemas/summary.schema";
 import { Invoice, InvoiceSchema } from "./DB/schemas/invoice.schema";
 import { Statistics, StatisticsSchema } from "./DB/schemas/statistics.schema";
 import { Conversation, ConversationSchema } from "./DB/schemas/conversation.schema";
@@ -39,7 +38,6 @@ import { CloudinaryStorageProvider } from "./Services/CloudinaryStorageProvider"
       { name: User.name, schema: UserSchema },
       { name: Entity.name, schema: EntitySchema },
       { name: Invoice.name, schema: InvoiceSchema },
-      { name: Summary.name, schema: SummarySchema },
       { name: Statistics.name, schema: StatisticsSchema },
       { name: Conversation.name, schema: ConversationSchema },
       { name: Message.name, schema: MessageSchema },

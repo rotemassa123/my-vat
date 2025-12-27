@@ -15,7 +15,6 @@ export interface ReportingQueryParams extends ReportingFilters {
   skip?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
-  include_summary?: boolean;  // New parameter for including embedded summaries
 }
 
 export interface DetailedItem {
@@ -24,7 +23,7 @@ export interface DetailedItem {
   vat_rate: number;
 }
 
-export interface SummaryContent {
+export interface ExtractedContent {
   country?: string;
   supplier?: string;
   date?: string;
@@ -66,7 +65,6 @@ export interface ReportingInvoice {
   total_amount?: number;
   vendor_name?: string;
   supplier_name?: string;  // Added supplier name field for compatibility
-  summary_content?: SummaryContent;  // Embedded summary data
   
   // Additional fields from database
   source_id?: string;
@@ -80,7 +78,7 @@ export interface ReportingInvoice {
   reason?: string; // error reason field
   
   
-  // Detailed items from summary
+  // Detailed items from extracted data
   detailed_items?: DetailedItem[];
 }
 

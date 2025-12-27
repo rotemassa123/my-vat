@@ -11,8 +11,8 @@ import {
   IInvoiceRepository, 
   InvoiceData,
   InvoiceFilters,
-  SummaryData,
-  SummaryFilters,
+  InvoiceExtractedData,
+  InvoiceExtractedDataFilters,
   CombinedInvoiceData,
   CombinedInvoiceFilters,
   PaginatedCombinedResult
@@ -20,15 +20,12 @@ import {
 
 // MongoDB schemas
 import { Invoice, InvoiceDocument } from "src/Common/Infrastructure/DB/schemas/invoice.schema";
-import { Summary, SummaryDocument } from "src/Common/Infrastructure/DB/schemas/summary.schema";
 
 @Injectable()
 export class InvoiceMongoService implements IInvoiceRepository {
   constructor(
     @InjectModel(Invoice.name)
-    private readonly invoiceModel: Model<InvoiceDocument>,
-    @InjectModel(Summary.name)
-    private readonly summaryModel: Model<SummaryDocument>
+    private readonly invoiceModel: Model<InvoiceDocument>
   ) {}
 
   // ==================== INVOICE METHODS ====================
@@ -128,59 +125,72 @@ export class InvoiceMongoService implements IInvoiceRepository {
     return await this.invoiceModel.countDocuments(query).exec();
   }
 
-  // ==================== SUMMARY METHODS ====================
+  // ==================== EXTRACTED DATA METHODS ====================
 
-  private mapDocumentToSummaryData(doc: SummaryDocument): SummaryData {
+  private mapDocumentToExtractedData(doc: InvoiceDocument): InvoiceExtractedData {
+    // Build extracted_content from Invoice fields
+    const extractedContent: any = {};
+    if (doc.country) extractedContent.country = doc.country;
+    if (doc.supplier) extractedContent.supplier = doc.supplier;
+    if (doc.invoice_date) extractedContent.date = doc.invoice_date;
+    if (doc.invoice_id) {
+      extractedContent.invoice_id = doc.invoice_id;
+      extractedContent.id = doc.invoice_id;
+    }
+    if (doc.description) extractedContent.description = doc.description;
+    if (doc.net_amount !== null && doc.net_amount !== undefined) extractedContent.net_amount = String(doc.net_amount);
+    if (doc.vat_amount !== null && doc.vat_amount !== undefined) extractedContent.vat_amount = String(doc.vat_amount);
+    if (doc.vat_rate !== null && doc.vat_rate !== undefined) extractedContent.vat_rate = String(doc.vat_rate);
+    if (doc.currency) extractedContent.currency = doc.currency;
+    if (doc.detailed_items) extractedContent.detailed_items = doc.detailed_items;
+    
     return {
       _id: doc._id.toString(),
       account_id: doc.account_id.toString(),
-      file_id: doc.file_id,
-      file_name: doc.file_name,
-      is_invoice: doc.is_invoice,
-      summary_content: doc.summary_content,
-      processing_time_seconds: doc.processing_time_seconds,
-      success: doc.success,
-      error_message: doc.error_message,
+      file_id: doc._id.toString(), // Invoice _id is the file_id
+      file_name: doc.name,
+      is_invoice: !!(doc.country || doc.supplier || doc.invoice_date), // Consider it an invoice if it has extracted data
+      extracted_content: extractedContent,
+      processing_time_seconds: undefined,
+      success: true, // If invoice has extracted data, processing was successful
+      error_message: null,
       created_at: doc.created_at,
-      extracted_data: doc.extracted_data,
-      confidence_score: doc.confidence_score,
-      processing_status: doc.processing_status,
-      vat_amount: doc.vat_amount,
-      total_amount: doc.total_amount,
-      currency: doc.currency,
-      vendor_name: doc.vendor_name,
-      invoice_date: doc.invoice_date,
-      invoice_number: doc.invoice_number,
+      extracted_data: undefined,
+      confidence_score: undefined,
+      processing_status: undefined,
+      vat_amount: doc.vat_amount || undefined,
+      total_amount: doc.total_amount || undefined,
+      currency: doc.currency || undefined,
+      vendor_name: doc.supplier || undefined,
+      invoice_date: doc.invoice_date ? new Date(doc.invoice_date) : undefined,
+      invoice_number: doc.invoice_id || undefined,
     };
   }
 
-  private buildSummaryQuery(filters: SummaryFilters): FilterQuery<SummaryDocument> {
-    const query: FilterQuery<SummaryDocument> = {};
+  private buildExtractedDataQuery(filters: InvoiceExtractedDataFilters): FilterQuery<InvoiceDocument> {
+    const query: FilterQuery<InvoiceDocument> = {};
 
+    // Filter by invoice _id (file_id maps to _id in Invoice)
     if (filters.file_id) {
-      query.file_id = filters.file_id;
+      try {
+        query._id = new Types.ObjectId(filters.file_id);
+      } catch (e) {
+        // Invalid ObjectId, skip this filter
+        logger.warn(`Invalid file_id in filter: ${filters.file_id}`);
+      }
     }
-    if (filters.is_invoice !== undefined) {
-      query.is_invoice = filters.is_invoice;
-    }
-    if (filters.processing_status) {
-      query.processing_status = filters.processing_status;
-    }
+    
+    // Filter by currency (now on Invoice)
     if (filters.currency) {
       query.currency = filters.currency;
     }
+    
+    // Filter by supplier (vendor_name_contains maps to supplier)
     if (filters.vendor_name_contains) {
-      query.vendor_name = { $regex: filters.vendor_name_contains, $options: 'i' };
+      query.supplier = { $regex: filters.vendor_name_contains, $options: 'i' };
     }
-    if (filters.confidence_score_min !== undefined || filters.confidence_score_max !== undefined) {
-      query.confidence_score = {};
-      if (filters.confidence_score_min !== undefined) {
-        query.confidence_score.$gte = filters.confidence_score_min;
-      }
-      if (filters.confidence_score_max !== undefined) {
-        query.confidence_score.$lte = filters.confidence_score_max;
-      }
-    }
+    
+    // Filter by vat_amount (now on Invoice)
     if (filters.vat_amount_min !== undefined || filters.vat_amount_max !== undefined) {
       query.vat_amount = {};
       if (filters.vat_amount_min !== undefined) {
@@ -190,6 +200,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
         query.vat_amount.$lte = filters.vat_amount_max;
       }
     }
+    
+    // Filter by total_amount (now on Invoice)
     if (filters.total_amount_min !== undefined || filters.total_amount_max !== undefined) {
       query.total_amount = {};
       if (filters.total_amount_min !== undefined) {
@@ -199,6 +211,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
         query.total_amount.$lte = filters.total_amount_max;
       }
     }
+    
+    // Filter by invoice_date (now on Invoice)
     if (filters.invoice_date_from || filters.invoice_date_to) {
       query.invoice_date = {};
       if (filters.invoice_date_from) {
@@ -208,6 +222,8 @@ export class InvoiceMongoService implements IInvoiceRepository {
         query.invoice_date.$lte = filters.invoice_date_to;
       }
     }
+    
+    // Filter by created_at
     if (filters.created_at_from || filters.created_at_to) {
       query.created_at = {};
       if (filters.created_at_from) {
@@ -217,35 +233,49 @@ export class InvoiceMongoService implements IInvoiceRepository {
         query.created_at.$lte = filters.created_at_to;
       }
     }
+    
+    // Only include invoices that have extracted data (at least one extracted field populated)
+    query.$or = [
+      { country: { $exists: true, $ne: null } },
+      { supplier: { $exists: true, $ne: null } },
+      { invoice_date: { $exists: true, $ne: null } }
+    ];
 
     return query;
   }
 
-  async findSummaries(filters: SummaryFilters, limit = 50, skip = 0): Promise<SummaryData[]> {
-    const query = this.buildSummaryQuery(filters);
-    const docs = await this.summaryModel
+  async findInvoicesWithExtraction(filters: InvoiceExtractedDataFilters, limit = 50, skip = 0): Promise<InvoiceExtractedData[]> {
+    const query = this.buildExtractedDataQuery(filters);
+    const docs = await this.invoiceModel
       .find(query)
       .sort({ created_at: -1 })
       .limit(limit)
       .skip(skip)
       .exec();
     
-    return docs.map(doc => this.mapDocumentToSummaryData(doc));
+    return docs.map(doc => this.mapDocumentToExtractedData(doc));
   }
 
-  async findSummaryById(id: string): Promise<SummaryData | null> {
-    const doc = await this.summaryModel.findById(id).exec();
-    return doc ? this.mapDocumentToSummaryData(doc) : null;
+  async findInvoiceExtractionById(id: string): Promise<InvoiceExtractedData | null> {
+    const doc = await this.invoiceModel.findById(id).exec();
+    return doc ? this.mapDocumentToExtractedData(doc) : null;
   }
 
-  async findSummaryByFileId(fileId: string): Promise<SummaryData | null> {
-    const doc = await this.summaryModel.findOne({ file_id: fileId }).exec();
-    return doc ? this.mapDocumentToSummaryData(doc) : null;
+  async findInvoiceExtractionByFileId(fileId: string): Promise<InvoiceExtractedData | null> {
+    // file_id maps to _id in Invoice
+    try {
+      const invoiceId = new Types.ObjectId(fileId);
+      const doc = await this.invoiceModel.findById(invoiceId).exec();
+      return doc ? this.mapDocumentToExtractedData(doc) : null;
+    } catch (e) {
+      logger.warn(`Invalid file_id format: ${fileId}`);
+      return null;
+    }
   }
 
-  async countSummaries(filters: SummaryFilters): Promise<number> {
-    const query = this.buildSummaryQuery(filters);
-    return await this.summaryModel.countDocuments(query).exec();
+  async countInvoicesWithExtraction(filters: InvoiceExtractedDataFilters): Promise<number> {
+    const query = this.buildExtractedDataQuery(filters);
+    return await this.invoiceModel.countDocuments(query).exec();
   }
 
   async findCombinedInvoices(
@@ -276,59 +306,24 @@ export class InvoiceMongoService implements IInvoiceRepository {
     });
     
     // Explicitly add account_id match at the start (AccountScopePlugin should do this, but ensure it)
+    // Only include invoices that have extracted data
     const pipeline: any[] = [
       {
         $match: {
-          account_id: new mongoose.Types.ObjectId(accountId)
+          account_id: new mongoose.Types.ObjectId(accountId),
+          $or: [
+            { country: { $exists: true, $ne: null } },
+            { supplier: { $exists: true, $ne: null } },
+            { invoice_date: { $exists: true, $ne: null } }
+          ]
         }
       },
-      // Convert _id to string for lookup (file_id in summaries is stored as string)
-      { 
-        $addFields: { 
-          _id_str: { $toString: "$_id" } 
-        } 
-      },
-      // Lookup summaries by file_id
       {
-        $lookup: {
-          from: 'summaries',
-          localField: '_id_str',
-          foreignField: 'file_id',
-          as: 'summaries'
-        }
-      },
-      // Only include invoices that have summaries (preserveNullAndEmptyArrays: false)
-      { $unwind: { path: '$summaries', preserveNullAndEmptyArrays: false } },
-      {
-        $replaceRoot: {
-          newRoot: {
-            $mergeObjects: [
-              '$summaries.summary_content',
-              {
-                _id: '$_id',
-                name: '$name',
-                source_id: '$source_id',
-                size: '$size',
-                last_executed_step: '$last_executed_step',
-                source: '$source',
-                account_id: '$account_id',
-                entity_id: '$entity_id',
-                content_type: '$content_type',
-                status: '$status',
-                reason: '$reason',
-                claim_amount: '$claim_amount',
-                claim_submitted_at: '$claim_submitted_at',
-                claim_result_received_at: '$claim_result_received_at',
-                status_updated_at: '$status_updated_at',
-                created_at: '$created_at',
-                is_invoice: '$summaries.is_invoice',
-                processing_time_seconds: '$summaries.processing_time_seconds',
-                success: '$summaries.success',
-                error_message: '$summaries.error_message',
-                confidence_score: '$summaries.confidence_score'
-              }
-            ]
-          }
+        $addFields: {
+          // Map Invoice fields to match CombinedInvoiceData structure
+          is_invoice: { $cond: [{ $or: [{ $ne: ['$country', null] }, { $ne: ['$supplier', null] }] }, true, false] },
+          invoice_number: '$invoice_id',
+          vendor_name: '$supplier'
         }
       }
     ];
@@ -384,6 +379,7 @@ export class InvoiceMongoService implements IInvoiceRepository {
       size: doc.size || 0,
       last_executed_step: doc.last_executed_step || 0,
       source: doc.source || '',
+      content_type: doc.content_type || '',
       status: doc.status || '',
       reason: doc.reason,
       claim_amount: doc.claim_amount,
@@ -392,20 +388,21 @@ export class InvoiceMongoService implements IInvoiceRepository {
       status_updated_at: doc.status_updated_at,
       created_at: doc.created_at,
       is_invoice: doc.is_invoice,
-      processing_time_seconds: doc.processing_time_seconds,
-      success: doc.success,
-      error_message: doc.error_message,
+      processing_time_seconds: doc.openai_processing_time_seconds,
+      success: doc.success !== false, // Default to true if not explicitly false
+      error_message: doc.error_message || doc.reason,
       confidence_score: doc.confidence_score,
       country: doc.country,
       supplier: doc.supplier,
       invoice_date: doc.invoice_date,
-      invoice_number: doc.invoice_number,
+      invoice_number: doc.invoice_number || doc.invoice_id,
       description: doc.description,
-      net_amount: doc.net_amount,
-      vat_amount: doc.vat_amount,
-      vat_rate: doc.vat_rate,
+      net_amount: doc.net_amount ? String(doc.net_amount) : undefined,
+      vat_amount: doc.vat_amount ? String(doc.vat_amount) : undefined,
+      vat_rate: doc.vat_rate ? String(doc.vat_rate) : undefined,
       currency: doc.currency,
-      vendor_name: doc.vendor_name,
+      detailed_items: doc.detailed_items,
+      vendor_name: doc.vendor_name || doc.supplier,
       total_amount: doc.total_amount,
     };
   }

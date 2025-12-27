@@ -73,8 +73,8 @@ const applyInvoiceFilters = (
         invoice.supplier_name,
         invoice.invoice_number,
         invoice.description,
-        invoice.summary_content?.supplier,
-        invoice.summary_content?.description,
+        invoice.supplier,
+        invoice.description,
       ].filter(Boolean);
       
       if (!searchableFields.some(field => 
@@ -156,13 +156,6 @@ const sortInvoices = (
       default:
         aValue = a[sortConfig.field as keyof ReportingInvoice];
         bValue = b[sortConfig.field as keyof ReportingInvoice];
-        
-        // Handle nested summary_content fields
-        if (sortConfig.field.startsWith('summary_content.')) {
-          const summaryField = sortConfig.field.replace('summary_content.', '');
-          aValue = a.summary_content?.[summaryField as keyof typeof a.summary_content] || '';
-          bValue = b.summary_content?.[summaryField as keyof typeof b.summary_content] || '';
-        }
         break;
     }
     

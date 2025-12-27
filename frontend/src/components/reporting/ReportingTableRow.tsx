@@ -336,7 +336,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
                     vat_amount: invoice.vat_amount,
                     supplier: invoice.supplier,
                     country: invoice.country,
-                    summary_content: invoice.summary_content
+                    detailed_items: invoice.detailed_items
                   };
                   console.log('🚨 Invoice with claimable status but no VAT amount:');
                   console.log(JSON.stringify(logData, null, 2));
@@ -356,7 +356,7 @@ const ReportingTableRow: React.FC<ReportingTableRowProps> = ({
                     parsed_amount: parsedAmount,
                     supplier: invoice.supplier,
                     country: invoice.country,
-                    summary_content: invoice.summary_content
+                    detailed_items: invoice.detailed_items
                   };
                   console.log('🚨 Invoice with claimable status but zero/invalid VAT amount:');
                   console.log(JSON.stringify(logData, null, 2));

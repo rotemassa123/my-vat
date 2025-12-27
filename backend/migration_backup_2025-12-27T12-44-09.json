@@ -1,0 +1,867 @@
+{
+  "migrationDate": "2025-12-27T12:44:09.388Z",
+  "statistics": {
+    "totalSummaries": 45,
+    "invoicesFound": 45,
+    "invoicesUpdated": 45,
+    "invoicesSkipped": 0,
+    "errors": 0
+  },
+  "backupData": [
+    {
+      "summaryId": "68fb3e39a97d1685c8010e99",
+      "invoiceId": "68fb3c98a47b012729f69b49",
+      "fileId": "68fb3c98a47b012729f69b49",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:02.789Z"
+    },
+    {
+      "summaryId": "68fb3e3da97d1685c8010e9a",
+      "invoiceId": "68fb3c98a47b012729f69b4b",
+      "fileId": "68fb3c98a47b012729f69b4b",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:02.929Z"
+    },
+    {
+      "summaryId": "68fb3e43a97d1685c8010e9b",
+      "invoiceId": "68fb3c98a47b012729f69b4a",
+      "fileId": "68fb3c98a47b012729f69b4a",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.097Z"
+    },
+    {
+      "summaryId": "68fb3e4ea97d1685c8010e9f",
+      "invoiceId": "68fb3c98a47b012729f69b67",
+      "fileId": "68fb3c98a47b012729f69b67",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.236Z"
+    },
+    {
+      "summaryId": "68fb3e51a97d1685c8010ea0",
+      "invoiceId": "68fb3c98a47b012729f69b66",
+      "fileId": "68fb3c98a47b012729f69b66",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.374Z"
+    },
+    {
+      "summaryId": "68fb3e5da97d1685c8010ea2",
+      "invoiceId": "68fb3c98a47b012729f69b6a",
+      "fileId": "68fb3c98a47b012729f69b6a",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.514Z"
+    },
+    {
+      "summaryId": "68fb3e61a97d1685c8010ea4",
+      "invoiceId": "68fb3c98a47b012729f69b6c",
+      "fileId": "68fb3c98a47b012729f69b6c",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.692Z"
+    },
+    {
+      "summaryId": "68fb3e64a97d1685c8010ea6",
+      "invoiceId": "68fb3c98a47b012729f69b6f",
+      "fileId": "68fb3c98a47b012729f69b6f",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.829Z"
+    },
+    {
+      "summaryId": "68fb3e67a97d1685c8010ea7",
+      "invoiceId": "68fb3c98a47b012729f69b70",
+      "fileId": "68fb3c98a47b012729f69b70",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:03.969Z"
+    },
+    {
+      "summaryId": "68fb3e6aa97d1685c8010ea9",
+      "invoiceId": "68fb3c98a47b012729f69b72",
+      "fileId": "68fb3c98a47b012729f69b72",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:04.146Z"
+    },
+    {
+      "summaryId": "68fb3e6ea97d1685c8010eac",
+      "invoiceId": "68fb3c98a47b012729f69b74",
+      "fileId": "68fb3c98a47b012729f69b74",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:04.284Z"
+    },
+    {
+      "summaryId": "68fb3e71a97d1685c8010eae",
+      "invoiceId": "68fb3c98a47b012729f69b77",
+      "fileId": "68fb3c98a47b012729f69b77",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:04.421Z"
+    },
+    {
+      "summaryId": "68fb3e74a97d1685c8010eb1",
+      "invoiceId": "68fb3c98a47b012729f69b7a",
+      "fileId": "68fb3c98a47b012729f69b7a",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:04.559Z"
+    },
+    {
+      "summaryId": "68fb3e77a97d1685c8010eb2",
+      "invoiceId": "68fb3c98a47b012729f69b7d",
+      "fileId": "68fb3c98a47b012729f69b7d",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:04.741Z"
+    },
+    {
+      "summaryId": "68fb3e7aa97d1685c8010eb3",
+      "invoiceId": "68fb3c98a47b012729f69b79",
+      "fileId": "68fb3c98a47b012729f69b79",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:04.884Z"
+    },
+    {
+      "summaryId": "68fb3e7da97d1685c8010eb4",
+      "invoiceId": "68fb3c98a47b012729f69b7c",
+      "fileId": "68fb3c98a47b012729f69b7c",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.022Z"
+    },
+    {
+      "summaryId": "68fb3e7fa97d1685c8010eb5",
+      "invoiceId": "68fb3c98a47b012729f69b80",
+      "fileId": "68fb3c98a47b012729f69b80",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.193Z"
+    },
+    {
+      "summaryId": "68fb3e83a97d1685c8010eb7",
+      "invoiceId": "68fb3c98a47b012729f69b7e",
+      "fileId": "68fb3c98a47b012729f69b7e",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.333Z"
+    },
+    {
+      "summaryId": "68fb3e86a97d1685c8010eb8",
+      "invoiceId": "68fb3c98a47b012729f69b7f",
+      "fileId": "68fb3c98a47b012729f69b7f",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.471Z"
+    },
+    {
+      "summaryId": "68fb3e89a97d1685c8010eba",
+      "invoiceId": "68fb3c98a47b012729f69b86",
+      "fileId": "68fb3c98a47b012729f69b86",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.608Z"
+    },
+    {
+      "summaryId": "68fb3e8ea97d1685c8010ebc",
+      "invoiceId": "68fb3c98a47b012729f69b87",
+      "fileId": "68fb3c98a47b012729f69b87",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.791Z"
+    },
+    {
+      "summaryId": "68fdd6fc22d30d6342abe703",
+      "invoiceId": "68fdd64d22d30d6342abe6c3",
+      "fileId": "68fdd64d22d30d6342abe6c3",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:05.927Z"
+    },
+    {
+      "summaryId": "68fdd71322d30d6342abe704",
+      "invoiceId": "68fdd64d22d30d6342abe6c2",
+      "fileId": "68fdd64d22d30d6342abe6c2",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.065Z"
+    },
+    {
+      "summaryId": "68fdd72422d30d6342abe705",
+      "invoiceId": "68fdd64d22d30d6342abe6c4",
+      "fileId": "68fdd64d22d30d6342abe6c4",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.242Z"
+    },
+    {
+      "summaryId": "68fdd72e22d30d6342abe709",
+      "invoiceId": "68fdd64d22d30d6342abe6df",
+      "fileId": "68fdd64d22d30d6342abe6df",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.382Z"
+    },
+    {
+      "summaryId": "68fdd73022d30d6342abe70a",
+      "invoiceId": "68fdd64d22d30d6342abe6e0",
+      "fileId": "68fdd64d22d30d6342abe6e0",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.522Z"
+    },
+    {
+      "summaryId": "68fdd73622d30d6342abe70b",
+      "invoiceId": "68fdd64d22d30d6342abe6e1",
+      "fileId": "68fdd64d22d30d6342abe6e1",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.660Z"
+    },
+    {
+      "summaryId": "68fdd73822d30d6342abe70c",
+      "invoiceId": "68fdd64d22d30d6342abe6e3",
+      "fileId": "68fdd64d22d30d6342abe6e3",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.836Z"
+    },
+    {
+      "summaryId": "68fdd73b22d30d6342abe70e",
+      "invoiceId": "68fdd64d22d30d6342abe6e5",
+      "fileId": "68fdd64d22d30d6342abe6e5",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:06.976Z"
+    },
+    {
+      "summaryId": "68fdd73e22d30d6342abe710",
+      "invoiceId": "68fdd64d22d30d6342abe6e8",
+      "fileId": "68fdd64d22d30d6342abe6e8",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:07.114Z"
+    },
+    {
+      "summaryId": "68fdd74122d30d6342abe711",
+      "invoiceId": "68fdd64d22d30d6342abe6e9",
+      "fileId": "68fdd64d22d30d6342abe6e9",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:07.291Z"
+    },
+    {
+      "summaryId": "68fdd74422d30d6342abe713",
+      "invoiceId": "68fdd64d22d30d6342abe6eb",
+      "fileId": "68fdd64d22d30d6342abe6eb",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:07.431Z"
+    },
+    {
+      "summaryId": "68fdd74522d30d6342abe714",
+      "invoiceId": "68fdd64d22d30d6342abe6ed",
+      "fileId": "68fdd64d22d30d6342abe6ed",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:07.571Z"
+    },
+    {
+      "summaryId": "68fdd74922d30d6342abe717",
+      "invoiceId": "68fdd64d22d30d6342abe6ef",
+      "fileId": "68fdd64d22d30d6342abe6ef",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:07.713Z"
+    },
+    {
+      "summaryId": "68fdd74c22d30d6342abe718",
+      "invoiceId": "68fdd64d22d30d6342abe6f2",
+      "fileId": "68fdd64d22d30d6342abe6f2",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:07.885Z"
+    },
+    {
+      "summaryId": "68fdd74f22d30d6342abe71a",
+      "invoiceId": "68fdd64d22d30d6342abe6f0",
+      "fileId": "68fdd64d22d30d6342abe6f0",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.026Z"
+    },
+    {
+      "summaryId": "68fdd75022d30d6342abe71b",
+      "invoiceId": "68fdd64d22d30d6342abe6f3",
+      "fileId": "68fdd64d22d30d6342abe6f3",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.164Z"
+    },
+    {
+      "summaryId": "68fdd75422d30d6342abe71c",
+      "invoiceId": "68fdd64d22d30d6342abe6f5",
+      "fileId": "68fdd64d22d30d6342abe6f5",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.340Z"
+    },
+    {
+      "summaryId": "68fdd75722d30d6342abe71e",
+      "invoiceId": "68fdd64d22d30d6342abe6f6",
+      "fileId": "68fdd64d22d30d6342abe6f6",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.477Z"
+    },
+    {
+      "summaryId": "68fdd75822d30d6342abe71f",
+      "invoiceId": "68fdd64d22d30d6342abe6f7",
+      "fileId": "68fdd64d22d30d6342abe6f7",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.617Z"
+    },
+    {
+      "summaryId": "68fdd75b22d30d6342abe720",
+      "invoiceId": "68fdd64d22d30d6342abe6f8",
+      "fileId": "68fdd64d22d30d6342abe6f8",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.758Z"
+    },
+    {
+      "summaryId": "68fdd75c22d30d6342abe721",
+      "invoiceId": "68fdd64d22d30d6342abe6f9",
+      "fileId": "68fdd64d22d30d6342abe6f9",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:08.933Z"
+    },
+    {
+      "summaryId": "68fdd76222d30d6342abe725",
+      "invoiceId": "68fdd64d22d30d6342abe6ff",
+      "fileId": "68fdd64d22d30d6342abe6ff",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:09.070Z"
+    },
+    {
+      "summaryId": "68fdd76422d30d6342abe726",
+      "invoiceId": "68fdd64d22d30d6342abe701",
+      "fileId": "68fdd64d22d30d6342abe701",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:09.207Z"
+    },
+    {
+      "summaryId": "68fdd76822d30d6342abe727",
+      "invoiceId": "68fdd64d22d30d6342abe700",
+      "fileId": "68fdd64d22d30d6342abe700",
+      "updatedFields": [
+        "country",
+        "supplier",
+        "invoice_date",
+        "invoice_id",
+        "description",
+        "currency",
+        "detailed_items",
+        "total_amount",
+        "net_amount",
+        "vat_amount",
+        "vat_rate"
+      ],
+      "timestamp": "2025-12-27T12:44:09.388Z"
+    }
+  ]
+}

@@ -23,14 +23,14 @@ export class InvoiceController {
 
   @Get("combined")
   @ApiOperation({ 
-    summary: 'Get combined invoices with summary data', 
-    description: 'Retrieve invoices joined with their summary data.' 
+    summary: 'Get combined invoices with extracted data', 
+    description: 'Retrieve invoices with their extracted data.' 
   })
   @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page (1-5000)', example: 50 })
   @ApiQuery({ name: 'skip', required: false, type: Number, description: 'Items to skip for pagination', example: 0 })
   async getCombinedInvoices(@Query() request: CombinedInvoiceFilterRequest): Promise<CombinedInvoiceListResponse> {
     try {
-      logger.info("Fetching combined invoices with summary data", InvoiceController.name, { 
+      logger.info("Fetching combined invoices with extracted data", InvoiceController.name, { 
         limit: request.limit,
         skip: request.skip
       });
@@ -51,6 +51,7 @@ export class InvoiceController {
           size: invoice.size,
           last_executed_step: invoice.last_executed_step,
           source: invoice.source,
+          content_type: invoice.content_type,
           status: invoice.status,
           reason: invoice.reason,
           claim_amount: invoice.claim_amount,
@@ -59,14 +60,14 @@ export class InvoiceController {
           status_updated_at: invoice.status_updated_at,
           created_at: invoice.created_at,
           
-          // Summary metadata fields
+          // Extracted data metadata fields
           is_invoice: invoice.is_invoice,
           processing_time_seconds: invoice.processing_time_seconds,
           success: invoice.success,
           error_message: invoice.error_message,
           confidence_score: invoice.confidence_score,
           
-          // Flattened summary content fields (extracted data)
+          // Flattened extracted content fields
           country: invoice.country,
           supplier: invoice.supplier,
           invoice_date: invoice.invoice_date,
@@ -76,6 +77,7 @@ export class InvoiceController {
           vat_amount: invoice.vat_amount,
           vat_rate: invoice.vat_rate,
           currency: invoice.currency,
+          detailed_items: invoice.detailed_items,
           
           // Computed fields
           vendor_name: invoice.vendor_name,

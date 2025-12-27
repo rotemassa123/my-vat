@@ -180,7 +180,7 @@ export function createInvoiceTools(invoiceRepository: IInvoiceRepository) {
 
   const getInvoiceSummariesTool = tool({
     name: 'get_invoice_summaries',
-    description: 'Get invoices with their full extracted summary data including supplier, invoice date, amounts, VAT details, currency, country, and more. Use this when the user asks about invoice details, amounts, suppliers, dates, or any specific invoice information. This returns the actual extracted and processed data from invoices. IMPORTANT: Always use this tool when user asks to see, list, or show invoices - even without specific filters.',
+    description: 'Get invoices with their full extracted data including supplier, invoice date, amounts, VAT details, currency, country, and more. Use this when the user asks about invoice details, amounts, suppliers, dates, or any specific invoice information. This returns the actual extracted and processed data from invoices. IMPORTANT: Always use this tool when user asks to see, list, or show invoices - even without specific filters.',
     parameters: z.object({
       limit: z.number().nullable().optional().default(50).describe('Maximum number of invoices to return (default: 50, max: 100)'),
       skip: z.number().nullable().optional().default(0).describe('Number of invoices to skip for pagination'),
@@ -200,7 +200,7 @@ export function createInvoiceTools(invoiceRepository: IInvoiceRepository) {
             source: inv.source,
             created_at: inv.created_at,
             status_updated_at: inv.status_updated_at,
-            // Summary metadata
+            // Extracted data metadata
             is_invoice: inv.is_invoice,
             success: inv.success,
             confidence_score: inv.confidence_score,
