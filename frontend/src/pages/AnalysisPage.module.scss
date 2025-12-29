@@ -7,7 +7,7 @@
 
 .header {
   flex-shrink: 0;
-  padding: 24px 24px 16px 24px;
+  padding: 24px 0 1rem 0;
   background-color: transparent;
   display: flex;
   justify-content: space-between;
@@ -19,6 +19,10 @@
   margin-bottom: 0;
   font-weight: 600;
   color: #001441;
+  font-size: 34px;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  line-height: 41.99px;
+  letter-spacing: 0.2499px;
 }
 
 .subtitle {
@@ -29,7 +33,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 24px 24px 24px 24px;
+  padding: 1rem 0 24px 0;
   width: 100%;
   box-sizing: border-box;
 }

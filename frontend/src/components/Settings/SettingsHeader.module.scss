@@ -1,6 +1,6 @@
 .header {
   flex-shrink: 0;
-  padding: 24px 24px 4px 24px;
+  padding: 24px 24px 2rem 0;
   background-color: transparent;
   display: flex;
   justify-content: space-between;
@@ -9,8 +9,13 @@
 
 .title {
   margin-bottom: 0;
+  padding-left: 0;
   font-weight: 600;
   color: #001441;
+  font-size: 34px;
+  font-family: Roboto, Helvetica, Arial, sans-serif;
+  line-height: 41.99px;
+  letter-spacing: 0.2499px;
 }
 
 .subtitle {
@@ -24,11 +29,12 @@
 @media (max-width: 768px) {
   .header {
     margin-bottom: 2rem;
-    padding: 0 1rem;
+    padding: 0 1rem 2rem 0;
   }
   
   .title {
     font-size: 2rem;
+    padding-left: 0;
   }
   
   .subtitle {
