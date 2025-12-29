@@ -1,7 +1,7 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { IGmailService, BatchEmailOptions, BatchEmailResult } from 'src/Common/ApplicationCore/Services/IGmailService';
 import { IProfileRepository } from 'src/Common/ApplicationCore/Services/IProfileRepository';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 import { SendInvitationRequest, InvitationResult, SendInvitationResponse } from '../Requests/invitation.requests';
 import { TokenService } from 'src/Common/Infrastructure/Services/token.service';
 import * as httpContext from 'express-http-context';
@@ -238,14 +238,14 @@ If you weren't expecting this invitation, you can safely ignore this email.
     // TODO: Replace with actual frontend URL from config
     const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     
-    // Map role string to UserType enum
-    const roleMap: { [key: string]: number } = {
-      'admin': UserType.admin,
-      'member': UserType.member,
-      'viewer': UserType.viewer
+    // Map role string to UserRole enum
+    const roleMap: { [key: string]: UserRole } = {
+      'admin': UserRole.ADMIN,
+      'member': UserRole.MEMBER,
+      'viewer': UserRole.VIEWER
     };
     
-    const userType = roleMap[role] || UserType.member;
+    const userType = roleMap[role] || UserRole.MEMBER;
     
     // Generate secure token instead of exposing sensitive data in URL
     this.logger.log('Generating secure invitation token', { email, accountId, entityId, role: userType.toString(), inviterId });

@@ -1,6 +1,5 @@
 import { UserData } from '../ApplicationCore/Services/IProfileRepository';
 import { UserResponse } from '../../Features/Profile/Responses/profile.responses';
-import { roleToUserType } from './role-converter';
 
 /**
  * Maps UserData (internal) to UserResponse (API)
@@ -10,7 +9,7 @@ export function mapUserDataToResponse(user: UserData): UserResponse {
     _id: user._id,
     fullName: user.full_name,
     email: user.email,
-    userType: roleToUserType(user.role),
+    userType: user.role,
     accountId: user.accountId,
     entityId: user.entityId,
     status: user.status,

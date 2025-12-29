@@ -3,9 +3,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { InvitationService } from '../Services/invitation.service';
 import { SendInvitationRequest, SendInvitationResponse, InvitationResult, ValidateInvitationRequest, ValidateInvitationTokenRequest, ValidateInvitationResponse, CompleteSignupRequest, CompleteSignupResponse } from '../Requests/invitation.requests';
 import { RequireRoles } from 'src/Common/Infrastructure/decorators/require-roles.decorator';
-import { UserType } from 'src/Common/consts/userType';
 import { UserRole } from 'src/Common/consts/userRole';
-import { numericStringToRole, roleToUserType } from 'src/Common/utils/role-converter';
+import { numericStringToRole } from 'src/Common/utils/role-converter';
 import { IProfileRepository, CreateUserData } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import { PublicEndpointGuard } from 'src/Common/Infrastructure/decorators/publicEndpoint.decorator';
 import { PasswordService } from 'src/Common/ApplicationCore/Features/password.service';
@@ -25,7 +24,7 @@ export class InvitationController {
     private readonly tokenService: TokenService
   ) {}
 
-  @RequireRoles(UserType.admin, UserType.operator)
+  @RequireRoles(UserRole.ADMIN, UserRole.OPERATOR)
   @Post('send')
   async sendInvitations(@Body() request: SendInvitationRequest): Promise<SendInvitationResponse> {
     // Get context information for user creation
@@ -245,7 +244,7 @@ export class InvitationController {
           _id: user._id,
           fullName: user.full_name,
           email: user.email,
-          userType: roleToUserType(user.role),
+          userType: user.role,
           status: user.status
         },
         account: {
@@ -399,7 +398,7 @@ export class InvitationController {
           _id: user._id!,
           fullName: user.full_name,
           email: user.email,
-          userType: roleToUserType(user.role),
+          userType: user.role,
           status: user.status
         },
         account: {
@@ -501,7 +500,7 @@ export class InvitationController {
           _id: updatedUser._id!,
           fullName: updatedUser.full_name,
           email: updatedUser.email,
-          userType: roleToUserType(updatedUser.role),
+          userType: updatedUser.role,
           accountId: updatedUser.accountId!,
           entityId: updatedUser.entityId,
           status: updatedUser.status

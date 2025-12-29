@@ -17,10 +17,8 @@ import { IProfileRepository, CreateUserData, UpdateUserData } from "src/Common/A
 import { PasswordService } from "src/Common/ApplicationCore/Features/password.service";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
-import { UserType } from "src/Common/consts/userType";
 import { UserRole } from "src/Common/consts/userRole";
 import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
-import { userTypeToRole } from "src/Common/utils/role-converter";
 import { mapUserDataToResponse } from "src/Common/utils/user-mapper";
 
 @ApiTags("users")
@@ -77,7 +75,7 @@ export class UserController {
       }
 
       // Validate user type specific requirements
-      if (createUserRequest.userType === UserType.operator) {
+      if (createUserRequest.userType === UserRole.OPERATOR) {
         // Operator: should not have account_id or entity_id
         if (createUserRequest.accountId) {
           throw new BadRequestException('Operator user should not have account_id');
@@ -85,7 +83,7 @@ export class UserController {
         if (createUserRequest.entityId) {
           throw new BadRequestException('Operator user should not have entity_id');
         }
-      } else if (createUserRequest.userType === UserType.admin) {
+      } else if (createUserRequest.userType === UserRole.ADMIN) {
         // Admin: must have account_id, must NOT have entity_id
         if (!createUserRequest.accountId) {
           throw new BadRequestException('Admin user must have account_id');
@@ -93,7 +91,7 @@ export class UserController {
         if (createUserRequest.entityId) {
           throw new BadRequestException('Admin user must not have entity_id');
         }
-      } else if (createUserRequest.userType === UserType.member || createUserRequest.userType === UserType.viewer) {
+      } else if (createUserRequest.userType === UserRole.MEMBER || createUserRequest.userType === UserRole.VIEWER) {
         // Member/Guest: must have both account_id and entity_id
         if (!createUserRequest.accountId) {
           throw new BadRequestException('Member/Guest user must have account_id');
@@ -126,7 +124,7 @@ export class UserController {
         full_name: createUserRequest.fullName,
         email: createUserRequest.email,
         hashed_password: hashed_password,
-        role: userTypeToRole(createUserRequest.userType),
+        role: createUserRequest.userType,
         accountId: createUserRequest.accountId,
         entityId: createUserRequest.entityId,
         profile_image_url: createUserRequest.profile_image_url,
@@ -160,14 +158,14 @@ export class UserController {
       }
 
       // Prevent users from becoming operators
-      if (updateUserRequest.userType === UserType.operator) {
+      if (updateUserRequest.userType === UserRole.OPERATOR) {
         throw new BadRequestException("Users cannot become operators");
       }
 
       const updateData: UpdateUserData = {
         full_name: updateUserRequest.fullName,
         email: updateUserRequest.email,
-        role: updateUserRequest.userType !== undefined ? userTypeToRole(updateUserRequest.userType) : undefined,
+        role: updateUserRequest.userType,
         accountId: updateUserRequest.accountId,
         entityId: updateUserRequest.entityId,
         status: updateUserRequest.status,
@@ -177,12 +175,12 @@ export class UserController {
       // Handle user type changes
       if (updateUserRequest.userType !== undefined) {
         // If user is being set to admin, remove entity_id
-        if (updateUserRequest.userType === UserType.admin) {
+        if (updateUserRequest.userType === UserRole.ADMIN) {
           updateData.entityId = undefined;
         }
         
         // If user is being set to member/guest after being admin, ensure they have an entity
-        if ((updateUserRequest.userType === UserType.member || updateUserRequest.userType === UserType.viewer) &&
+        if ((updateUserRequest.userType === UserRole.MEMBER || updateUserRequest.userType === UserRole.VIEWER) &&
             existingUser.role === UserRole.ADMIN) {
           if (!updateUserRequest.entityId) {
             throw new BadRequestException("Member/Guest users must have an entity_id");
@@ -235,10 +233,10 @@ export class UserController {
 
   @Put(":id/role")
   @ApiParam({ name: "id", type: String })
-  @RequireRoles(UserType.admin, UserType.operator)
+  @RequireRoles(UserRole.ADMIN, UserRole.OPERATOR)
   async updateUserRole(
     @Param("id") id: string,
-    @Body() updateRoleRequest: { userType: UserType; entityId?: string }
+    @Body() updateRoleRequest: { userType: UserRole; entityId?: string }
   ): Promise<{ success: boolean; user: UserResponse }> {
     try {
       // Check if user exists
@@ -248,19 +246,19 @@ export class UserController {
       }
 
       // Prevent users from becoming operators
-      if (updateRoleRequest.userType === UserType.operator) {
+      if (updateRoleRequest.userType === UserRole.OPERATOR) {
         throw new BadRequestException("Users cannot become operators");
       }
 
       const updateData: UpdateUserData = {
-        role: userTypeToRole(updateRoleRequest.userType),
+        role: updateRoleRequest.userType,
       };
 
       // Handle user type changes with entity logic
-      if (updateRoleRequest.userType === UserType.admin) {
+      if (updateRoleRequest.userType === UserRole.ADMIN) {
         // Admin: remove entity_id
         updateData.entityId = undefined;
-      } else if (updateRoleRequest.userType === UserType.member || updateRoleRequest.userType === UserType.viewer) {
+      } else if (updateRoleRequest.userType === UserRole.MEMBER || updateRoleRequest.userType === UserRole.VIEWER) {
         // Member/Viewer: require entity_id
         if (!updateRoleRequest.entityId) {
           throw new BadRequestException("Member/Viewer users must have an entity_id");
@@ -296,7 +294,7 @@ export class UserController {
 
   @Put(":id/entity")
   @ApiParam({ name: "id", type: String })
-  @RequireRoles(UserType.admin, UserType.operator)
+  @RequireRoles(UserRole.ADMIN, UserRole.OPERATOR)
   async updateUserEntity(
     @Param("id") id: string,
     @Body() updateEntityRequest: { entityId: string }
@@ -344,7 +342,7 @@ export class UserController {
 
   @Delete(":id")
   @ApiParam({ name: "id", type: String })
-  @RequireRoles(UserType.admin, UserType.operator)
+  @RequireRoles(UserRole.ADMIN, UserRole.OPERATOR)
   async deleteUser(@Param("id") id: string): Promise<{ success: boolean }> {
     try {
       const existingUser = await this.userService.findUserById(id);

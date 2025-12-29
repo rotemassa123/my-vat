@@ -13,7 +13,7 @@ import {
   Support as SupportIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
 } from '@mui/icons-material';
-import { UserType } from './userType';
+import { UserRole } from './userType';
 
 export interface NavigationItem {
   path: string;
@@ -98,16 +98,16 @@ export const MEMBER_VIEWER_NAVIGATION: NavigationItem[] = [
 /**
  * Get navigation items based on user type
  */
-export const getNavigationItems = (userType?: number): NavigationItem[] => {
+export const getNavigationItems = (userType?: string): NavigationItem[] => {
   switch (userType) {
-    case UserType.operator:
+    case UserRole.OPERATOR:
       return OPERATOR_NAVIGATION;
     
-    case UserType.admin:
+    case UserRole.ADMIN:
       return [...BASE_NAVIGATION, ...ADMIN_NAVIGATION];
     
-    case UserType.member:
-    case UserType.viewer:
+    case UserRole.MEMBER:
+    case UserRole.VIEWER:
       return [...BASE_NAVIGATION, ...MEMBER_VIEWER_NAVIGATION];
     
     default:
@@ -123,21 +123,21 @@ export interface UserTypeIndicator {
   className: string;
 }
 
-export const getUserTypeIndicator = (userType?: number): UserTypeIndicator | null => {
+export const getUserTypeIndicator = (userType?: string): UserTypeIndicator | null => {
   switch (userType) {
-    case UserType.operator:
+    case UserRole.OPERATOR:
       return {
         text: 'Operator',
         className: 'userTypeOperator',
       };
     
-    case UserType.admin:
+    case UserRole.ADMIN:
       return {
         text: 'admin',
         className: 'userTypeAdmin',
       };
     
-    case UserType.viewer:
+    case UserRole.VIEWER:
       return {
         text: 'guest',
         className: 'userTypeGuest',

@@ -1,9 +1,9 @@
-import { UserType } from '../../consts/userType';
+import { UserRole } from '../../consts/userRole';
 
 export interface UserContext {
   accountId?: string;
   userId?: string;
-  userType?: UserType;
+  userType?: UserRole;
   entityId?: string;
   impersonatedBy?: string;
 }

@@ -14,6 +14,7 @@ import {
 import RoleCombobox from './RoleCombobox';
 import EntityCombobox from './EntityCombobox';
 import styles from './UserManagement.module.scss';
+import { UserRole } from '../../consts/userType';
 
 interface User {
   id: string;
@@ -30,7 +31,7 @@ interface User {
 interface UserRowProps {
   user: User;
   onActionClick: (event: React.MouseEvent<HTMLElement>, userId: string) => void;
-  onRoleChange: (userId: string, newRole: string, newUserType: number) => Promise<void>;
+  onRoleChange: (userId: string, newRole: string, newUserType: UserRole) => Promise<void>;
   onEntityChange: (userId: string, newEntityId: string) => Promise<void>;
   entities: Array<{ _id: string; name: string }>;
   isEditing?: boolean;

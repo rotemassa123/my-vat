@@ -1,41 +1,30 @@
-import { useQuery } from '@tanstack/react-query';
-import { reportingApi } from '../../lib/reportingApi';
-import type { ReportingResponse } from '../../types/reporting';
+import { useMemo } from 'react';
+import { useInvoiceStore } from '../../store/invoiceStore';
 
 /**
- * Hook to fetch unique countries from invoices
- * Caches results to avoid unnecessary refetches
+ * Hook to get unique countries from invoices in the store
+ * No API request needed - uses data already loaded in the store
  */
 export const useCountryOptions = () => {
-  const { data, isLoading, error } = useQuery<string[], Error>({
-    queryKey: ['country-options'],
-    queryFn: async () => {
-      // Fetch invoices with a reasonable limit to get unique countries
-      const response = await reportingApi.getReportingData({
-        limit: 1000, // Get enough invoices to find unique countries
-        skip: 0,
-      }) as ReportingResponse;
+  const invoices = useInvoiceStore((state) => state.invoices);
+  const isLoading = useInvoiceStore((state) => state.isLoading);
 
-      // Extract unique countries from invoices
-      const countries = new Set<string>();
-      response.data.forEach((invoice) => {
-        const country = invoice.country;
-        if (country && country.trim().length > 0) {
-          countries.add(country.trim());
-        }
-      });
-
-      // Return sorted array of unique countries
-      return Array.from(countries).sort();
-    },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
-    cacheTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
-  });
+  // Extract unique countries from invoices in the store
+  const countries = useMemo(() => {
+    const countrySet = new Set<string>();
+    invoices.forEach((invoice) => {
+      const country = invoice.country;
+      if (country && country.trim().length > 0) {
+        countrySet.add(country.trim());
+      }
+    });
+    return Array.from(countrySet).sort();
+  }, [invoices]);
 
   return {
-    countries: data || [],
+    countries,
     isLoading,
-    error,
+    error: null,
   };
 };
 

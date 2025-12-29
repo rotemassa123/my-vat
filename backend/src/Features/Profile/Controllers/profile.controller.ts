@@ -19,7 +19,7 @@ import { ComprehensiveProfileResponse, StatisticsResponse } from "../Responses/p
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
-import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 import { IImageStorageProvider } from "src/Common/ApplicationCore/Providers/IImageStorageProvider";
 import { CurrentAccountId } from "src/Common/decorators/current-account-id.decorator";
 import { CurrentUserId } from "src/Common/decorators/current-user-id.decorator";
@@ -49,7 +49,7 @@ export class ProfileController {
       const userType = userContext.userType;
 
       // Operator without account selected: Return empty profile (operators don't have their own account)
-      if (userType === UserType.operator && !userContext.accountId) {
+      if (userType === UserRole.OPERATOR && !userContext.accountId) {
         return {
           account: undefined,
           entities: [],
@@ -65,7 +65,7 @@ export class ProfileController {
 
       // Admin: Account + all entities + all users in account + statistics for all entities
       // Operator: Same as admin when x-account-id header is provided
-      if (userType === UserType.admin || userType === UserType.operator) {
+      if (userType === UserRole.ADMIN || userType === UserRole.OPERATOR) {
         const entities = await this.profileService.getEntitiesForAccount();        
         const users = await this.profileService.getUsersForAccount();
         const statistics = await this.profileService.getStatistics(userContext.accountId);
@@ -79,7 +79,7 @@ export class ProfileController {
       }
 
       // Member/Guest: Account data + their specific entity + statistics for their entity
-      if (userType === UserType.member || userType === UserType.viewer) {
+      if (userType === UserRole.MEMBER || userType === UserRole.VIEWER) {
         const entity = await this.profileService.findEntityById(userContext.entityId);
          if (!entity) {
           throw new NotFoundException('Entity not found');

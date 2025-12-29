@@ -20,8 +20,7 @@ import { PasswordService } from "src/Common/ApplicationCore/Features/password.se
 import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfileRepository";
 import { IGoogleOAuthService } from "src/Common/ApplicationCore/Services/IGoogleOAuthService";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
-import { UserType } from "src/Common/consts/userType";
-import { roleToUserType } from "src/Common/utils/role-converter";
+import { UserRole } from "src/Common/consts/userRole";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 import * as httpContext from 'express-http-context';
 import { UserContext } from "src/Common/Infrastructure/types/user-context.type";
@@ -35,7 +34,7 @@ interface UserResponse {
   _id: string;
   fullName?: string;
   email: string;
-  userType: UserType;
+  userType: UserRole;
   accountId: string;
   entityId: string;
   profile_image_url?: string;
@@ -122,9 +121,13 @@ export class AuthenticationController {
       userId: user._id,
       fullName: user.full_name,
       email: user.email,
-      userType: roleToUserType(user.role),
-      accountId: user.accountId,
-      entityId: user.entityId,
+      userType: user.role,
+      // For operators, explicitly exclude accountId and entityId
+      // For other user types, include them as they are
+      ...(user.role !== UserRole.OPERATOR && {
+        accountId: user.accountId,
+        entityId: user.entityId,
+      }),
       profile_image_url: user.profile_image_url,
     };
 
@@ -143,7 +146,7 @@ export class AuthenticationController {
       _id: user._id!,
       fullName: user.full_name,
       email: user.email,
-      userType: roleToUserType(user.role),
+      userType: user.role,
       accountId: user.accountId,
       entityId: user.entityId,
       profile_image_url: user.profile_image_url,
@@ -151,7 +154,7 @@ export class AuthenticationController {
   }
 
   @UseGuards(AuthenticationGuard)
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @Post("/magic-links")
   async createImpersonationLink(
     @Body("userId") userId: string,
@@ -210,7 +213,7 @@ export class AuthenticationController {
       fullName: user.full_name,
       email: user.email,
       _id: user._id!,
-      userType: roleToUserType(user.role),
+      userType: user.role,
       accountId: user.accountId,
       entityId: user.entityId,
       profile_image_url: user.profile_image_url,
@@ -256,9 +259,13 @@ export class AuthenticationController {
         userId: targetUser._id,
         fullName: targetUser.full_name,
         email: targetUser.email,
-        userType: roleToUserType(targetUser.role),
-        accountId: targetUser.accountId,
-        entityId: targetUser.entityId,
+        userType: targetUser.role,
+        // For operators, explicitly exclude accountId and entityId
+        // For other user types, include them as they are
+        ...(targetUser.role !== UserRole.OPERATOR && {
+          accountId: targetUser.accountId,
+          entityId: targetUser.entityId,
+        }),
         profile_image_url: targetUser.profile_image_url,
         impersonatedBy: payload.operatorId,
       };
@@ -352,9 +359,13 @@ export class AuthenticationController {
         userId: user._id,
         fullName: user.full_name,
         email: user.email,
-        userType: roleToUserType(user.role),
-        accountId: user.accountId,
-        entityId: user.entityId,
+        userType: user.role,
+        // For operators, explicitly exclude accountId and entityId
+        // For other user types, include them as they are
+        ...(user.role !== UserRole.OPERATOR && {
+          accountId: user.accountId,
+          entityId: user.entityId,
+        }),
         profile_image_url: user.profile_image_url,
       };
 

@@ -8,7 +8,7 @@ import { loadAllTickets } from '../../services/ticketService';
 import { useAuthStore } from '../../store/authStore';
 import { useAccountStore } from '../../store/accountStore';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
-import { UserType } from '../../consts/userType';
+import { UserRole } from '../../consts/userType';
 import type { User } from '../../types/user';
 
 export type BootstrapStageStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -70,7 +70,7 @@ export const useAppBootstrap = (): AppBootstrapState => {
           return;
         }
 
-        if (user.userType === UserType.operator) {
+        if (user.userType === UserRole.OPERATOR) {
           setOperatorError(null);
 
           const [accounts, entities] = await Promise.all([

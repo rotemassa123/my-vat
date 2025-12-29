@@ -3,7 +3,7 @@ import { InvitationService } from './invitation.service';
 import { IGmailService } from 'src/Common/ApplicationCore/Services/IGmailService';
 import { IProfileRepository } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import { SendInvitationRequest } from '../Requests/invitation.requests';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 import * as httpContext from 'express-http-context';
 
 describe('InvitationService', () => {

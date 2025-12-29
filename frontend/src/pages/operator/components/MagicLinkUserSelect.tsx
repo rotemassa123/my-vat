@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 import type { SyntheticEvent } from 'react';
 import type { ChipProps } from '@mui/material/Chip';
 import type { User } from '../../../types/user';
-import { UserType } from '../../../consts/userType';
+import { UserRole } from '../../../consts/userType';
 
 interface MagicLinkUserSelectProps {
   users: User[];
@@ -20,8 +20,8 @@ interface MagicLinkUserSelectProps {
   helperText: string;
   noOptionsText: string;
   onChange: (event: SyntheticEvent, user: User | null) => void;
-  userTypeLabels: Record<UserType, string>;
-  chipColorMap: Record<UserType, ChipProps['color']>;
+  userTypeLabels: Record<UserRole, string>;
+  chipColorMap: Record<UserRole, ChipProps['color']>;
   statusColorMap: Record<string, ChipProps['color']>;
   formatStatusLabel: (status?: string) => string;
   badgeChipClassName: string;
@@ -56,7 +56,7 @@ const MagicLinkUserSelect: React.FC<MagicLinkUserSelectProps> = ({
       getOptionLabel={(option) => `${option.fullName} (${option.email})`}
       noOptionsText={noOptionsText}
       renderOption={(props, option) => {
-        const userType = option.userType as UserType;
+        const userType = option.userType as UserRole;
         const statusColor =
           statusColorMap[option.status?.toLowerCase() ?? ''] || ('default' as ChipProps['color']);
 
@@ -91,7 +91,7 @@ const MagicLinkUserSelect: React.FC<MagicLinkUserSelectProps> = ({
         );
       }}
       renderInput={(params) => {
-        const selectedType = selectedUser?.userType as UserType | undefined;
+        const selectedType = selectedUser?.userType as UserRole | undefined;
         const selectedStatusColor: ChipProps['color'] | undefined = selectedUser?.status
           ? statusColorMap[selectedUser.status.toLowerCase()] || 'default'
           : undefined;

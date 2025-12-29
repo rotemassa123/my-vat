@@ -10,18 +10,18 @@ import {
 import {
   KeyboardArrowDown as ChevronDownIcon,
 } from '@mui/icons-material';
+import { UserRole } from '../../consts/userType';
 
 interface RoleComboboxProps {
   currentRole: string;
   userId: string;
-  onRoleChange: (userId: string, newRole: string, newUserType: number) => Promise<void>;
+  onRoleChange: (userId: string, newRole: string, newUserType: UserRole) => Promise<void>;
 }
 
 const roleOptions = [
-  { label: 'Admin', value: 'Admin', userType: 1 },
-  { label: 'Member', value: 'Member', userType: 2 },
-  { label: 'Viewer', value: 'Viewer', userType: 3 },
-  { label: 'Guest', value: 'Guest', userType: 4 },
+  { label: 'Admin', value: 'Admin', userType: UserRole.ADMIN },
+  { label: 'Member', value: 'Member', userType: UserRole.MEMBER },
+  { label: 'Viewer', value: 'Viewer', userType: UserRole.VIEWER },
 ];
 
 const RoleCombobox: React.FC<RoleComboboxProps> = ({ 
@@ -46,7 +46,7 @@ const RoleCombobox: React.FC<RoleComboboxProps> = ({
     setAnchorEl(null);
   };
 
-  const handleRoleSelect = async (newRole: string, userType: number) => {
+  const handleRoleSelect = async (newRole: string, userType: UserRole) => {
     if (newRole !== selectedRole) {
       setSelectedRole(newRole);
       handleClose(); // Close menu immediately

@@ -17,7 +17,7 @@ import { IProfileRepository } from "src/Common/ApplicationCore/Services/IProfile
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/publicEndpoint.decorator";
 import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
-import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 import { UseGuards } from "@nestjs/common";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 import { mapUserDataToResponse } from "src/Common/utils/user-mapper";
@@ -50,7 +50,7 @@ export class AccountController {
 
   @Get("all")
   @UseGuards(AuthenticationGuard)
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   async getAllAccounts(): Promise<AccountResponse[]> {
     try {
       const accounts = await this.accountService.getAllAccounts();
@@ -64,7 +64,7 @@ export class AccountController {
   @Get(":id/users")
   @ApiParam({ name: "id", type: String })
   @UseGuards(AuthenticationGuard)
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   async getUsersForAccount(
     @Param("id") id: string,
   ): Promise<UserResponse[]> {

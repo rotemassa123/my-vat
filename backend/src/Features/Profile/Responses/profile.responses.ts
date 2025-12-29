@@ -1,4 +1,3 @@
-import { UserType } from "src/Common/consts/userType";
 import { UserRole } from "src/Common/consts/userRole";
 
 // Account Responses
@@ -48,7 +47,7 @@ export interface UserResponse {
   _id: string;
   fullName?: string;
   email: string;
-  userType: UserType;
+  userType: UserRole;
   accountId?: string;
   entityId?: string;
   status: string;

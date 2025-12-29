@@ -364,20 +364,32 @@ export class WidgetDataService {
       matchStage.status = config.filters.status;
     }
     
+    // Only include invoices that have extracted data
+    const hasExtractedData = {
+      $or: [
+        { country: { $exists: true, $ne: null } },
+        { supplier: { $exists: true, $ne: null } },
+        { invoice_date: { $exists: true, $ne: null } }
+      ]
+    };
+    
     // Add extracted field filters (now on Invoice directly)
+    let countryFilter: any = null;
     if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
       if (config.filters.country.length === 1) {
-        matchStage.country = { 
-          $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+        countryFilter = { 
+          country: { $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') }
         };
       } else {
-        matchStage.$or = (matchStage.$or || []).concat(
-          config.filters.country.map(c => ({
+        // Multiple countries: use $or to match any of them
+        countryFilter = {
+          $or: config.filters.country.map(c => ({
             country: { $regex: new RegExp(`^${c}$`, 'i') }
           }))
-        );
+        };
       }
     }
+    
     if (config.filters?.classification) {
       matchStage.classification = config.filters.classification;
     }
@@ -385,12 +397,16 @@ export class WidgetDataService {
       matchStage.subclassification = config.filters.category;
     }
     
-    // Only include invoices that have extracted data
-    matchStage.$or = (matchStage.$or || []).concat([
-      { country: { $exists: true, $ne: null } },
-      { supplier: { $exists: true, $ne: null } },
-      { invoice_date: { $exists: true, $ne: null } }
-    ]);
+    // Combine extracted data check with country filter using $and
+    if (countryFilter) {
+      matchStage.$and = [
+        hasExtractedData,
+        countryFilter
+      ];
+    } else {
+      // No country filter, just use extracted data check
+      matchStage.$or = hasExtractedData.$or;
+    }
     
     if (Object.keys(matchStage).length > 0) {
       pipeline.push({ $match: matchStage });
@@ -597,26 +613,40 @@ export class WidgetDataService {
     }
     
     // Only include invoices that have extracted data
-    invoiceMatchStage.$or = [
-      { country: { $exists: true, $ne: null } },
-      { supplier: { $exists: true, $ne: null } },
-      { invoice_date: { $exists: true, $ne: null } }
-    ];
+    const hasExtractedData = {
+      $or: [
+        { country: { $exists: true, $ne: null } },
+        { supplier: { $exists: true, $ne: null } },
+        { invoice_date: { $exists: true, $ne: null } }
+      ]
+    };
     
     // Filter by country
+    let countryFilter: any = null;
     if (config.filters?.country && Array.isArray(config.filters.country) && config.filters.country.length > 0) {
       if (config.filters.country.length === 1) {
-        invoiceMatchStage.country = { 
-          $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') 
+        countryFilter = { 
+          country: { $regex: new RegExp(`^${config.filters.country[0]}$`, 'i') }
         };
       } else {
-        invoiceMatchStage.$or = [
-          ...invoiceMatchStage.$or,
-          ...config.filters.country.map(c => ({
+        // Multiple countries: use $or to match any of them
+        countryFilter = {
+          $or: config.filters.country.map(c => ({
             country: { $regex: new RegExp(`^${c}$`, 'i') }
           }))
-        ];
+        };
       }
+    }
+    
+    // Combine extracted data check with country filter using $and
+    if (countryFilter) {
+      invoiceMatchStage.$and = [
+        hasExtractedData,
+        countryFilter
+      ];
+    } else {
+      // No country filter, just use extracted data check
+      invoiceMatchStage.$or = hasExtractedData.$or;
     }
     
     // Filter by classification

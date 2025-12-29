@@ -1,10 +1,10 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import { UserType } from '../../Common/consts/userType';
+import { UserRole } from '../../Common/consts/userRole';
 import * as httpContext from 'express-http-context';
 
 export interface JwtUser {
   accountId: string;
-  userType: UserType;
+  userType: UserRole;
 }
 
 /**
@@ -17,12 +17,12 @@ export const CurrentAccountId = createParamDecorator(
 
     // Primary source: AsyncLocalStorage populated by TenantContextInterceptor
     let accountId = httpContext.get('account_id') as string | undefined;
-    const userType = httpContext.get('role') as UserType | undefined;
+    const userType = httpContext.get('role') as UserRole | undefined;
 
     // Operator override via header
     const override = request.headers['x-account-id'] as string;
 
-    if (override && userType === UserType.operator) {
+    if (override && userType === UserRole.OPERATOR) {
       // Basic validation for override could be added here (e.g., isMongoId)
       accountId = override;
     }

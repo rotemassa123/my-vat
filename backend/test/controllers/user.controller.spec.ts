@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { UserController } from '../../src/Features/Profile/Controllers/user.controller';
 import { IProfileRepository } from '../../src/Common/ApplicationCore/Services/IProfileRepository';
 import { PasswordService } from '../../src/Common/ApplicationCore/Features/password.service';
-import { UserType } from '../../src/Common/consts/userType';
+import { UserRole } from '../../src/Common/consts/userRole';
 
 describe('UserController (Integration)', () => {
   let app: INestApplication;
@@ -73,7 +73,7 @@ describe('UserController (Integration)', () => {
         fullName: 'John Doe',
         email: 'john@example.com',
         hashedPassword: 'hashed',
-        userType: UserType.admin,
+        userType: UserRole.ADMIN,
         accountId: '507f1f77bcf86cd799439012',
         status: 'active',
       };
@@ -111,7 +111,7 @@ describe('UserController (Integration)', () => {
         fullName: 'John Doe',
         email: 'john@example.com',
         hashedPassword: 'hashed',
-        userType: UserType.admin,
+        userType: UserRole.ADMIN,
         accountId: '507f1f77bcf86cd799439012',
         status: 'active',
       };
@@ -141,7 +141,7 @@ describe('UserController (Integration)', () => {
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         password: 'password123',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: 1,
         phone: '+1234567890',
       };
@@ -187,7 +187,7 @@ describe('UserController (Integration)', () => {
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         password: 'password123',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: 1,
       };
 
@@ -204,7 +204,7 @@ describe('UserController (Integration)', () => {
         fullName: 'Jane Doe',
         email: 'jane@example.com',
         password: 'password123',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: 'nonexistent_account_id',
       };
 

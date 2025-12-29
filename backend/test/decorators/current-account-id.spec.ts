@@ -1,6 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
 import * as httpContext from 'express-http-context';
 import { CurrentAccountId } from '../../src/Common/decorators/current-account-id.decorator';
+import { UserRole } from '../../src/Common/consts/userRole';
 
 // Helper to create a minimal ExecutionContext stub
 const createContextStub = (req: Record<string, any>): ExecutionContext => {
@@ -25,7 +26,7 @@ describe.skip('CurrentAccountId decorator', () => {
   });
 
   it('should return overridden accountId when userType is operator', () => {
-    httpContext.set('role', 0); // UserType.operator === 0
+    httpContext.set('role', UserRole.OPERATOR);
     const ctx = createContextStub({ headers: { 'x-account-id': '456' } });
     const result = CurrentAccountId(undefined, ctx);
     expect(result).toBe(456);

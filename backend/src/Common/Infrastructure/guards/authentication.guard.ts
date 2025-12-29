@@ -4,7 +4,7 @@ import {Request} from 'express';
 import {ConfigService} from "@nestjs/config";
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/publicEndpoint.decorator';
-import { UserType } from '../../consts/userType';
+import { UserRole } from '../../consts/userRole';
 import * as httpContext from 'express-http-context';
 import { UserContext } from '../types/user-context.type';
 
@@ -63,7 +63,7 @@ export class AuthenticationGuard implements CanActivate {
         const { userType, accountId, entityId } = jwt;
         
         // Operator: must NOT have accountId or entityId
-        if (userType === UserType.operator) {
+        if (userType === UserRole.OPERATOR) {
             if (accountId || entityId) {
                 throw new UnauthorizedException('Operator users cannot have account or entity associations');
             }
@@ -71,7 +71,7 @@ export class AuthenticationGuard implements CanActivate {
         }
         
         // Admin: must have accountId, must NOT have entityId
-        if (userType === UserType.admin) {
+        if (userType === UserRole.ADMIN) {
             if (!accountId) {
                 throw new UnauthorizedException('Admin users must have an account association');
             }
@@ -82,7 +82,7 @@ export class AuthenticationGuard implements CanActivate {
         }
         
         // Member/Guest: must have both accountId and entityId
-        if (userType === UserType.member || userType === UserType.viewer) {
+        if (userType === UserRole.MEMBER || userType === UserRole.VIEWER) {
             if (!accountId || !entityId) {
                 throw new UnauthorizedException('Member/Guest users must have both account and entity associations');
             }

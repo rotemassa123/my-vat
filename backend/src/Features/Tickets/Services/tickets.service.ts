@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { Ticket, TicketDocument, TicketStatus, SenderType } from 'src/Common/Infrastructure/DB/schemas/ticket.schema';
 import { CreateTicketDto, SendTicketMessageDto, UpdateTicketStatusDto, AssignTicketDto } from '../Requests/ticket.requests';
 import { TicketResponse, TicketListResponse, TicketMessageResponse } from '../Responses/ticket.responses';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 import * as httpContext from 'express-http-context';
 import { UserContext } from 'src/Common/Infrastructure/types/user-context.type';
 import mongoose from 'mongoose';
@@ -56,7 +56,7 @@ export class TicketsService {
   async getUserTickets(): Promise<TicketListResponse> {
     const userContext = this.getUserContext();
     const userType = userContext.userType;
-    const isOperator = userType === UserType.operator;
+    const isOperator = userType === UserRole.OPERATOR;
 
     // For operators, get all tickets. For regular users, UserScopePlugin filters by user_id
     const query = this.ticketModel.find();
@@ -90,12 +90,12 @@ export class TicketsService {
     };
   }
 
-  async getTicketById(ticketId: string, userType: UserType): Promise<TicketResponse> {
+  async getTicketById(ticketId: string, userType: UserRole): Promise<TicketResponse> {
     const query = this.ticketModel.findOne({
       _id: new mongoose.Types.ObjectId(ticketId),
     });
     
-    if (userType === UserType.operator) {
+    if (userType === UserRole.OPERATOR) {
       query.setOptions({ disableUserScope: true });
     }
     
@@ -124,7 +124,7 @@ export class TicketsService {
   async sendMessage(
     ticketId: string,
     messageDto: SendTicketMessageDto,
-    userType: UserType,
+    userType: UserRole,
     userId?: string,
   ): Promise<TicketMessageResponse> {
     // Get userId from parameter (WebSocket) or context (HTTP)
@@ -139,7 +139,7 @@ export class TicketsService {
       _id: new mongoose.Types.ObjectId(ticketId),
     });
     
-    if (userType === UserType.operator) {
+    if (userType === UserRole.OPERATOR) {
       query.setOptions({ disableUserScope: true });
     }
     
@@ -149,7 +149,7 @@ export class TicketsService {
       throw new NotFoundException('Ticket not found');
     }
 
-    const senderType = userType === UserType.operator ? SenderType.OPERATOR : SenderType.USER;
+    const senderType = userType === UserRole.OPERATOR ? SenderType.OPERATOR : SenderType.USER;
 
     // Validate that either content or attachments are provided
     if (!messageDto.content?.trim() && (!messageDto.attachments || messageDto.attachments.length === 0)) {
@@ -174,9 +174,9 @@ export class TicketsService {
     };
 
     // Auto-update status based on sender
-    if (userType === UserType.operator && ticket.status === TicketStatus.OPEN) {
+    if (userType === UserRole.OPERATOR && ticket.status === TicketStatus.OPEN) {
       updateData.$set.status = TicketStatus.IN_PROGRESS;
-    } else if (userType !== UserType.operator && ticket.status === TicketStatus.IN_PROGRESS) {
+    } else if (userType !== UserRole.OPERATOR && ticket.status === TicketStatus.IN_PROGRESS) {
       updateData.$set.status = TicketStatus.WAITING;
     }
 

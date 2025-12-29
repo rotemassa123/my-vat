@@ -1,31 +1,6 @@
-import { UserType } from '../consts/userType';
 import { UserRole } from '../consts/userRole';
 
-/**
- * Converts UserType enum to UserRole enum
- */
-export function userTypeToRole(userType: UserType): UserRole {
-  const map: Record<UserType, UserRole> = {
-    [UserType.operator]: UserRole.OPERATOR,
-    [UserType.admin]: UserRole.ADMIN,
-    [UserType.member]: UserRole.MEMBER,
-    [UserType.viewer]: UserRole.VIEWER,
-  };
-  return map[userType] || UserRole.MEMBER;
-}
-
-/**
- * Converts UserRole enum to UserType enum
- */
-export function roleToUserType(role: UserRole): UserType {
-  const map: Record<UserRole, UserType> = {
-    [UserRole.OPERATOR]: UserType.operator,
-    [UserRole.ADMIN]: UserType.admin,
-    [UserRole.MEMBER]: UserType.member,
-    [UserRole.VIEWER]: UserType.viewer,
-  };
-  return map[role] || UserType.member;
-}
+// Conversion functions removed - UserRole is now used directly throughout the codebase
 
 /**
  * Converts UserRole enum to numeric string (for token encoding)

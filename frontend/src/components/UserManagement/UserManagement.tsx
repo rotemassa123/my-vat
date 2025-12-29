@@ -75,17 +75,19 @@ const formatDateTime = (date: Date | string | undefined): string => {
   }
 };
 
+import { UserRole } from '../../consts/userType';
+
 // Helper function to map userType to role
-const mapUserTypeToRole = (userType: number): string => {
+const mapUserTypeToRole = (userType: string): string => {
   switch (userType) {
-    case 1:
+    case UserRole.ADMIN:
       return 'Admin';
-    case 2:
+    case UserRole.MEMBER:
       return 'Member';
-    case 3:
+    case UserRole.VIEWER:
       return 'Viewer';
-    case 4:
-      return 'Guest';
+    case UserRole.OPERATOR:
+      return 'Operator';
     default:
       return 'Member';
   }
@@ -241,14 +243,14 @@ const UserManagement: React.FC = () => {
     handleCloseMenu();
   };
 
-  const handleRoleChange = async (userId: string, newRole: string, newUserType: number): Promise<void> => {
+  const handleRoleChange = async (userId: string, newRole: string, newUserType: UserRole): Promise<void> => {
     // Find the current user to get their current entity
     const currentUser = profileUsers.find(user => user._id === userId);
     
-    if (newUserType === 1) { // Admin
+    if (newUserType === UserRole.ADMIN) {
       // For admin, we don't need entityId (it will be cleared by backend)
       await updateUserRole(userId, newUserType);
-    } else if (newUserType === 2 || newUserType === 3) { // Member or Viewer
+    } else if (newUserType === UserRole.MEMBER || newUserType === UserRole.VIEWER) {
       // For member/viewer, we need to assign an entity
       // If user already has an entity, keep it; otherwise assign to first available entity
       let entityId = currentUser?.entityId;

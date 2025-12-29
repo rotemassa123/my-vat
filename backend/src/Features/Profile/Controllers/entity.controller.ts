@@ -20,7 +20,7 @@ import { PublicEndpointGuard } from "src/Common/Infrastructure/decorators/public
 import { UseGuards } from "@nestjs/common";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
 import { RequireRoles } from "src/Common/Infrastructure/decorators/require-roles.decorator";
-import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 
 @ApiTags("entities")
 @Controller("entities")
@@ -39,7 +39,7 @@ export class EntityController {
 
   @Get("all")
   @UseGuards(AuthenticationGuard)
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   async getAllEntities(): Promise<EntityResponse[]> {
     try {
       const entities = await this.entityService.getAllEntities();

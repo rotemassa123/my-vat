@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString, IsOptional, IsEnum, IsArray, IsMongoId, ArrayMinSize, ArrayMaxSize, Length } from 'class-validator';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 
 export class SendInvitationRequest {
   @ApiProperty({
@@ -136,7 +136,7 @@ export interface ValidateInvitationResponse {
     _id: string;
     fullName: string;
     email: string;
-    userType: number;
+    userType: UserRole;
     status: string;
   };
   account?: {
@@ -202,7 +202,7 @@ export interface CompleteSignupResponse {
     _id: string;
     fullName: string;
     email: string;
-    userType: number;
+    userType: UserRole;
     accountId: string;
     entityId?: string;
     status: string;

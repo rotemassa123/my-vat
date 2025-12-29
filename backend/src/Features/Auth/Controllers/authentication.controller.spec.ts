@@ -4,7 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PasswordService } from 'src/Common/ApplicationCore/Features/password.service';
 import { IProfileRepository } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import { UnauthorizedException } from '@nestjs/common';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 import { ConfigService } from '@nestjs/config';
 
 describe('AuthenticationController', () => {
@@ -67,7 +67,7 @@ describe('AuthenticationController', () => {
         fullName: 'Test User',
         email: 'test@example.com',
         hashedPassword: 'hashedPassword',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: '507f1f77bcf86cd799439012',
         entityId: '507f1f77bcf86cd799439013',
         status: 'pending',
@@ -90,7 +90,7 @@ describe('AuthenticationController', () => {
         fullName: 'Test User',
         email: 'test@example.com',
         hashedPassword: 'hashedPassword',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: '507f1f77bcf86cd799439012',
         entityId: '507f1f77bcf86cd799439013',
         status: 'active',
@@ -134,7 +134,7 @@ describe('AuthenticationController', () => {
         fullName: 'Test User',
         email: 'test@example.com',
         hashedPassword: 'hashedPassword',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: '507f1f77bcf86cd799439012',
         entityId: '507f1f77bcf86cd799439013',
         status: 'failed to send request',

@@ -23,7 +23,7 @@ import {
   TicketMessageResponse,
 } from '../Responses/ticket.responses';
 import { RequireRoles } from '../../../Common/Infrastructure/decorators/require-roles.decorator';
-import { UserType } from '../../../Common/consts/userType';
+import { UserRole } from '../../../Common/consts/userRole';
 import { RolesGuard } from '../../../Common/Infrastructure/guards/roles.guard';
 import { AuthenticationGuard } from '../../../Common/Infrastructure/guards/authentication.guard';
 import * as httpContext from 'express-http-context';
@@ -40,9 +40,9 @@ export class TicketsController {
     private readonly ticketsGateway: TicketsGateway,
   ) {}
 
-  private getUserType(): UserType {
+  private getUserType(): UserRole {
     const userContext = httpContext.get('user_context') as UserContext | undefined;
-    return userContext?.userType || UserType.member;
+    return userContext?.userType || UserRole.MEMBER;
   }
 
   @Post()
@@ -87,7 +87,7 @@ export class TicketsController {
   }
 
   @Get('operator/unhandled')
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @ApiOperation({ summary: 'Get unhandled tickets (operator only)' })
   @ApiResponse({ status: 200, description: 'List of unhandled tickets', type: TicketListResponse })
   async getUnhandledTickets(): Promise<TicketListResponse> {
@@ -95,7 +95,7 @@ export class TicketsController {
   }
 
   @Get('operator/all')
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @ApiOperation({ summary: 'Get all tickets sorted by update time (operator only)' })
   @ApiResponse({ status: 200, description: 'List of all tickets', type: TicketListResponse })
   async getAllTickets(): Promise<TicketListResponse> {
@@ -103,7 +103,7 @@ export class TicketsController {
   }
 
   @Get('operator/assigned-to-me')
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @ApiOperation({ summary: 'Get tickets assigned to current operator (operator only)' })
   @ApiResponse({ status: 200, description: 'List of tickets assigned to me', type: TicketListResponse })
   async getTicketsAssignedToMe(): Promise<TicketListResponse> {
@@ -111,7 +111,7 @@ export class TicketsController {
   }
 
   @Put(':id/assign')
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @ApiParam({ name: 'id', type: String })
   @ApiOperation({ summary: 'Assign ticket to operator (operator only)' })
   @ApiResponse({ status: 200, description: 'Ticket assigned successfully', type: TicketResponse })
@@ -128,7 +128,7 @@ export class TicketsController {
   }
 
   @Put(':id/unassign')
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @ApiParam({ name: 'id', type: String })
   @ApiOperation({ summary: 'Unassign ticket from operator (operator only)' })
   @ApiResponse({ status: 200, description: 'Ticket unassigned successfully', type: TicketResponse })
@@ -144,7 +144,7 @@ export class TicketsController {
   }
 
   @Put(':id/status')
-  @RequireRoles(UserType.operator)
+  @RequireRoles(UserRole.OPERATOR)
   @ApiParam({ name: 'id', type: String })
   @ApiOperation({ summary: 'Update ticket status (operator only)' })
   @ApiResponse({ status: 200, description: 'Ticket status updated successfully', type: TicketResponse })

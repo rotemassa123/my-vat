@@ -1,4 +1,4 @@
-import { UserType } from "src/Common/consts/userType";
+
 import { UserRole } from "src/Common/consts/userRole";
 
 // ==================== ACCOUNT TYPES ====================

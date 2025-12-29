@@ -6,7 +6,7 @@ import { Entity, EntityDocument } from 'src/Common/Infrastructure/DB/schemas/ent
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { ReportingQueryBuilderService, UserContext } from './reporting-query-builder.service';
 import { ReportingCacheService } from './reporting-cache.service';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 import { logger } from 'src/Common/Infrastructure/Config/Logger';
 
 export interface ReportingResult {
@@ -19,7 +19,7 @@ export interface ReportingResult {
     user_scope: {
       account_id: string;
       entity_id?: string;
-      user_type: UserType;
+      user_type: UserRole;
     };
     cache_hit: boolean;
   };

@@ -17,7 +17,7 @@ import type { SyntheticEvent } from 'react';
 import type { ChipProps } from '@mui/material/Chip';
 import type { Account, Entity } from '../../types/profile';
 import type { User } from '../../types/user';
-import { UserType } from '../../consts/userType';
+import { UserRole } from '../../consts/userType';
 import { useOperatorAccountsStore } from '../../store/operatorAccountsStore';
 import { useMagicLinkModalStore } from '../../store/modalStore';
 import { useAppBootstrapContext } from '../../contexts/AppBootstrapContext';
@@ -57,18 +57,18 @@ const TEXT = {
   ERROR_MESSAGE: 'Failed to generate magic link. Please try again.',
 } as const;
 
-const USER_TYPE_LABELS: Record<UserType, string> = {
-  [UserType.operator]: 'Operator',
-  [UserType.admin]: 'Admin',
-  [UserType.member]: 'Member',
-  [UserType.viewer]: 'Viewer',
+const USER_TYPE_LABELS: Record<UserRole, string> = {
+  [UserRole.OPERATOR]: 'Operator',
+  [UserRole.ADMIN]: 'Admin',
+  [UserRole.MEMBER]: 'Member',
+  [UserRole.VIEWER]: 'Viewer',
 };
 
-const CHIP_COLOR_MAP: Record<UserType, ChipProps['color']> = {
-  [UserType.operator]: 'secondary',
-  [UserType.admin]: 'primary',
-  [UserType.member]: 'success',
-  [UserType.viewer]: 'info',
+const CHIP_COLOR_MAP: Record<UserRole, ChipProps['color']> = {
+  [UserRole.OPERATOR]: 'secondary',
+  [UserRole.ADMIN]: 'primary',
+  [UserRole.MEMBER]: 'success',
+  [UserRole.VIEWER]: 'info',
 };
 
 const STATUS_CHIP_COLOR_MAP: Record<string, ChipProps['color']> = {
@@ -89,13 +89,13 @@ const formatStatusLabel = (status?: string): string => {
 };
 
 const PLACEHOLDER_ROLE_CONFIG: Array<{
-  userType: UserType;
+  userType: UserRole;
   suffix: string;
   display: string;
 }> = [
-  { userType: UserType.admin, suffix: 'admin', display: 'Admin' },
-  { userType: UserType.member, suffix: 'manager', display: 'Manager' },
-  { userType: UserType.viewer, suffix: 'viewer', display: 'Viewer' },
+  { userType: UserRole.ADMIN, suffix: 'admin', display: 'Admin' },
+  { userType: UserRole.MEMBER, suffix: 'manager', display: 'Manager' },
+  { userType: UserRole.VIEWER, suffix: 'viewer', display: 'Viewer' },
 ];
 
 const sanitizeNameForEmail = (value: string | undefined): string => {
@@ -117,7 +117,7 @@ const createPlaceholderUsers = (
   const now = new Date().toISOString();
   return PLACEHOLDER_ROLE_CONFIG.map((config, index) => {
     const entity =
-      config.userType === UserType.admin || accountEntities.length === 0
+      config.userType === UserRole.ADMIN || accountEntities.length === 0
         ? undefined
         : accountEntities[index % accountEntities.length];
 

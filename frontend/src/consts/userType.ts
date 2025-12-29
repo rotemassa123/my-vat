@@ -1,7 +1,11 @@
-export enum UserType {
-  operator = 0,
-  admin = 1,
-  member = 2,
-  viewer = 3,
+/**
+ * User role enum matching backend UserRole
+ * Values are stored as strings in the database
+ */
+export enum UserRole {
+  OPERATOR = 'operator',
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  VIEWER = 'viewer',
 }
 

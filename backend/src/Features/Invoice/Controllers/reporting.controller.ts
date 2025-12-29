@@ -13,7 +13,7 @@ import { ReportingQueryRequest } from "../Requests/reporting.requests";
 import { ReportingService } from "../Services/reporting.service";
 import { ReportingCacheService } from "../Services/reporting-cache.service";
 import { AuthenticationGuard } from "src/Common/Infrastructure/guards/authentication.guard";
-import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 import { logger } from "src/Common/Infrastructure/Config/Logger";
 import * as httpContext from 'express-http-context';
 import { UserContext } from "src/Common/Infrastructure/types/user-context.type";

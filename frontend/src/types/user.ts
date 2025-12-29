@@ -1,8 +1,10 @@
+import { UserRole } from '../consts/userType';
+
 export interface User {
   _id: string;
   fullName?: string; // Changed to optional to match backend
   email: string;
-  userType: number;
+  userType: UserRole;
   accountId: string;
   entityId: string;
   status: string;

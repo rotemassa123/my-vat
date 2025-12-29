@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { FilterQuery, Types } from 'mongoose';
 import { ReportingQueryRequest } from '../Requests/reporting.requests';
 import { InvoiceDocument } from 'src/Common/Infrastructure/DB/schemas/invoice.schema';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 
 export interface UserContext {
   accountId: string;
   entityId?: string;
-  userType: UserType;
+  userType: UserRole;
 }
 
 @Injectable()
@@ -57,7 +57,7 @@ export class ReportingQueryBuilderService {
       supplier: 1,
       entity_id: 1,
       invoice_date: 1,
-      invoice_number: 1,
+      invoice_id: 1,
       net_amount: 1,
       vat_amount: 1,
       currency: 1,

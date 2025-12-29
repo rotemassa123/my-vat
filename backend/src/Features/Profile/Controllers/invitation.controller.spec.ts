@@ -4,7 +4,7 @@ import { Reflector } from '@nestjs/core';
 import { InvitationController } from './invitation.controller';
 import { InvitationService } from '../Services/invitation.service';
 import { SendInvitationRequest, SendInvitationResponse } from '../Requests/invitation.requests';
-import { UserType } from 'src/Common/consts/userType';
+import { UserRole } from 'src/Common/consts/userRole';
 import { RolesGuard } from 'src/Common/Infrastructure/guards/roles.guard';
 import { IProfileRepository } from 'src/Common/ApplicationCore/Services/IProfileRepository';
 import * as httpContext from 'express-http-context';
@@ -117,7 +117,7 @@ describe('InvitationController', () => {
       expect(mockProfileRepository.createUsersBatch).toHaveBeenCalledWith([{
         fullName: 'test',
         email: 'test@example.com',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: '507f1f77bcf86cd799439012',
         entityId: '507f1f77bcf86cd799439011',
         status: 'pending',
@@ -175,7 +175,7 @@ describe('InvitationController', () => {
         {
           fullName: 'test',
           email: 'test@example.com',
-          userType: UserType.member,
+          userType: UserRole.MEMBER,
           accountId: '507f1f77bcf86cd799439012',
           entityId: '507f1f77bcf86cd799439011',
           status: 'pending',
@@ -184,7 +184,7 @@ describe('InvitationController', () => {
         {
           fullName: 'user',
           email: 'user@example.com',
-          userType: UserType.member,
+          userType: UserRole.MEMBER,
           accountId: '507f1f77bcf86cd799439012',
           entityId: '507f1f77bcf86cd799439011',
           status: 'pending',
@@ -320,7 +320,7 @@ describe('InvitationController', () => {
         {
           fullName: 'success',
           email: 'success@example.com',
-          userType: UserType.member,
+          userType: UserRole.MEMBER,
           accountId: '507f1f77bcf86cd799439012',
           entityId: '507f1f77bcf86cd799439011',
           status: 'pending',
@@ -329,7 +329,7 @@ describe('InvitationController', () => {
         {
           fullName: 'failed',
           email: 'failed@example.com',
-          userType: UserType.member,
+          userType: UserRole.MEMBER,
           accountId: '507f1f77bcf86cd799439012',
           entityId: '507f1f77bcf86cd799439011',
           status: 'failed to send request',
@@ -369,7 +369,7 @@ describe('InvitationController', () => {
       expect(mockProfileRepository.createUser).toHaveBeenCalledWith({
         fullName: 'test',
         email: 'test@example.com',
-        userType: UserType.member,
+        userType: UserRole.MEMBER,
         accountId: '507f1f77bcf86cd799439012',
         entityId: '507f1f77bcf86cd799439011',
         status: 'pending',

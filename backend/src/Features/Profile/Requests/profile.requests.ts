@@ -1,6 +1,6 @@
 import { ApiProperty, OmitType } from "@nestjs/swagger";
 import { IsString, IsEmail, IsEnum, IsOptional, IsObject, IsDateString, IsNumber, IsMongoId } from "class-validator";
-import { UserType } from "src/Common/consts/userType";
+import { UserRole } from "src/Common/consts/userRole";
 
 // Account Requests
 export class CreateAccountRequest {
@@ -187,14 +187,14 @@ export class CreateUserRequest {
   password: string;
 
   @ApiProperty({ 
-    enum: UserType, 
-    example: 1, // 0: operator, 1: admin, 2: member, 3: guest
-    default: 1,
-    description: 'Role/type of the user (0: operator, 1: admin, 2: member, 3: guest)'
+    enum: UserRole, 
+    example: UserRole.ADMIN,
+    default: UserRole.ADMIN,
+    description: 'Role of the user (operator, admin, member, viewer)'
   })
-  @IsEnum(UserType)
-  @IsNumber()
-  userType: UserType;
+  @IsEnum(UserRole)
+  @IsString()
+  userType: UserRole;
 
   @ApiProperty({
     example: '686174a98307686bff647c0c',
@@ -256,15 +256,15 @@ export class UpdateUserRequest {
   password?: string;
 
   @ApiProperty({ 
-    enum: UserType, 
+    enum: UserRole, 
     required: false, 
-    example: 2, // 0: operator, 1: admin, 2: member, 3: guest
-    description: 'Role/type of the user (0: operator, 1: admin, 2: member, 3: guest)'
+    example: UserRole.MEMBER,
+    description: 'Role of the user (operator, admin, member, viewer)'
   })
   @IsOptional()
-  @IsEnum(UserType)
-  @IsNumber()
-  userType?: UserType;
+  @IsEnum(UserRole)
+  @IsString()
+  userType?: UserRole;
 
   @ApiProperty({ enum: ['active', 'inactive', 'pending', 'failed to send request'], required: false, example: 'active' })
   @IsOptional()

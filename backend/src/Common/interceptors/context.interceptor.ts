@@ -2,7 +2,7 @@ import { CallHandler, ExecutionContext, Injectable, NestInterceptor } from '@nes
 import { Observable } from 'rxjs';
 import * as httpContext from 'express-http-context';
 import { Request } from 'express';
-import { UserType } from '../consts/userType';
+import { UserRole } from '../consts/userRole';
 import { UserContext } from '../Infrastructure/types/user-context.type';
 
 @Injectable()
@@ -21,7 +21,7 @@ export class TenantContextInterceptor implements NestInterceptor {
     };
 
     // Operator can override accountId via header or query param
-    if (userContext.userType === UserType.operator) {
+    if (userContext.userType === UserRole.OPERATOR) {
       const headerOverride = request.headers['x-account-id'] as string;
       const queryParam = (request.query as any)?.['account_id'] ?? (request.query as any)?.['accountId'];
       const queryOverride = typeof queryParam === 'string' ? queryParam : undefined;

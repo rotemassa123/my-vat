@@ -26,7 +26,7 @@ import { ticketsApi, type Ticket, type TicketMessage } from '../../services/tick
 import { useTicketSocket } from '../../hooks/tickets/useTicketSocket';
 import { useAuthStore } from '../../store/authStore';
 import { useTicketStore } from '../../store/ticketStore';
-import { UserType } from '../../consts/userType';
+import { UserRole } from '../../consts/userType';
 import { useUserInfo } from '../../hooks/useUserInfo';
 import { format } from 'date-fns';
 import apiClient from '../../lib/apiClient';
@@ -245,7 +245,7 @@ const TicketDetailModal: React.FC<TicketDetailModalProps> = ({ open, onClose, ti
     handleTicketUpdate,
   );
 
-  const isOperator = user?.userType === UserType.operator;
+  const isOperator = user?.userType === UserRole.OPERATOR;
   const isAssignedToMe = ticket?.handlerId === user?._id;
   const canAssign = isOperator && !isAssignedToMe && ticket?.status !== 'closed';
   const canUnassign = isOperator && isAssignedToMe && ticket?.status !== 'closed';
