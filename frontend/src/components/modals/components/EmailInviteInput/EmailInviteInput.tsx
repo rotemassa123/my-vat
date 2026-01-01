@@ -6,12 +6,15 @@ export interface EmailInviteTag {
   id: string;
   email: string;
   isValid: boolean;
+  isDuplicate?: boolean;
 }
 
 interface EmailInviteInputProps {
   emailTags: EmailInviteTag[];
   newEmail: string;
   emailError?: string;
+  duplicateWarning?: string;
+  hasDuplicateEmails?: boolean;
   onChange: (value: string) => void;
   onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -23,6 +26,8 @@ const EmailInviteInput: React.FC<EmailInviteInputProps> = ({
   emailTags,
   newEmail,
   emailError,
+  duplicateWarning,
+  hasDuplicateEmails,
   onChange,
   onKeyPress,
   onKeyDown,
@@ -38,7 +43,13 @@ const EmailInviteInput: React.FC<EmailInviteInputProps> = ({
               key={tag.id}
               label={tag.email}
               onDelete={() => onRemove(tag.email)}
-              className={tag.isValid ? styles.emailChip : styles.invalidEmailChip}
+              className={
+                tag.isDuplicate
+                  ? styles.duplicateEmailChip
+                  : tag.isValid
+                  ? styles.emailChip
+                  : styles.invalidEmailChip
+              }
               size="small"
             />
           ))}
@@ -55,6 +66,7 @@ const EmailInviteInput: React.FC<EmailInviteInputProps> = ({
         />
       </div>
       {emailError && <p className={styles.emailError}>{emailError}</p>}
+      {duplicateWarning && <p className={styles.duplicateWarning}>{duplicateWarning}</p>}
     </div>
   );
 };

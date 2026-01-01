@@ -33,7 +33,7 @@ const InviteModal: React.FC<InviteModalProps> = ({
   title = "Invite to users MyVat"
 }) => {
   const { isModalOpen, closeModal } = useInviteModalStore();
-  const { entities } = useAccountStore();
+  const { entities, users } = useAccountStore();
   const { sendInvitations, isLoading, isError, error, data } = useInviteUsers();
   
   // State management
@@ -79,6 +79,12 @@ const InviteModal: React.FC<InviteModalProps> = ({
     return emailRegex.test(email);
   };
 
+  // Check if email exists in account users
+  const isEmailDuplicate = (email: string): boolean => {
+    const normalizedEmail = email.toLowerCase().trim();
+    return users.some(user => user.email.toLowerCase() === normalizedEmail);
+  };
+
   // Event handlers
   const handleEntityChange = (event: SelectChangeEvent<string>) => {
     setSelectedEntity(event.target.value);
@@ -93,17 +99,19 @@ const InviteModal: React.FC<InviteModalProps> = ({
       event.preventDefault();
       const email = newEmail.trim();
       const isValid = isValidEmail(email);
+      const isDuplicate = isEmailDuplicate(email);
       
       const newTag: EmailInviteTag = {
         id: Date.now().toString(),
         email,
-        isValid
+        isValid,
+        isDuplicate
       };
       
       setEmailTags([...emailTags, newTag]);
       setNewEmail('');
       
-      // Only show error if there are invalid emails
+      // Check for invalid emails
       const hasInvalidEmails = [...emailTags, newTag].some(tag => !tag.isValid);
       if (hasInvalidEmails) {
         setEmailError('One or more of your emails are incorrect');
@@ -143,11 +151,13 @@ const InviteModal: React.FC<InviteModalProps> = ({
     if (newEmail.trim()) {
       const email = newEmail.trim();
       const isValid = isValidEmail(email);
+      const isDuplicate = isEmailDuplicate(email);
 
       const newTag: EmailInviteTag = {
         id: Date.now().toString(),
         email,
-        isValid
+        isValid,
+        isDuplicate
       };
 
       setEmailTags([...emailTags, newTag]);
@@ -314,6 +324,8 @@ const InviteModal: React.FC<InviteModalProps> = ({
               emailTags={emailTags}
               newEmail={newEmail}
               emailError={emailError}
+              duplicateWarning={emailTags.some(tag => tag.isDuplicate) ? 'One or more users are already registered' : undefined}
+              hasDuplicateEmails={emailTags.some(tag => tag.isDuplicate)}
               onChange={setNewEmail}
               onKeyPress={handleEmailKeyPress}
               onKeyDown={handleEmailKeyDown}

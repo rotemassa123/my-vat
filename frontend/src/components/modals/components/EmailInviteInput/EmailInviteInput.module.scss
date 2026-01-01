@@ -46,6 +46,14 @@
   border-radius: 999px;
 }
 
+.duplicateEmailChip {
+  background-color: rgba(255, 193, 7, 0.2);
+  color: #f57c00;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
 .emailInputField {
   flex: 1;
   border: none;
@@ -58,6 +66,13 @@
 
 .emailError {
   color: #d32f2f;
+  font-size: 12px;
+  font-family: 'Poppins', sans-serif;
+  margin: 0;
+}
+
+.duplicateWarning {
+  color: #f57c00;
   font-size: 12px;
   font-family: 'Poppins', sans-serif;
   margin: 0;
