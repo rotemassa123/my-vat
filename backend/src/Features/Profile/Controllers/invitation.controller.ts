@@ -34,21 +34,21 @@ export class InvitationController {
     // Remove duplicate emails (case-insensitive) from the request
     const uniqueRequestEmails = [...new Set(request.emails.map(email => email.toLowerCase()))];
     
-    // Get existing users for this account to check for duplicates
-    const existingUsers = await this.profileRepository.getUsersForAccount();
+    // Check for existing users globally (single batch request)
+    const existingUsers = await this.profileRepository.findUsersByEmails(uniqueRequestEmails);
     const existingEmails = new Set(existingUsers.map(user => user.email.toLowerCase()));
     
-    // Filter out emails that already exist in the account
+    // Filter out emails that already exist globally
     const newEmails = uniqueRequestEmails.filter(email => !existingEmails.has(email));
     const duplicateEmails = uniqueRequestEmails.filter(email => existingEmails.has(email));
     
-    // Log duplicate detection
+    // Log warning for existing users (do not send emails to them)
     if (duplicateEmails.length > 0) {
-      this.logger.log(`Found ${duplicateEmails.length} duplicate emails in account: ${duplicateEmails.join(', ')}`);
+      this.logger.warn(`Found ${duplicateEmails.length} existing users (emails already in system): ${duplicateEmails.join(', ')}. Skipping invitation emails.`);
     }
     
     if (newEmails.length === 0) {
-      this.logger.warn('All emails are already users in this account');
+      this.logger.warn('All emails are already users in the system');
       return {
         totalProcessed: uniqueRequestEmails.length,
         successful: 0,
@@ -56,7 +56,7 @@ export class InvitationController {
         results: uniqueRequestEmails.map(email => ({
           email,
           success: false,
-          message: 'User already exists in this account',
+          message: 'User already exists',
           errorCode: 'user_already_exists'
         }))
       };
@@ -94,11 +94,11 @@ export class InvitationController {
 
     // Combine results: existing duplicates (failed) + user creation results merged with invitation results
     const allResults = [
-      // Add failed results for duplicate emails
+      // Add failed results for duplicate emails (existing users)
       ...duplicateEmails.map(email => ({
         email,
         success: false,
-        message: 'User already exists in this account',
+        message: 'User already exists',
         errorCode: 'user_already_exists'
       })),
       // Add user creation results merged with invitation results

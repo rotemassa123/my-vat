@@ -131,6 +131,14 @@ export class ProfileMongoService implements IProfileRepository {
     return doc ? this.mapDocumentToUserData(doc) : null;
   }
 
+  async findUsersByEmails(emails: string[]): Promise<UserData[]> {
+    if (emails.length === 0) {
+      return [];
+    }
+    const docs = await this.userModel.find({ email: { $in: emails } }).exec();
+    return docs.map(doc => this.mapDocumentToUserData(doc));
+  }
+
   async createUser(userData: CreateUserData): Promise<UserData> {
     // Convert camelCase API fields to snake_case MongoDB fields
     const mongoUserData: any = { ...userData };

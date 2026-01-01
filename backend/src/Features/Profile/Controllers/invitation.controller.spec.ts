@@ -21,7 +21,7 @@ describe('InvitationController', () => {
   const mockProfileRepository = {
     createUser: jest.fn(),
     createUsersBatch: jest.fn(),
-    getUsersForAccount: jest.fn(),
+    findUsersByEmails: jest.fn(),
   };
 
   const mockConfigService = {
@@ -82,8 +82,8 @@ describe('InvitationController', () => {
         { _id: 'user-1', email: 'test@example.com' },
         { _id: 'user-2', email: 'user@example.com' }
       ]);
-      // Default mock for getUsersForAccount - no existing users
-      mockProfileRepository.getUsersForAccount.mockResolvedValue([]);
+      // Default mock for findUsersByEmails - no existing users
+      mockProfileRepository.findUsersByEmails.mockResolvedValue([]);
     });
 
     it('should send invitations successfully and create users in batch', async () => {
@@ -134,8 +134,8 @@ describe('InvitationController', () => {
         entityId: '507f1f77bcf86cd799439011'
       };
 
-      // Mock existing users in account
-      mockProfileRepository.getUsersForAccount.mockResolvedValue([
+      // Mock existing users globally
+      mockProfileRepository.findUsersByEmails.mockResolvedValue([
         { _id: 'existing-user', email: 'existing@example.com', fullName: 'Existing User' }
       ]);
 
@@ -199,8 +199,8 @@ describe('InvitationController', () => {
         entityId: '507f1f77bcf86cd799439011'
       };
 
-      // Mock existing users in account
-      mockProfileRepository.getUsersForAccount.mockResolvedValue([
+      // Mock existing users globally
+      mockProfileRepository.findUsersByEmails.mockResolvedValue([
         { _id: 'existing-user', email: 'existing@example.com', fullName: 'Existing User' }
       ]);
 
@@ -236,7 +236,7 @@ describe('InvitationController', () => {
           {
             email: 'existing@example.com',
             success: false,
-            message: 'User already exists in this account',
+            message: 'User already exists',
             errorCode: 'user_already_exists'
           },
           {
@@ -254,8 +254,8 @@ describe('InvitationController', () => {
         entityId: '507f1f77bcf86cd799439011'
       };
 
-      // Mock existing users in account
-      mockProfileRepository.getUsersForAccount.mockResolvedValue([
+      // Mock existing users globally
+      mockProfileRepository.findUsersByEmails.mockResolvedValue([
         { _id: 'user1', email: 'existing1@example.com', fullName: 'User 1' },
         { _id: 'user2', email: 'existing2@example.com', fullName: 'User 2' }
       ]);
@@ -274,13 +274,13 @@ describe('InvitationController', () => {
           {
             email: 'existing1@example.com',
             success: false,
-            message: 'User already exists in this account',
+            message: 'User already exists',
             errorCode: 'user_already_exists'
           },
           {
             email: 'existing2@example.com',
             success: false,
-            message: 'User already exists in this account',
+            message: 'User already exists',
             errorCode: 'user_already_exists'
           }
         ]

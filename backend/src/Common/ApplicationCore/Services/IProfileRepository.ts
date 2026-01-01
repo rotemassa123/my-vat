@@ -138,6 +138,7 @@ export abstract class IProfileRepository {
   // User methods
   abstract findUserById(userId: string): Promise<UserData | null>;
   abstract findUserByEmail(email: string): Promise<UserData | null>;
+  abstract findUsersByEmails(emails: string[]): Promise<UserData[]>;
   abstract createUser(userData: CreateUserData): Promise<UserData>;
   abstract createUsersBatch(usersData: CreateUserData[]): Promise<UserData[]>;
   abstract updateUser(userId: string, updateData: UpdateUserData): Promise<boolean>;
