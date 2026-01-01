@@ -15,6 +15,7 @@ import {
   Button,
   Alert,
   CircularProgress,
+  Tooltip,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import { Close, ExpandMore, ExpandLess, CheckCircle, Email } from '@mui/icons-material';
@@ -174,6 +175,32 @@ const InviteModal: React.FC<InviteModalProps> = ({
 
   const handlePersonalExpand = () => {
     setIsPersonalExpanded(!isPersonalExpanded);
+  };
+
+  // Get the disabled reason for the invite button
+  const getInviteButtonDisabledReason = (): string | null => {
+    if (isLoading) {
+      return 'Sending invitations...';
+    }
+    if (emailTags.length === 0) {
+      return 'Please add at least one email address';
+    }
+    if (selectedRole !== 'admin' && !selectedEntity) {
+      return 'Please select an entity';
+    }
+    const invalidEmails = emailTags.filter(tag => !tag.isValid);
+    if (invalidEmails.length > 0) {
+      return 'Please fix invalid email addresses';
+    }
+    const duplicateEmails = emailTags.filter(tag => tag.isDuplicate);
+    if (duplicateEmails.length > 0) {
+      return 'One or more users are already registered';
+    }
+    return null;
+  };
+
+  const isInviteButtonDisabled = (): boolean => {
+    return isLoading || emailTags.length === 0 || (selectedRole !== 'admin' && !selectedEntity);
   };
 
 
@@ -402,16 +429,35 @@ const InviteModal: React.FC<InviteModalProps> = ({
 
         {/* Footer */}
         <Box className={styles.modalFooter}>
-          <Button
-            variant="contained"
-            className={styles.inviteButton}
-            size="large"
-            onClick={handleInviteSubmit}
-            disabled={isLoading || emailTags.length === 0 || (selectedRole !== 'admin' && !selectedEntity)}
-            startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
+          <Tooltip 
+            title={getInviteButtonDisabledReason() || ''} 
+            arrow
+            placement="top"
+            disableHoverListener={!isInviteButtonDisabled()}
+            disableFocusListener={!isInviteButtonDisabled()}
+            disableTouchListener={!isInviteButtonDisabled()}
+            componentsProps={{
+              tooltip: {
+                sx: {
+                  fontSize: '14px',
+                  padding: '12px 16px',
+                }
+              }
+            }}
           >
-            {isLoading ? 'Sending...' : 'Invite'}
-          </Button>
+            <span>
+              <Button
+                variant="contained"
+                className={styles.inviteButton}
+                size="large"
+                onClick={handleInviteSubmit}
+                disabled={isInviteButtonDisabled()}
+                startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
+              >
+                {isLoading ? 'Sending...' : 'Invite'}
+              </Button>
+            </span>
+          </Tooltip>
         </Box>
       </Box>
       )}
