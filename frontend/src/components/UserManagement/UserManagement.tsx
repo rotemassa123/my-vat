@@ -17,7 +17,7 @@ import {
   DialogContentText
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
-import { 
+import {  
   Search, 
   PersonAdd, 
   Edit, 
@@ -101,7 +101,7 @@ const formatUserStatus = (status: string): string => {
 const UserManagement: React.FC = () => {
   const { users: profileUsers, entities, setProfile } = useAccountStore();
   const { openModal } = useInviteModalStore();
-  const { deleteUser, isDeleting, deleteError, updateUserRole, updateRoleError, updateUserEntity, updateEntityError } = useUserManagement(
+  const { deleteUser, isDeleting, deleteError, updateUser, updateUserError } = useUserManagement(
     (message: string) => setSuccessMessage(message)
   );
   
@@ -116,7 +116,6 @@ const UserManagement: React.FC = () => {
     }
     
     return profileUsers.map(user => {
-      const entity = entities.find(e => e._id === user.entityId);
       return {
         id: user._id,
         name: user.fullName || user.email.split('@')[0], // Fallback to email prefix if no fullName
@@ -124,12 +123,13 @@ const UserManagement: React.FC = () => {
         role: mapUserTypeToRole(user.userType),
         status: formatUserStatus(user.status),
         avatar: createAvatarInitials(user.fullName),
-        entity: entity?.entity_name || 'Unknown Entity',
+        entityId: user.entityId,
         lastLogin: formatDateTime(undefined), // Not available in current data
         createdAt: formatDate(user.created_at)
       };
     });
   }, [profileUsers, entities]);
+
 
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
@@ -221,15 +221,17 @@ const UserManagement: React.FC = () => {
     handleCloseMenu();
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (userToDelete) {
-      deleteUser(userToDelete);
-      if (deleteError) {
-        console.error('Delete error:', deleteError);
+      try {
+        await deleteUser(userToDelete);
+        setDeleteConfirmOpen(false);
+        setUserToDelete(null);
+      } catch (error) {
+        console.error('Delete error:', error);
+        // Keep dialog open on error so user can retry
       }
     }
-    setDeleteConfirmOpen(false);
-    setUserToDelete(null);
   };
 
   const handleCancelDelete = () => {
@@ -243,13 +245,13 @@ const UserManagement: React.FC = () => {
     handleCloseMenu();
   };
 
-  const handleRoleChange = async (userId: string, newRole: string, newUserType: UserRole): Promise<void> => {
+  const handleRoleChange = async (userId: string, _newRole: string, newUserType: UserRole): Promise<void> => {
     // Find the current user to get their current entity
     const currentUser = profileUsers.find(user => user._id === userId);
     
     if (newUserType === UserRole.ADMIN) {
       // For admin, we don't need entityId (it will be cleared by backend)
-      await updateUserRole(userId, newUserType);
+      await updateUser(userId, { userType: newUserType });
     } else if (newUserType === UserRole.MEMBER || newUserType === UserRole.VIEWER) {
       // For member/viewer, we need to assign an entity
       // If user already has an entity, keep it; otherwise assign to first available entity
@@ -266,14 +268,14 @@ const UserManagement: React.FC = () => {
       }
       
       // Call the backend with both userType and entityId
-      await updateUserRole(userId, newUserType, entityId);
+      await updateUser(userId, { userType: newUserType, entityId });
     } else {
-      await updateUserRole(userId, newUserType);
+      await updateUser(userId, { userType: newUserType });
     }
   };
 
   const handleEntityChange = async (userId: string, newEntityId: string): Promise<void> => {
-    await updateUserEntity(userId, newEntityId);
+    await updateUser(userId, { entityId: newEntityId });
   };
 
   const handleCloseError = () => {
@@ -374,11 +376,10 @@ const UserManagement: React.FC = () => {
           {filteredUsers.map((user) => (
             <UserRow 
               key={user.id} 
-              user={user} 
+              user={user}
               onActionClick={handleActionClick}
               onRoleChange={handleRoleChange}
               onEntityChange={handleEntityChange}
-              entities={entities}
               isEditing={editingUserId === user.id}
               editingName={editingUserName}
               onNameChange={setEditingUserName}
@@ -478,7 +479,7 @@ const UserManagement: React.FC = () => {
 
       {/* Error Snackbar */}
       <Snackbar
-        open={!!updateRoleError || !!updateEntityError}
+        open={!!updateUserError || !!deleteError}
         autoHideDuration={6000}
         onClose={handleCloseError}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
@@ -488,7 +489,7 @@ const UserManagement: React.FC = () => {
           severity="error" 
           sx={{ width: '100%' }}
         >
-          {updateRoleError?.message || updateEntityError?.message || 'Failed to update user'}
+          {updateUserError?.message || deleteError?.message || 'Failed to update user'}
         </Alert>
       </Snackbar>
 

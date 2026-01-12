@@ -8,11 +8,7 @@ import {
 import {
   KeyboardArrowDown as ChevronDownIcon,
 } from '@mui/icons-material';
-
-interface Entity {
-  _id: string;
-  name: string;
-}
+import type { Entity } from '../../types/profile';
 
 interface EntityComboboxProps {
   currentEntity: string;
@@ -144,17 +140,20 @@ const EntityCombobox: React.FC<EntityComboboxProps> = ({
           horizontal: 'left',
         }}
       >
-        {entities.map((entity) => (
-          <MenuItem 
-            key={entity._id}
-            onClick={() => handleEntitySelect(entity._id, entity.entity_name || 'Unnamed Entity')}
-            disabled={(entity.entity_name || 'Unnamed Entity') === selectedEntity}
-          >
-            <Typography variant="body2">
-              {entity.entity_name || 'Unnamed Entity'}
-            </Typography>
-          </MenuItem>
-        ))}
+        {entities.map((entity) => {
+          const entityName = entity.entity_name || 'Unnamed Entity';
+          return (
+            <MenuItem 
+              key={entity._id}
+              onClick={() => handleEntitySelect(entity._id, entityName)}
+              disabled={entityName === selectedEntity}
+            >
+              <Typography variant="body2">
+                {entityName}
+              </Typography>
+            </MenuItem>
+          );
+        })}
       </Menu>
     </Box>
   );

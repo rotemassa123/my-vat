@@ -42,6 +42,8 @@ interface AccountStore {
   addEntity: (entity: Entity) => void;
   updateEntity: (entityId: string, updates: Partial<Entity>) => void;
   removeEntity: (entityId: string) => void;
+  updateUser: (userId: string, updates: Partial<User>) => void;
+  removeUser: (userId: string) => void;
   setError: (error: string | null) => void;
   clearProfile: () => void;
 }
@@ -93,6 +95,17 @@ export const useAccountStore = create(
       
       removeEntity: (entityId) => set((state) => ({
         entities: state.entities.filter(entity => entity._id !== entityId),
+      })),
+      
+      // User management
+      updateUser: (userId, updates) => set((state) => ({
+        users: state.users.map(user =>
+          user._id === userId ? { ...user, ...updates } : user
+        ),
+      })),
+      
+      removeUser: (userId) => set((state) => ({
+        users: state.users.filter(user => user._id !== userId),
       })),
       
       setError: (error) => set({ error }),

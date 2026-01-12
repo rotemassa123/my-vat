@@ -1,6 +1,7 @@
 import apiClient from './apiClient';
 import type { User } from '../types/user';
 import type { ComprehensiveProfile } from '../types/profile';
+import { UserRole } from '../consts/userType';
 
 export interface CreateAccountPayload {
   account_type?: 'individual' | 'business';
@@ -19,7 +20,7 @@ export interface DeleteUserResponse {
 
 export interface UpdateUserRoleResponse {
   success: boolean;
-  user: any;
+  user: User;
 }
 
 export interface UploadProfileImageResponse {
@@ -87,7 +88,7 @@ export const profileApi = {
     }
   },
 
-  updateUserRole: async (userId: string, userType: number, entityId?: string): Promise<UpdateUserRoleResponse> => {
+  updateUserRole: async (userId: string, userType: UserRole, entityId?: string): Promise<UpdateUserRoleResponse> => {
     try {
       const requestBody: { userType: number; entityId?: string } = { userType };
       if (entityId) {

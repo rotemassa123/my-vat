@@ -16,6 +16,7 @@ import {
   UpdateEntityData,
   EntityType
 } from "src/Common/ApplicationCore/Services/IProfileRepository";
+import { UserRole } from "src/Common/consts/userRole";
 
 // MongoDB schemas
 import { Account, AccountDocument } from "src/Common/Infrastructure/DB/schemas/account.schema";
@@ -202,6 +203,14 @@ export class ProfileMongoService implements IProfileRepository {
     // Use findByIdAndUpdate which properly handles ObjectId conversion
     // and allows us to use the actual MongoDB field names
     const mongoUpdateData: any = { ...updateData };
+    const unsetFields: any = {};
+    
+    // If role is being updated to ADMIN, remove entity_id
+    if (updateData.role === UserRole.ADMIN) {
+      unsetFields.entity_id = '';
+      // Don't set entityId if role is ADMIN
+      delete mongoUpdateData.entityId;
+    }
     
     // Convert camelCase API fields to snake_case MongoDB fields  
     if (mongoUpdateData.entityId !== undefined) {
@@ -214,8 +223,17 @@ export class ProfileMongoService implements IProfileRepository {
       delete mongoUpdateData.accountId;
     }
     
+    // Build update operation
+    const updateOperation: any = {};
+    if (Object.keys(mongoUpdateData).length > 0) {
+      updateOperation.$set = mongoUpdateData;
+    }
+    if (Object.keys(unsetFields).length > 0) {
+      updateOperation.$unset = unsetFields;
+    }
+    
     const result = await this.userModel
-      .findByIdAndUpdate(userId, { $set: mongoUpdateData }, { new: false })
+      .findByIdAndUpdate(userId, updateOperation, { new: false })
       .exec();
     
     return !!result;

@@ -15,6 +15,7 @@ import RoleCombobox from './RoleCombobox';
 import EntityCombobox from './EntityCombobox';
 import styles from './UserManagement.module.scss';
 import { UserRole } from '../../consts/userType';
+import { useAccountStore } from '../../store/accountStore';
 
 interface User {
   id: string;
@@ -23,7 +24,7 @@ interface User {
   role: string;
   status: string;
   avatar: string;
-  entity: string;
+  entityId?: string;
   lastLogin: string;
   createdAt: string;
 }
@@ -33,7 +34,6 @@ interface UserRowProps {
   onActionClick: (event: React.MouseEvent<HTMLElement>, userId: string) => void;
   onRoleChange: (userId: string, newRole: string, newUserType: UserRole) => Promise<void>;
   onEntityChange: (userId: string, newEntityId: string) => Promise<void>;
-  entities: Array<{ _id: string; name: string }>;
   isEditing?: boolean;
   editingName?: string;
   onNameChange?: (name: string) => void;
@@ -45,14 +45,17 @@ const UserRow: React.FC<UserRowProps> = ({
   user, 
   onActionClick, 
   onRoleChange, 
-  onEntityChange, 
-  entities,
+  onEntityChange,
   isEditing = false,
   editingName = '',
   onNameChange,
   onSaveName,
   onCancel
 }) => {
+  // Get entities from store and find the entity for this user
+  const entities = useAccountStore(state => state.entities);
+  const entity = entities.find(e => e._id === user.entityId);
+  const entityName = entity?.entity_name || 'Unknown Entity';
   const [isInitialMount, setIsInitialMount] = React.useState(true);
   const nameInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -153,7 +156,7 @@ const UserRow: React.FC<UserRowProps> = ({
       </Box>
       <Box className={styles.entityCell} style={{ width: '15%' }}>
         <EntityCombobox
-          currentEntity={user.entity}
+          currentEntity={entityName}
           userId={user.id}
           userRole={user.role}
           entities={entities}
